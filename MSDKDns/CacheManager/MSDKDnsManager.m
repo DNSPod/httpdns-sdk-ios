@@ -1,0 +1,523 @@
+/**
+ * Copyright (c) Tencent. All rights reserved.
+ */
+
+#import "MSDKDnsManager.h"
+#import "MSDKDnsService.h"
+#import "MSDKDnsLog.h"
+#import "MSDKDns.h"
+#import "MSDKDnsInfoTool.h"
+#import "MSDKDnsParamsManager.h"
+#import "MSDKDnsNetworkManager.h"
+#import "msdkdns_local_ip_stack.h"
+
+extern NSString *DES_HTTP_CHANNEL;
+extern NSString *DES_HTTPS_CHANNEL;
+extern NSString *AES_HTTP_CHANNEL;
+extern NSString *AES_HTTPS_CHANNEL;
+
+@interface MSDKDnsManager ()
+
+@property (strong, nonatomic, readwrite) NSMutableArray * serviceArray;
+@property (strong, nonatomic, readwrite) NSMutableDictionary * domainDict;
+
+@end
+
+@implementation MSDKDnsManager
+
+- (void)dealloc {
+    if (_domainDict) {
+        [self.domainDict removeAllObjects];
+        [self setDomainDict:nil];
+    }
+    if (_serviceArray) {
+        [self.serviceArray removeAllObjects];
+        [self setServiceArray:nil];
+    }
+}
+
+static MSDKDnsManager * _sharedInstance = nil;
++ (instancetype)shareInstance {
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        _sharedInstance = [[MSDKDnsManager alloc] init];
+    });
+    return _sharedInstance;
+}
+
+- (NSArray *) getHostByName:(NSString *)domain {
+    // 获取当前ipv4/ipv6/双栈网络环境
+    msdkdns::MSDKDNS_TLocalIPStack netStack = msdkdns::msdkdns_detect_local_ip_stack();
+    __block float timeOut = 2.0;
+    __block NSDictionary * cacheDomainDict = nil;
+    dispatch_sync([MSDKDnsInfoTool msdkdns_queue], ^{
+        if (domain && _domainDict) {
+            cacheDomainDict = [[NSDictionary alloc] initWithDictionary:_domainDict];
+        }
+        timeOut = [[MSDKDnsParamsManager shareInstance] msdkDnsGetMTimeOut];
+    });
+    //查找缓存，缓存中有HttpDns数据且ttl为超时则直接返回结果,不存在或者ttl超时则重新查询
+    if (cacheDomainDict) {
+        NSDictionary * domainInfo = cacheDomainDict[domain];
+        if (domainInfo && [domainInfo isKindOfClass:[NSDictionary class]]) {
+            NSDictionary * cacheDict = domainInfo[kMSDKHttpDnsCache_A];
+            if (!cacheDict || ![cacheDict isKindOfClass:[NSDictionary class]]) {
+                cacheDict = domainInfo[kMSDKHttpDnsCache_4A];
+            }
+            if (cacheDict && [cacheDict isKindOfClass:[NSDictionary class]]) {
+                NSString * ttlExpried = cacheDict[kTTLExpired];
+                double timeInterval = [[NSDate date] timeIntervalSince1970];
+                if (timeInterval <= ttlExpried.doubleValue) {
+                    MSDKDNSLOG(@"TTL has not expiried,return result from cache directly!");
+                    dispatch_async([MSDKDnsInfoTool msdkdns_queue], ^{
+                        [self uploadReport:YES Domain:domain NetStack:netStack];
+                    });
+                    NSArray * result = [self resultArray:domain DomainDic:cacheDomainDict];
+                    return result;
+                }
+            }
+        }
+    }
+    dispatch_semaphore_t sema = dispatch_semaphore_create(0);
+    dispatch_async([MSDKDnsInfoTool msdkdns_queue], ^{
+        if (!_serviceArray) {
+            self.serviceArray = [[NSMutableArray alloc] init];
+        }
+        int dnsId = [[MSDKDnsParamsManager shareInstance] msdkDnsGetMDnsId];
+        NSString * dnsKey = [[MSDKDnsParamsManager shareInstance] msdkDnsGetMDnsKey];
+        // 增加channel，用channel决定是加密方式是aes还是des
+        NSString *channel = [[MSDKDnsParamsManager shareInstance] msdkDnsGetChannel];
+        NSInteger encryptType = 0;
+        if ([channel isEqualToString:AES_HTTPS_CHANNEL] || [channel isEqualToString:AES_HTTP_CHANNEL]) {
+            encryptType = 1;
+        }
+        //进行httpdns请求
+        MSDKDnsService * dnsService = [[MSDKDnsService alloc] init];
+        [self.serviceArray addObject:dnsService];
+        __weak __typeof__(self) weakSelf = self;
+        [dnsService getHostByName:domain TimeOut:timeOut DnsId:dnsId DnsKey:dnsKey NetStack:netStack encryptType:encryptType returnIps:^() {
+            __strong __typeof(self) strongSelf = weakSelf;
+            if (strongSelf) {
+                [strongSelf uploadReport:NO Domain:domain NetStack:netStack];
+                [strongSelf dnsHasDone:dnsService];
+            }
+            dispatch_semaphore_signal(sema);
+        }];
+    });
+    dispatch_semaphore_wait(sema, dispatch_time(DISPATCH_TIME_NOW, timeOut * NSEC_PER_SEC));
+    cacheDomainDict = nil;
+    dispatch_sync([MSDKDnsInfoTool msdkdns_queue], ^{
+        if (domain && _domainDict) {
+            cacheDomainDict = [[NSDictionary alloc] initWithDictionary:_domainDict];
+        }
+    });
+    NSArray * result = [self resultArray:domain DomainDic:cacheDomainDict];
+    return result;
+}
+
+- (void) getHostByName:(NSString *)domain returnIps:(void (^)(NSArray *))handler {
+    // 获取当前ipv4/ipv6/双栈网络环境
+    msdkdns::MSDKDNS_TLocalIPStack netStack = msdkdns::msdkdns_detect_local_ip_stack();
+    __block float timeOut = 2.0;
+    __block NSDictionary * cacheDomainDict = nil;
+    dispatch_sync([MSDKDnsInfoTool msdkdns_queue], ^{
+        if (domain && _domainDict) {
+            cacheDomainDict = [[NSDictionary alloc] initWithDictionary:_domainDict];
+        }
+        timeOut = [[MSDKDnsParamsManager shareInstance] msdkDnsGetMTimeOut];
+    });
+    //查找缓存，缓存中有HttpDns数据且ttl为超时则直接返回结果,不存在或者ttl超时则重新查询
+    if (cacheDomainDict) {
+        NSDictionary * domainInfo = cacheDomainDict[domain];
+        if (domainInfo && [domainInfo isKindOfClass:[NSDictionary class]]) {
+            NSDictionary * cacheDict = domainInfo[kMSDKHttpDnsCache_A];
+            if (!cacheDict || ![cacheDict isKindOfClass:[NSDictionary class]]) {
+                cacheDict = domainInfo[kMSDKHttpDnsCache_4A];
+            }
+            if (cacheDict && [cacheDict isKindOfClass:[NSDictionary class]]) {
+                NSString * ttlExpried = cacheDict[kTTLExpired];
+                double timeInterval = [[NSDate date] timeIntervalSince1970];
+                if (timeInterval <= ttlExpried.doubleValue) {
+                    MSDKDNSLOG(@"TTL has not expiried,return result from cache directly!");
+                    dispatch_async([MSDKDnsInfoTool msdkdns_queue], ^{
+                        [self uploadReport:YES Domain:domain NetStack:netStack];
+                    });
+                    NSArray * result = [self resultArray:domain DomainDic:cacheDomainDict];
+                    if (handler) {
+                        handler(result);
+                    }
+                    return;
+                }
+            }
+        }
+    }
+    dispatch_async([MSDKDnsInfoTool msdkdns_queue], ^{
+        if (!_serviceArray) {
+            self.serviceArray = [[NSMutableArray alloc] init];
+        }
+        int dnsId = [[MSDKDnsParamsManager shareInstance] msdkDnsGetMDnsId];
+        NSString * dnsKey = [[MSDKDnsParamsManager shareInstance] msdkDnsGetMDnsKey];
+        //进行httpdns请求
+        MSDKDnsService * dnsService = [[MSDKDnsService alloc] init];
+        [self.serviceArray addObject:dnsService];
+        __weak __typeof__(self) weakSelf = self;
+        [dnsService getHostByName:domain TimeOut:timeOut DnsId:dnsId DnsKey:dnsKey NetStack:netStack returnIps:^() {
+            __strong __typeof(self) strongSelf = weakSelf;
+            if (strongSelf) {
+                [strongSelf uploadReport:NO Domain:domain NetStack:netStack];
+                [strongSelf dnsHasDone:dnsService];
+                NSArray * result = [strongSelf resultArray:domain DomainDic:_domainDict];
+                if (handler) {
+                    handler(result);
+                }
+            }
+        }];
+    });
+}
+
+- (NSArray *)resultArray: (NSString *)domain DomainDic:(NSDictionary *)domainDict {
+    NSMutableArray * ipResult = [@[@"0", @"0"] mutableCopy];
+    if (domainDict) {
+        NSDictionary * cacheDict = domainDict[domain];
+        if (cacheDict && [cacheDict isKindOfClass:[NSDictionary class]]) {
+            
+            NSDictionary * lresultDict = cacheDict[kMSDKLocalDnsCache];
+            NSDictionary * hresultDict_A = cacheDict[kMSDKHttpDnsCache_A];
+            NSDictionary * hresultDict_4A = cacheDict[kMSDKHttpDnsCache_4A];
+            
+            if (lresultDict && [lresultDict isKindOfClass:[NSDictionary class]]) {
+                ipResult = [lresultDict[kIP] mutableCopy];
+            }
+            if (hresultDict_A && [hresultDict_A isKindOfClass:[NSDictionary class]]) {
+                NSArray * ipsArray = hresultDict_A[kIP];
+                if (ipsArray && [ipsArray isKindOfClass:[NSArray class]] && ipsArray.count > 0) {
+                    ipResult[0] = ipsArray[0];
+                }
+            }
+            if (hresultDict_4A && [hresultDict_4A isKindOfClass:[NSDictionary class]]) {
+                NSArray * ipsArray = hresultDict_4A[kIP];
+                if (ipsArray && [ipsArray isKindOfClass:[NSArray class]] && ipsArray.count > 0) {
+                    ipResult[1] = ipsArray[0];
+                }
+            }
+        }
+    }
+    return ipResult;
+}
+
+- (void)dnsHasDone:(MSDKDnsService *)service {
+    NSArray * tmpArray = [NSArray arrayWithArray:self.serviceArray];
+    NSMutableArray * tmp = [[NSMutableArray alloc] init];
+    for (MSDKDnsService * dnsService in tmpArray) {
+        if (dnsService == service) {
+            [tmp addObject:dnsService];
+            break;
+        }
+    }
+    [self.serviceArray removeObjectsInArray:tmp];
+}
+
+- (void)cacheDomainInfo:(NSDictionary *)domainInfo Domain:(NSString *)domain {
+    if (domain && domain.length > 0 && domainInfo && domainInfo.count > 0) {
+        MSDKDNSLOG(@"Cache domain:%@ %@", domain, domainInfo);
+        //结果存缓存
+        if (!self.domainDict) {
+            self.domainDict = [[NSMutableDictionary alloc] init];
+        }
+        [self.domainDict setObject:domainInfo forKey:domain];
+    }
+}
+
+- (void)clearCacheForDomain:(NSString *)domain {
+    if (domain && domain.length > 0) {
+        MSDKDNSLOG(@"Clear cache for domain:%@",domain);
+        if (self.domainDict) {
+            [self.domainDict removeObjectForKey:domain];
+        }
+    }
+}
+
+- (void)clearCache {
+    dispatch_async([MSDKDnsInfoTool msdkdns_queue], ^{
+        MSDKDNSLOG(@"MSDKDns clearCache");
+        if (self.domainDict) {
+            [self.domainDict removeAllObjects];
+            self.domainDict = nil;
+        }
+    });
+}
+
+- (NSDictionary *) getDnsDetail:(NSString *) domain {
+    __block NSDictionary * cacheDomainDict = nil;
+    dispatch_sync([MSDKDnsInfoTool msdkdns_queue], ^{
+        if (domain && _domainDict) {
+            cacheDomainDict = [[NSDictionary alloc] initWithDictionary:_domainDict];
+        }
+    });
+    NSMutableDictionary * detailDict = [@{@"v4_ips": @"",
+                                          @"v6_ips": @"",
+                                          @"v4_ttl": @"",
+                                          @"v6_ttl": @"",
+                                          @"v4_client_ip": @"",
+                                          @"v6_client_ip": @""} mutableCopy];
+    if (cacheDomainDict) {
+        NSDictionary * domainInfo = cacheDomainDict[domain];
+        if (domainInfo && [domainInfo isKindOfClass:[NSDictionary class]]) {
+            NSDictionary * cacheDict_A = domainInfo[kMSDKHttpDnsCache_A];
+            if (cacheDict_A && [cacheDict_A isKindOfClass:[NSDictionary class]]) {
+                detailDict[@"v4_ips"] = [self getIPsStringFromIPsArray:cacheDict_A[kIP]];
+                detailDict[@"v4_ttl"] = cacheDict_A[kTTL];
+                detailDict[@"v4_client_ip"] = cacheDict_A[kClientIP];
+            }
+            NSDictionary * cacheDict_4A = domainInfo[kMSDKHttpDnsCache_4A];
+            if (cacheDict_4A && [cacheDict_4A isKindOfClass:[NSDictionary class]]) {
+                detailDict[@"v6_ips"] = [self getIPsStringFromIPsArray:cacheDict_4A[kIP]];
+                detailDict[@"v6_ttl"] = cacheDict_4A[kTTL];
+                detailDict[@"v6_client_ip"] = cacheDict_4A[kClientIP];
+            }
+        }
+    }
+    return detailDict;
+}
+
+#pragma mark - uploadReport
+- (void)uploadReport:(BOOL)isFromCache Domain:(NSString *)domain NetStack:(msdkdns::MSDKDNS_TLocalIPStack)netStack {
+    Class beaconClass = NSClassFromString(@"BeaconBaseInterface");
+    if (beaconClass == 0x0) {
+        MSDKDNSLOG(@"Beacon framework is not imported");
+        return;
+    }
+
+    // 反射调用
+    // [BeaconBaseInterface onUserAction:MSDKDnsEventName isSucceed:YES elapse:0 size:0 params:params];
+    SEL methodSelector = NSSelectorFromString(@"onUserAction:isSucceed:elapse:size:params:");
+    NSMethodSignature *methodSignature = [beaconClass methodSignatureForSelector:methodSelector];
+    NSInvocation *myInvocation = [NSInvocation invocationWithMethodSignature:methodSignature];
+    [myInvocation setTarget:beaconClass];
+    [myInvocation setSelector:methodSelector];
+    // 接口传参
+    NSString *eventName = MSDKDnsEventName;
+    [myInvocation setArgument:&eventName atIndex:2];
+    BOOL success = YES;
+    [myInvocation setArgument:&success atIndex:3];
+    NSUInteger elapse = 0;
+    [myInvocation setArgument:&elapse atIndex:4];
+    NSUInteger size = 0;
+    [myInvocation setArgument:&size atIndex:5];
+    NSMutableDictionary *params = [self formatParams:isFromCache Domain:domain NetStack:netStack];
+    [myInvocation setArgument:&params atIndex:6];
+    // 在调用结束前，保持参数
+    [myInvocation retainArguments];
+
+    [myInvocation invoke];
+
+    MSDKDNSLOG(@"ReportingEvent, name:%@, events:%@", eventName, params);
+}
+
+- (NSMutableDictionary *)formatParams:(BOOL)isFromCache Domain:(NSString *)domain NetStack:(msdkdns::MSDKDNS_TLocalIPStack)netStack {
+    MSDKDNSLOG(@"uploadReport %@",domain);
+    //dns结束时上报结果
+    NSMutableDictionary * params = [NSMutableDictionary new];
+    
+    //SDKVersion
+    [params setValue:MSDKDns_Version forKey:kMSDKDnsSDK_Version];
+    
+    //appId
+    NSString * appID = [[MSDKDnsParamsManager shareInstance] msdkDnsGetMAppId];
+    if (appID) {
+        [params setValue:appID forKey:kMSDKDnsAppID];
+    } else {
+        [params setValue:HTTP_DNS_UNKNOWN_STR forKey:kMSDKDnsAppID];
+    }
+    
+    //id & key
+    int dnsID = [[MSDKDnsParamsManager shareInstance] msdkDnsGetMDnsId];
+    [params setValue:[NSString stringWithFormat:@"%d", dnsID] forKey:kMSDKDnsID];
+    NSString * dnsKeyStr = [[MSDKDnsParamsManager shareInstance] msdkDnsGetMDnsKey];
+    if (dnsKeyStr) {
+        [params setValue:dnsKeyStr forKey:kMSDKDnsKEY];
+    } else {
+        [params setValue:HTTP_DNS_UNKNOWN_STR forKey:kMSDKDnsKEY];
+    }
+    
+    //userId
+    NSString * uuidStr = [[MSDKDnsParamsManager shareInstance] msdkDnsGetMOpenId];
+    if (uuidStr) {
+        [params setValue:uuidStr forKey:kMSDKDnsUserID];
+    } else {
+        [params setValue:HTTP_DNS_UNKNOWN_STR forKey:kMSDKDnsUserID];
+    }
+    
+    //netType
+    NSString * networkType = [[MSDKDnsNetworkManager shareInstance] networkType];
+    [params setValue:networkType forKey:kMSDKDnsNetType];
+    
+    //SSID
+    NSString * ssid = [MSDKDnsInfoTool wifiSSID];
+    [params setValue:ssid forKey:kMSDKDnsSSID];
+    
+    //domain
+    NSString * domain_string = HTTP_DNS_UNKNOWN_STR;
+    if (domain) {
+        domain_string = domain;
+    }
+    [params setValue:domain_string forKey:kMSDKDnsDomain];
+    
+    //netStack
+    [params setValue:@(netStack) forKey:kMSDKDnsNet_Stack];
+    
+    //isCache
+    [params setValue:[NSNumber numberWithBool:NO] forKey:kMSDKDns_A_IsCache];
+    [params setValue:[NSNumber numberWithBool:NO] forKey:kMSDKDns_4A_IsCache];
+    
+    NSString * clientIP_A = @"";
+    NSString * clientIP_4A = @"";
+    NSString * httpDnsIP_A = @"";
+    NSString * httpDnsIP_4A = @"";
+    NSString * httpDnsTimeConsuming_A = @"";
+    NSString * httpDnsTimeConsuming_4A = @"";
+    NSString * httpDnsTTL_A = @"";
+    NSString * httpDnsTTL_4A = @"";
+    NSString * httpDnsErrCode_A = @"";
+    NSString * httpDnsErrCode_4A = @"";
+    NSString * httpDnsErrMsg_A = @"";
+    NSString * httpDnsErrMsg_4A = @"";
+    NSString * httpDnsRetry_A = @"";
+    NSString * httpDnsRetry_4A = @"";
+    NSString * cache_A = @"";
+    NSString * cache_4A = @"";
+    NSString * dns_A = @"0";
+    NSString * dns_4A = @"0";
+    NSString * localDnsIPs = @"";
+    NSString * localDnsTimeConsuming = @"";
+    NSString * channel = @"";
+    
+    NSDictionary * cacheDict = [[MSDKDnsManager shareInstance] domainDict];
+    if (cacheDict && domain) {
+        NSDictionary * cacheInfo = cacheDict[domain];
+        if (cacheInfo) {
+            
+            NSDictionary * localDnsCache = cacheInfo[kMSDKLocalDnsCache];
+            if (localDnsCache) {
+                NSArray * ipsArray = localDnsCache[kIP];
+                if (ipsArray && [ipsArray count] == 2) {
+                    dns_A = ipsArray[0];
+                    dns_4A = ipsArray[1];
+                    localDnsIPs = [self getIPsStringFromIPsArray:ipsArray];
+                }
+                localDnsTimeConsuming = localDnsCache[kDnsTimeConsuming];
+            }
+            
+            NSDictionary * httpDnsCache_A = cacheInfo[kMSDKHttpDnsCache_A];
+            if (httpDnsCache_A) {
+                
+                clientIP_A = httpDnsCache_A[kClientIP];
+                NSArray * ipsArray = httpDnsCache_A[kIP];
+                if (ipsArray && [ipsArray isKindOfClass:[NSArray class]] && ipsArray.count > 0) {
+                    dns_A = ipsArray[0];
+                    httpDnsIP_A = [self getIPsStringFromIPsArray:ipsArray];
+                }
+                
+                httpDnsTimeConsuming_A = httpDnsCache_A[kDnsTimeConsuming];
+                httpDnsTTL_A = httpDnsCache_A[kTTL];
+                cache_A = @(isFromCache).stringValue;
+                channel = httpDnsCache_A[kChannel];
+                //isCache
+                [params setValue:[NSNumber numberWithBool:isFromCache] forKey:kMSDKDns_A_IsCache];
+            }
+            
+            NSDictionary * httpDnsCache_4A = cacheInfo[kMSDKHttpDnsCache_4A];
+            if (httpDnsCache_4A) {
+                
+                clientIP_4A = httpDnsCache_4A[kClientIP];
+                NSArray * ipsArray = httpDnsCache_4A[kIP];
+                if (ipsArray && [ipsArray isKindOfClass:[NSArray class]] && ipsArray.count > 0) {
+                    dns_4A = ipsArray[0];
+                    httpDnsIP_4A = [self getIPsStringFromIPsArray:ipsArray];
+                }
+                
+                httpDnsTimeConsuming_4A = httpDnsCache_4A[kDnsTimeConsuming];
+                httpDnsTTL_4A = httpDnsCache_4A[kTTL];
+                cache_4A = @(isFromCache).stringValue;
+                channel = httpDnsCache_4A[kChannel];
+                //isCache
+                [params setValue:[NSNumber numberWithBool:isFromCache] forKey:kMSDKDns_4A_IsCache];
+            }
+            
+            NSDictionary * httpDnsInfo_A = cacheInfo[kMSDKHttpDnsInfo_A];
+            if (httpDnsInfo_A) {
+                httpDnsErrCode_A = httpDnsInfo_A[kDnsErrCode];
+                httpDnsErrMsg_A = httpDnsInfo_A[kDnsErrMsg];
+                httpDnsRetry_A = httpDnsInfo_A[kDnsRetry];
+            }
+            
+            NSDictionary * httpDnsInfo_4A = cacheInfo[kMSDKHttpDnsInfo_4A];
+            if (httpDnsInfo_4A) {
+                httpDnsErrCode_4A = httpDnsInfo_A[kDnsErrCode];
+                httpDnsErrMsg_4A = httpDnsInfo_A[kDnsErrMsg];
+                httpDnsRetry_4A = httpDnsInfo_A[kDnsRetry];
+            }
+        }
+    }
+    
+    //Channel
+    [params setValue:channel forKey:kMSDKDnsChannel];
+    
+    //clientIP
+    [params setValue:clientIP_A forKey:kMSDKDns_A_ClientIP];
+    [params setValue:clientIP_4A forKey:kMSDKDns_4A_ClientIP];
+    
+    //hdns_ip
+    [params setValue:httpDnsIP_A forKey:kMSDKDns_A_IP];
+    [params setValue:httpDnsIP_4A forKey:kMSDKDns_4A_IP];
+    
+    //ldns_ip
+    [params setValue:localDnsIPs forKey:kMSDKDnsLDNS_IP];
+    
+    //hdns_time
+    [params setValue:httpDnsTimeConsuming_A forKey:kMSDKDns_A_Time];
+    [params setValue:httpDnsTimeConsuming_4A forKey:kMSDKDns_4A_Time];
+    
+    //ldns_time
+    [params setValue:localDnsTimeConsuming forKey:kMSDKDnsLDNS_Time];
+    
+    //TTL
+    [params setValue:httpDnsTTL_A forKey:kMSDKDns_A_TTL];
+    [params setValue:httpDnsTTL_4A forKey:kMSDKDns_4A_TTL];
+    
+    //ErrCode
+    [params setValue:httpDnsErrCode_A forKey:kMSDKDns_A_ErrCode];
+    [params setValue:httpDnsErrCode_4A forKey:kMSDKDns_4A_ErrCode];
+    
+    //ErrMsg
+    [params setValue:httpDnsErrMsg_A forKey:kMSDKDns_A_ErrMsg];
+    [params setValue:httpDnsErrMsg_4A forKey:kMSDKDns_4A_ErrMsg];
+    
+    //Retry
+    [params setValue:httpDnsRetry_A forKey:kMSDKDns_A_Retry];
+    [params setValue:httpDnsRetry_4A forKey:kMSDKDns_4A_Retry];
+    
+    //dns
+    [params setValue:dns_A forKey:kMSDKDns_DNS_A_IP];
+    [params setValue:dns_4A forKey:kMSDKDns_DNS_4A_IP];
+
+    return params;
+}
+
+#pragma mark - getIPsStringFromIPsArray
+- (NSString *)getIPsStringFromIPsArray:(NSArray *)ipsArray {
+    NSMutableString *ipsStr = [NSMutableString stringWithString:@""];
+    if (ipsArray && [ipsArray isKindOfClass:[NSArray class]] && ipsArray.count > 0) {
+        for (int i = 0; i < ipsArray.count; i++) {
+            NSString *ip = ipsArray[i];
+            if (i != ipsArray.count - 1) {
+                [ipsStr appendFormat:@"%@,",ip];
+            } else {
+                [ipsStr appendString:ip];
+            }
+        }
+    }
+    return ipsStr;
+}
+
+@end
