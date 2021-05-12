@@ -14,6 +14,7 @@
 #import <netdb.h>
 #import <err.h>
 #import "aes.h"
+#import "MSDKDns.h"
 
 @implementation MSDKDnsInfoTool
 
@@ -380,29 +381,38 @@ char MSDKDnsHexCharToChar(char high, char low) {
 
 + (NSURL *) httpsUrlWithDomain:(NSString *)domain DnsId:(int)dnsId DnsKey:(NSString *)dnsKey Use4A:(BOOL)use4A
 {
-    return [self httpsUrlWithDomain:domain DnsId:dnsId DnsKey:dnsKey Use4A:use4A encryptType:0];
+    return [self httpsUrlWithDomain:domain DnsId:dnsId DnsKey:dnsKey Use4A:use4A encryptType:HttpDnsEncryptTypeDES];
 }
 
 + (NSURL *) httpsUrlWithDomain:(NSString *)domain DnsId:(int)dnsId DnsKey:(NSString *)dnsKey Use4A:(BOOL)use4A encryptType:(NSInteger)encryptType
 {
     if (!domain || domain.length == 0) {
-        MSDKDNSLOG(@"HttpDns Domain is must needed!");
+        MSDKDNSLOG(@"HttpDns Domain cannot be empty!");
         return nil;
     }
     
-    //域名需DES加密，内外部加密秘钥以及url字段需要区分
-    NSString *domainEncrypStr = nil;
-    NSString *protocol = @"http";
-    if (encryptType != 2 && (!dnsKey || dnsKey.length == 0)) {
-        MSDKDNSLOG(@"Key is error!Please check your DNS_KEY in info.plist!");
+    if (!dnsId) {
+        MSDKDNSLOG(@"DnsId cannot be empty! Please check your dns config params.");
         return nil;
     }
-    //  0：DES  1：AES 2: https
-    if (encryptType == 0) {
+        
+    NSString *token =  [[MSDKDnsParamsManager shareInstance] msdkDnsGetMToken];
+    if (encryptType != HttpDnsEncryptTypeHTTPS && (!dnsKey || dnsKey.length == 0)) {
+        MSDKDNSLOG(@"DnsKey cannot be empty! Please check your dns config params");
+        return nil;
+    } else if (encryptType == HttpDnsEncryptTypeHTTPS && (!token || token.length == 0)) {
+        MSDKDNSLOG(@"Token cannot be empty! Please check your dns config params");
+        return nil;
+    }
+    
+    //域名需加密，内外部加密秘钥以及url字段需要区分
+    NSString *domainEncrypStr = nil;
+    NSString *protocol = @"http";
+    if (encryptType == HttpDnsEncryptTypeDES) {
         domainEncrypStr = [self encryptUseDES:domain key:dnsKey];
-    } else if (encryptType == 1) {
+    } else if (encryptType == HttpDnsEncryptTypeAES) {
         domainEncrypStr = [self encryptUseAES:domain key:dnsKey];
-    } else if (encryptType == 2) {
+    } else if (encryptType == HttpDnsEncryptTypeHTTPS) {
         domainEncrypStr = [domain copy];
         protocol = @"https";
     }
@@ -417,15 +427,13 @@ char MSDKDnsHexCharToChar(char high, char low) {
         if (use4A) {
             urlStr = [urlStr stringByAppendingString:@"&type=aaaa"];
         }
-        if (encryptType == 1) {
+        if (encryptType == HttpDnsEncryptTypeAES) {
             urlStr = [urlStr stringByAppendingFormat:@"&alg=aes"];
-        } else if (encryptType == 2) {
-            NSString *token =  [[MSDKDnsParamsManager shareInstance] msdkDnsGetMToken];
+        } else if (encryptType == HttpDnsEncryptTypeHTTPS) {
             urlStr = [urlStr stringByAppendingFormat:@"&token=%@", token];
         }
         NSURL * url = [NSURL URLWithString:urlStr];
-//        NSLog(@"httpdns service url:%@",urlStr);
-        MSDKDNSLOG(@"%@",url);
+        MSDKDNSLOG(@"httpdns service url: %@",url);
         return url;
     } else {
         MSDKDNSLOG(@"HttpDns Domain Crypt Error!");

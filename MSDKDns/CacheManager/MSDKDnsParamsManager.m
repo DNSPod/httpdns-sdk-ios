@@ -6,9 +6,6 @@
 #import "MSDKDnsInfoTool.h"
 #import "MSDKDnsPrivate.h"
 
-NSString *DES_CHANNEL = @"DesChannel";
-NSString *AES_CHANNEL = @"AesChannel";
-NSString *HTTPS_CHANNEL = @"HttpsChannel";
 
 @interface MSDKDnsParamsManager()
 
@@ -19,7 +16,7 @@ NSString *HTTPS_CHANNEL = @"HttpsChannel";
 @property (assign, nonatomic, readwrite) int msdkDnsId;
 @property (strong, nonatomic, readwrite) NSString * msdkDnsKey;
 @property (assign, nonatomic, readwrite) int msdkDnsTimeOut;
-@property (strong, nonatomic) NSString *msdkDnsChannel;
+@property (assign, nonatomic, readwrite) HttpDnsEncryptType msdkEncryptType;
 
 @end
 
@@ -57,24 +54,24 @@ static MSDKDnsParamsManager * _sharedInstance = nil;
 
 - (void)msdkDnsSetMAppId:(NSString *) mdnsAppId MTimeOut:(int)mdnsTimeOut
 {
-    [self msdkDnsSetMAppId:mdnsAppId MTimeOut:mdnsTimeOut MChannel:DES_CHANNEL];
+    [self msdkDnsSetMAppId:mdnsAppId MTimeOut:mdnsTimeOut MEncryptType:HttpDnsEncryptTypeDES];
 }
 
-- (void)msdkDnsSetMAppId:(NSString *) mdnsAppId MTimeOut:(int)mdnsTimeOut MChannel:(NSString *)mdnsChannel
+- (void)msdkDnsSetMAppId:(NSString *) mdnsAppId MTimeOut:(int)mdnsTimeOut MEncryptType:(HttpDnsEncryptType)mdnsEncryptType
 {
     dispatch_async([MSDKDnsInfoTool msdkdns_queue], ^{
         self.msdkDnsAppId = mdnsAppId;
         self.msdkDnsTimeOut = mdnsTimeOut;
-        self.msdkDnsChannel = mdnsChannel;
+        self.msdkEncryptType = mdnsEncryptType;
     });
 }
 
-- (void)msdkDnsSetMAppId:(NSString *) mdnsAppId MToken:(NSString* )mdnsToken MTimeOut:(int)mdnsTimeOut MChannel:(NSString *)mdnsChannel
+- (void)msdkDnsSetMAppId:(NSString *) mdnsAppId MToken:(NSString* )mdnsToken MTimeOut:(int)mdnsTimeOut MEncryptType:(HttpDnsEncryptType)mdnsEncryptType
 {
     dispatch_async([MSDKDnsInfoTool msdkdns_queue], ^{
         self.msdkDnsAppId = mdnsAppId;
         self.msdkDnsTimeOut = mdnsTimeOut;
-        self.msdkDnsChannel = mdnsChannel;
+        self.msdkEncryptType = mdnsEncryptType;
         self.msdkDnsToken = mdnsToken;
     });
 }
@@ -120,9 +117,9 @@ static MSDKDnsParamsManager * _sharedInstance = nil;
     return timeOut;
 }
 
-- (NSString *)msdkDnsGetChannel
+- (HttpDnsEncryptType)msdkDnsGetEncryptType
 {
-    return _msdkDnsChannel;
+    return _msdkEncryptType;
 }
 
 @end

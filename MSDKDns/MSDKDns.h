@@ -15,19 +15,22 @@
     #endif
 #endif
 
-extern NSString *DES_CHANNEL;          //des加密
-extern NSString *AES_CHANNEL;          //aes加密
-extern NSString *HTTPS_CHANNEL;         //https加密 
+typedef enum {
+    HttpDnsEncryptTypeDES = 0,
+    HttpDnsEncryptTypeAES = 1,
+    HttpDnsEncryptTypeHTTPS = 2
+} HttpDnsEncryptType;
 
 struct DnsConfig {
-  NSString* appId;
-  int dnsId;
-  NSString* dnsKey;
-  NSString* token;
-  NSString* dnsIp;
-  BOOL debug;
-  int timeout;
-  NSString * channel;
+    NSString* appId;
+    int dnsId;
+    NSString* dnsKey; // 加密方式为AES、DES时必传
+    NSString* token; // 加密方式为 HTTPS 时必传
+    NSString* dnsIp; // httpdns 服务器ip
+    BOOL debug; // 是否打印调试日志
+    int timeout; // 请求超时时间
+    HttpDnsEncryptType encryptType; // 控制加密方式
+    NSString* routeIp; // 线路IP地址
 };
 
 @interface MSDKDns : NSObject

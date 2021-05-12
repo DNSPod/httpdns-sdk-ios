@@ -11,9 +11,6 @@
 #import "MSDKDnsNetworkManager.h"
 #import "msdkdns_local_ip_stack.h"
 
-extern NSString *DES_CHANNEL;
-extern NSString *AES_CHANNEL;
-extern NSString *HTTPS_CHANNEL;
 
 @interface MSDKDnsManager ()
 
@@ -84,14 +81,7 @@ static MSDKDnsManager * _sharedInstance = nil;
         }
         int dnsId = [[MSDKDnsParamsManager shareInstance] msdkDnsGetMDnsId];
         NSString * dnsKey = [[MSDKDnsParamsManager shareInstance] msdkDnsGetMDnsKey];
-        // 增加channel，用channel决定是加密方式是aes还是des
-        NSString *channel = [[MSDKDnsParamsManager shareInstance] msdkDnsGetChannel];
-        NSInteger encryptType = 0;
-        if ([channel isEqualToString:AES_CHANNEL]) {
-            encryptType = 1;
-        } else if ([channel isEqualToString:HTTPS_CHANNEL]) {
-            encryptType = 2;
-        }
+        HttpDnsEncryptType encryptType = [[MSDKDnsParamsManager shareInstance] msdkDnsGetEncryptType];
         //进行httpdns请求
         MSDKDnsService * dnsService = [[MSDKDnsService alloc] init];
         [self.serviceArray addObject:dnsService];
@@ -162,13 +152,7 @@ static MSDKDnsManager * _sharedInstance = nil;
         MSDKDnsService * dnsService = [[MSDKDnsService alloc] init];
         [self.serviceArray addObject:dnsService];
         __weak __typeof__(self) weakSelf = self;
-        NSInteger encryptType = 0;
-        NSString *channel = [[MSDKDnsParamsManager shareInstance] msdkDnsGetChannel];
-        if ([channel isEqualToString:AES_CHANNEL]) {
-            encryptType = 1;
-        } else if ([channel isEqualToString:HTTPS_CHANNEL]) {
-            encryptType = 2;
-        }
+        HttpDnsEncryptType encryptType = [[MSDKDnsParamsManager shareInstance] msdkDnsGetEncryptType];
         [dnsService getHostByName:domain TimeOut:timeOut DnsId:dnsId DnsKey:dnsKey NetStack:netStack encryptType:encryptType returnIps:^() {
             __strong __typeof(self) strongSelf = weakSelf;
             if (strongSelf) {
@@ -227,13 +211,7 @@ static MSDKDnsManager * _sharedInstance = nil;
         MSDKDnsService * dnsService = [[MSDKDnsService alloc] init];
         [self.serviceArray addObject:dnsService];
         __weak __typeof__(self) weakSelf = self;
-        NSInteger encryptType = 0;
-        NSString *channel = [[MSDKDnsParamsManager shareInstance] msdkDnsGetChannel];
-        if ([channel isEqualToString:AES_CHANNEL]) {
-            encryptType = 1;
-        } else if ([channel isEqualToString:HTTPS_CHANNEL]) {
-            encryptType = 2;
-        }
+        HttpDnsEncryptType encryptType = [[MSDKDnsParamsManager shareInstance] msdkDnsGetEncryptType];
         [dnsService getHostsByNames:toCheckDomains TimeOut:timeOut DnsId:dnsId DnsKey:dnsKey NetStack:netStack encryptType:encryptType returnIps:^() {
             __strong __typeof(self) strongSelf = weakSelf;
             if (strongSelf) {
@@ -286,14 +264,7 @@ static MSDKDnsManager * _sharedInstance = nil;
         }
         int dnsId = [[MSDKDnsParamsManager shareInstance] msdkDnsGetMDnsId];
         NSString * dnsKey = [[MSDKDnsParamsManager shareInstance] msdkDnsGetMDnsKey];
-        // 增加channel，用channel决定是加密方式是aes还是des
-        NSString *channel = [[MSDKDnsParamsManager shareInstance] msdkDnsGetChannel];
-        NSInteger encryptType = 0;
-        if ([channel isEqualToString:AES_CHANNEL]) {
-            encryptType = 1;
-        } else if ([channel isEqualToString:HTTPS_CHANNEL]) {
-            encryptType = 2;
-        }
+        HttpDnsEncryptType encryptType = [[MSDKDnsParamsManager shareInstance] msdkDnsGetEncryptType];
         //进行httpdns请求
         MSDKDnsService * dnsService = [[MSDKDnsService alloc] init];
         [self.serviceArray addObject:dnsService];

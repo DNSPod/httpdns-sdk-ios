@@ -3,6 +3,7 @@
  */
 
 #import <Foundation/Foundation.h>
+#import "MSDKDns.h"
 
 @interface MSDKDnsParamsManager : NSObject
 
@@ -14,8 +15,8 @@
 - (void)msdkDnsSetMDnsIp:(NSString *) mdnsIp;
 - (void)msdkDnsSetMOpenId:(NSString *) mdnsOpenId;
 - (void)msdkDnsSetMAppId:(NSString *) mdnsAppId MTimeOut:(int)mdnsTimeOut;
-- (void)msdkDnsSetMAppId:(NSString *) mdnsAppId MTimeOut:(int)mdnsTimeOut MChannel:(NSString *)mdnsChannel;
-- (void)msdkDnsSetMAppId:(NSString *) mdnsAppId MToken:(NSString* )mdnsToken MTimeOut:(int)mdnsTimeOut MChannel:(NSString *)mdnsChannel;
+- (void)msdkDnsSetMAppId:(NSString *) mdnsAppId MTimeOut:(int)mdnsTimeOut MEncryptType:(HttpDnsEncryptType)mdnsEncryptType;
+- (void)msdkDnsSetMAppId:(NSString *) mdnsAppId MToken:(NSString* )mdnsToken MTimeOut:(int)mdnsTimeOut MEncryptType:(HttpDnsEncryptType)mdnsEncryptType;
 - (void)msdkDnsSetMDnsId:(int) mdnsId MDnsKey:(NSString *)mdnsKey;
 
 - (NSString *) msdkDnsGetMDnsIp;
@@ -24,6 +25,6 @@
 - (int) msdkDnsGetMDnsId;
 - (NSString *) msdkDnsGetMDnsKey;
 - (float) msdkDnsGetMTimeOut;
-- (NSString *)msdkDnsGetChannel;
+- (HttpDnsEncryptType)msdkDnsGetEncryptType;
 - (NSString *)msdkDnsGetMToken;
 @end
