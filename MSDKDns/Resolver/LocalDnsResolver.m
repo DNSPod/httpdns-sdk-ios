@@ -17,8 +17,8 @@
 
 @implementation LocalDnsResolver
 
-- (void)startWithDomain:(NSString *)domain TimeOut:(float)timeOut DnsId:(int)dnsId DnsKey:(NSString *)dnsKey NetStack:(msdkdns::MSDKDNS_TLocalIPStack)netStack {
-    [super startWithDomain:domain TimeOut:timeOut DnsId:dnsId DnsKey:dnsKey NetStack:netStack];
+- (void)startWithDomains:(NSArray *)domains TimeOut:(float)timeOut DnsId:(int)dnsId DnsKey:(NSString *)dnsKey NetStack:(msdkdns::MSDKDNS_TLocalIPStack)netStack {
+    [super startWithDomains:domains TimeOut:timeOut DnsId:dnsId DnsKey:dnsKey NetStack:netStack];
     MSDKDNSLOG(@"LocalDns TimeOut is %f", timeOut);
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, timeOut * NSEC_PER_SEC), [MSDKDnsInfoTool msdkdns_local_queue], ^{
         [self localDnsTimeout];
@@ -27,18 +27,24 @@
     self.isFinished = NO;
     self.isSucceed = NO;
     self.hasDelegated = NO;
-    [self getLocalDnsWithDomain:domain NetStack:netStack];
+    [self getLocalDnsWithDomains:domains NetStack:netStack];
 }
 
-- (void)getLocalDnsWithDomain:(NSString *)domain NetStack:(msdkdns::MSDKDNS_TLocalIPStack)netStack {
-    MSDKDNSLOG(@"getLocalDnsWithDomain: %@", domain);
-    NSArray * ipsArray = [self addressesForHostname:domain NetStack:netStack];
+- (void)getLocalDnsWithDomains:(NSArray *)domains NetStack:(msdkdns::MSDKDNS_TLocalIPStack)netStack {
+    MSDKDNSLOG(@"getLocalDnsWithDomains: %@", domains);
+    NSMutableDictionary *domainInfo = [NSMutableDictionary dictionary];
+    for(int i = 0; i < [domains count]; i++) {
+        NSString *domain = [domains objectAtIndex:i];
+        NSArray * ipsArray = [self addressesForHostname:domain NetStack:netStack];
+        NSString *timeConsuming = [NSString stringWithFormat:@"%d", [self dnsTimeConsuming]];
+        [domainInfo setObject:@{kIP:ipsArray, kDnsTimeConsuming:timeConsuming} forKey:domain];
+    }
+    
     dispatch_async([MSDKDnsInfoTool msdkdns_local_queue], ^{
         if (!self.hasDelegated) {
             self.hasDelegated = YES;
             MSDKDNSLOG(@"LocalDns Succeed");
-            NSString *timeConsuming = [NSString stringWithFormat:@"%d", [self dnsTimeConsuming]];
-            self.domainInfo = @{kIP:ipsArray, kDnsTimeConsuming:timeConsuming};
+            self.domainInfo = domainInfo;
             self.isFinished = YES;
             self.isSucceed = YES;
             

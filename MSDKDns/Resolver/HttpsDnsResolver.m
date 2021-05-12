@@ -28,15 +28,16 @@
     [self setConnection:nil];
 }
 
-- (void)startWithDomain:(NSString *)domain TimeOut:(float)timeOut DnsId:(int)dnsId DnsKey:(NSString *)dnsKey NetStack:(msdkdns::MSDKDNS_TLocalIPStack)netStack
+- (void)startWithDomains:(NSArray *)domains TimeOut:(float)timeOut DnsId:(int)dnsId DnsKey:(NSString *)dnsKey NetStack:(msdkdns::MSDKDNS_TLocalIPStack)netStack
 {
-    [self startWithDomain:domain TimeOut:timeOut DnsId:dnsId DnsKey:dnsKey NetStack:netStack encryptType:0];
+    [self startWithDomains:domains TimeOut:timeOut DnsId:dnsId DnsKey:dnsKey NetStack:netStack encryptType:0];
 }
 
-- (void)startWithDomain:(NSString *)domain TimeOut:(float)timeOut DnsId:(int)dnsId DnsKey:(NSString *)dnsKey NetStack:(msdkdns::MSDKDNS_TLocalIPStack)netStack encryptType:(NSInteger)encryptType
+- (void)startWithDomains:(NSArray *)domains TimeOut:(float)timeOut DnsId:(int)dnsId DnsKey:(NSString *)dnsKey NetStack:(msdkdns::MSDKDNS_TLocalIPStack)netStack encryptType:(NSInteger)encryptType
 {
-    [super startWithDomain:domain TimeOut:timeOut DnsId:dnsId DnsKey:dnsKey NetStack:netStack];
-    if (!domain || domain.length == 0) {
+    [super startWithDomains:domains TimeOut:timeOut DnsId:dnsId DnsKey:dnsKey NetStack:netStack];
+    NSString *domainStr = [domains componentsJoinedByString:@","];
+    if (!domainStr || domainStr.length == 0) {
         MSDKDNSLOG(@"HttpDns Domain is must needed!");
         self.domainInfo = nil;
         self.isFinished = YES;
@@ -53,12 +54,12 @@
     self.isFinished = NO;
     self.isSucceed = NO;
     self.encryptType = encryptType;
-    MSDKDNSLOG(@"HttpDns startWithDomain: %@!", domain);
+    MSDKDNSLOG(@"HttpDns startWithDomain: %@!", domains);
     self.use4A = NO;
     if (netStack == msdkdns::MSDKDNS_ELocalIPStack_IPv6) {
         self.use4A = YES;
     }
-    NSURL * httpDnsUrl = [MSDKDnsInfoTool httpsUrlWithDomain:domain DnsId:dnsId DnsKey:_dnsKey Use4A:_use4A encryptType:_encryptType];
+    NSURL * httpDnsUrl = [MSDKDnsInfoTool httpsUrlWithDomain:domainStr DnsId:dnsId DnsKey:_dnsKey Use4A:_use4A encryptType:_encryptType];
     if (httpDnsUrl) {
         MSDKDNSLOG(@"HttpDns TimeOut is %f", timeOut);
         NSURLRequest * request = [NSURLRequest requestWithURL:httpDnsUrl cachePolicy:NSURLRequestReloadIgnoringCacheData timeoutInterval:timeOut];
@@ -166,60 +167,30 @@
     NSString * errorInfo = @"";
     if (self.responseData.length > 0) {
         NSString * decryptStr = nil;
-        NSArray * resultArr = nil;
         NSString * responseStr = [[NSString alloc] initWithData:self.responseData encoding:NSUTF8StringEncoding];
         MSDKDNSLOG(@"The httpdns responseStr:%@", responseStr);
-        if (_dnsKey && _dnsKey.length > 0) {
+        if (_encryptType != 2 && _dnsKey && _dnsKey.length > 0) {
             if (_encryptType == 0) {
                 decryptStr = [MSDKDnsInfoTool decryptUseDES:responseStr key:_dnsKey];
             } else {
                 decryptStr = [MSDKDnsInfoTool decryptUseAES:responseStr key:_dnsKey];
             }
+        } else if (_encryptType == 2) {
+            decryptStr = [responseStr copy];
         }
-        if (decryptStr) {
-            resultArr = [decryptStr componentsSeparatedByString:@"|"];
-        }
-
-        // 返回格式 59.37.96.63;14.17.42.40;14.17.32.211,152|59.37.125.44
-        if (resultArr && resultArr.count == 2) {
-            MSDKDNSLOG(@"HttpDns Succeed:%@", decryptStr);
-            NSString * ipsStr = nil;
-            NSString * ttl = nil;
-            NSString * clientIP = resultArr[1];
-            NSString * tmp = resultArr[0];
-            if (tmp) {
-                NSArray * tmpArr = [tmp componentsSeparatedByString:@","];
-                if (tmpArr && [tmpArr count] == 2) {
-                    ipsStr = tmpArr[0];
-                    ttl = tmpArr[1];
-                }
+        
+        self.domainInfo = [self parseResultString:decryptStr];
+        
+        if (self.domainInfo && [self.domainInfo count] > 0) {
+            self.isFinished = YES;
+            self.isSucceed = YES;
+            if (self.delegate && [self.delegate respondsToSelector:@selector(resolver:didGetDomainInfo:)]) {
+                [self.delegate resolver:self didGetDomainInfo:self.domainInfo];
             }
-            NSString * tempStr = ipsStr.length > 1 ? [ipsStr substringFromIndex:ipsStr.length - 1] : @"";
-            if ([tempStr isEqualToString:@";"]) {
-                ipsStr = [ipsStr substringToIndex:ipsStr.length - 1];
-            }
-            NSArray * ipsArray = [ipsStr componentsSeparatedByString:@";"];
-            //校验ip合法性
-            BOOL isIPLegal = [self isIPLegal:ipsArray Use4A:_use4A];
-            
-            if (isIPLegal) {
-                double timeInterval = [[NSDate date] timeIntervalSince1970];
-                NSString * ttlExpried = [NSString stringWithFormat:@"%0.0f", (timeInterval + ttl.floatValue * 0.75)];
-                NSString * timeConsuming = [NSString stringWithFormat:@"%d", [self dnsTimeConsuming]];
-                NSString * channel = @"http";
-                self.domainInfo = @{kIP:ipsArray, kClientIP:clientIP, kTTL:ttl, kTTLExpired:ttlExpried, kDnsTimeConsuming:timeConsuming, kChannel:channel};
-                self.isFinished = YES;
-                self.isSucceed = YES;
-                if (self.delegate && [self.delegate respondsToSelector:@selector(resolver:didGetDomainInfo:)]) {
-                    [self.delegate resolver:self didGetDomainInfo:self.domainInfo];
-                }
-                CFRunLoopStop(self.rl);
-                return;
-            } else {
-                MSDKDNSLOG(@"HttpDns Failed with errorInfo:%@", errorInfo);
-            }
+            CFRunLoopStop(self.rl);
+            return;
         } else {
-            MSDKDNSLOG(@"HttpDns Failed, resultArr is not format.");
+            errorInfo = @"HttpDns Failed, responseStr is not format.";
         }
     } else {
         errorInfo = @"HttpDns response data error!";
@@ -245,6 +216,74 @@
         [self.delegate resolver:self getDomainError:self.errorInfo];
     }
     CFRunLoopStop(self.rl);
+}
+
+#pragma mark -
+- (NSString *)getQueryDomain:(NSString *)str {
+    // 删除域名后面添加的.
+    if ([[str substringFromIndex:str.length - 1]  isEqual: @"."]) {
+        return [str substringToIndex:str.length - 1];
+    }
+    return str;
+}
+
+- (NSDictionary *)parseResultString:(NSString *)string {
+    NSDictionary *resultDic = [NSMutableDictionary dictionary];
+    if ([string containsString:@"\n"]) {
+        NSArray *lineArray = [string componentsSeparatedByString:@"\n"];
+        for (int i = 0; i < [lineArray count]; i++) {
+            NSString *lineString = [lineArray objectAtIndex:i];
+            NSArray *tempArray = [lineString componentsSeparatedByString: @":"];
+            if (tempArray && [tempArray count] == 2) {
+                NSString* queryDomain = [self getQueryDomain:[tempArray objectAtIndex:0]];
+                NSString* ipString = [tempArray objectAtIndex:1];
+                NSDictionary *domainInfo = [self parseIPString:ipString];
+                [resultDic setValue:domainInfo forKey:queryDomain];
+            }
+        }
+    } else {
+        NSArray *tempArray = [string componentsSeparatedByString: @":"];
+        if (tempArray && [tempArray count] == 2) {
+            NSString* queryDomain = [self getQueryDomain:[tempArray objectAtIndex:0]];
+            NSString* ipString = [tempArray objectAtIndex:1];
+            NSDictionary *domainInfo = [self parseIPString:ipString];
+            [resultDic setValue:domainInfo forKey:queryDomain];
+        }
+    }
+    return resultDic;
+}
+
+- (NSDictionary *)parseIPString:(NSString *)iPstring {
+    NSArray *array = [iPstring componentsSeparatedByString:@"|"];
+    if (array && array.count == 2) {
+        NSString * ipsStr = nil;
+        NSString * ttl = nil;
+        NSString * clientIP = array[1];
+        NSString * tmp = array[0];
+        if (tmp) {
+            NSArray * tmpArr = [tmp componentsSeparatedByString:@","];
+            if (tmpArr && [tmpArr count] == 2) {
+                ipsStr = tmpArr[0];
+                ttl = tmpArr[1];
+            }
+        }
+        NSString * tempStr = ipsStr.length > 1 ? [ipsStr substringFromIndex:ipsStr.length - 1] : @"";
+        if ([tempStr isEqualToString:@";"]) {
+            ipsStr = [ipsStr substringToIndex:ipsStr.length - 1];
+        }
+        NSArray *ipsArray = [ipsStr componentsSeparatedByString:@";"];
+        //校验ip合法性
+        BOOL isIPLegal = [self isIPLegal:ipsArray Use4A:_use4A];
+        
+        if (isIPLegal) {
+            double timeInterval = [[NSDate date] timeIntervalSince1970];
+            NSString * ttlExpried = [NSString stringWithFormat:@"%0.0f", (timeInterval + ttl.floatValue * 0.75)];
+            NSString * timeConsuming = [NSString stringWithFormat:@"%d", [self dnsTimeConsuming]];
+            NSString * channel = @"http";
+            return @{kIP:ipsArray, kClientIP:clientIP, kTTL:ttl, kTTLExpired:ttlExpried, kDnsTimeConsuming:timeConsuming, kChannel:channel};
+        }
+    }
+    return nil;
 }
 
 @end

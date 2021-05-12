@@ -6,16 +6,16 @@
 #import "MSDKDnsInfoTool.h"
 #import "MSDKDnsPrivate.h"
 
-NSString *DES_HTTP_CHANNEL = @"DesHttp";
-NSString *DES_HTTPS_CHANNEL = @"DesHttps";
-NSString *AES_HTTP_CHANNEL = @"AesHttp";
-NSString *AES_HTTPS_CHANNEL = @"AesHttps";
+NSString *DES_CHANNEL = @"DesChannel";
+NSString *AES_CHANNEL = @"AesChannel";
+NSString *HTTPS_CHANNEL = @"HttpsChannel";
 
 @interface MSDKDnsParamsManager()
 
 @property (strong, nonatomic, readwrite) NSString * msdkDnsIp;
 @property (strong, nonatomic, readwrite) NSString * msdkDnsOpenId;
 @property (strong, nonatomic, readwrite) NSString * msdkDnsAppId;
+@property (strong, nonatomic, readwrite) NSString * msdkDnsToken;
 @property (assign, nonatomic, readwrite) int msdkDnsId;
 @property (strong, nonatomic, readwrite) NSString * msdkDnsKey;
 @property (assign, nonatomic, readwrite) int msdkDnsTimeOut;
@@ -57,7 +57,7 @@ static MSDKDnsParamsManager * _sharedInstance = nil;
 
 - (void)msdkDnsSetMAppId:(NSString *) mdnsAppId MTimeOut:(int)mdnsTimeOut
 {
-    [self msdkDnsSetMAppId:mdnsAppId MTimeOut:mdnsTimeOut MChannel:DES_HTTP_CHANNEL];
+    [self msdkDnsSetMAppId:mdnsAppId MTimeOut:mdnsTimeOut MChannel:DES_CHANNEL];
 }
 
 - (void)msdkDnsSetMAppId:(NSString *) mdnsAppId MTimeOut:(int)mdnsTimeOut MChannel:(NSString *)mdnsChannel
@@ -66,6 +66,16 @@ static MSDKDnsParamsManager * _sharedInstance = nil;
         self.msdkDnsAppId = mdnsAppId;
         self.msdkDnsTimeOut = mdnsTimeOut;
         self.msdkDnsChannel = mdnsChannel;
+    });
+}
+
+- (void)msdkDnsSetMAppId:(NSString *) mdnsAppId MToken:(NSString* )mdnsToken MTimeOut:(int)mdnsTimeOut MChannel:(NSString *)mdnsChannel
+{
+    dispatch_async([MSDKDnsInfoTool msdkdns_queue], ^{
+        self.msdkDnsAppId = mdnsAppId;
+        self.msdkDnsTimeOut = mdnsTimeOut;
+        self.msdkDnsChannel = mdnsChannel;
+        self.msdkDnsToken = mdnsToken;
     });
 }
 
@@ -86,6 +96,10 @@ static MSDKDnsParamsManager * _sharedInstance = nil;
 
 - (NSString *) msdkDnsGetMAppId {
     return [_msdkDnsAppId copy];
+}
+
+- (NSString *) msdkDnsGetMToken {
+    return [_msdkDnsToken copy];
 }
 
 - (int) msdkDnsGetMDnsId {

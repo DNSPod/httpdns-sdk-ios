@@ -15,6 +15,7 @@
 - (void)msdkDnsSetMOpenId:(NSString *) mdnsOpenId;
 - (void)msdkDnsSetMAppId:(NSString *) mdnsAppId MTimeOut:(int)mdnsTimeOut;
 - (void)msdkDnsSetMAppId:(NSString *) mdnsAppId MTimeOut:(int)mdnsTimeOut MChannel:(NSString *)mdnsChannel;
+- (void)msdkDnsSetMAppId:(NSString *) mdnsAppId MToken:(NSString* )mdnsToken MTimeOut:(int)mdnsTimeOut MChannel:(NSString *)mdnsChannel;
 - (void)msdkDnsSetMDnsId:(int) mdnsId MDnsKey:(NSString *)mdnsKey;
 
 - (NSString *) msdkDnsGetMDnsIp;
@@ -24,4 +25,5 @@
 - (NSString *) msdkDnsGetMDnsKey;
 - (float) msdkDnsGetMTimeOut;
 - (NSString *)msdkDnsGetChannel;
+- (NSString *)msdkDnsGetMToken;
 @end

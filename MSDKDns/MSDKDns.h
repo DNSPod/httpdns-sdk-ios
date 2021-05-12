@@ -15,10 +15,20 @@
     #endif
 #endif
 
-extern NSString *DES_HTTP_CHANNEL;          //des加密 http
-extern NSString *DES_HTTPS_CHANNEL;         //des加密 https
-extern NSString *AES_HTTP_CHANNEL;          //aes加密 http
-extern NSString *AES_HTTPS_CHANNEL;         //aes加密 https
+extern NSString *DES_CHANNEL;          //des加密
+extern NSString *AES_CHANNEL;          //aes加密
+extern NSString *HTTPS_CHANNEL;         //https加密 
+
+struct DnsConfig {
+  NSString* appId;
+  int dnsId;
+  NSString* dnsKey;
+  NSString* token;
+  NSString* dnsIp;
+  BOOL debug;
+  int timeout;
+  NSString * channel;
+};
 
 @interface MSDKDns : NSObject
 
@@ -69,6 +79,9 @@ extern NSString *AES_HTTPS_CHANNEL;         //aes加密 https
  */
 - (BOOL) WGSetDnsOpenId:(NSString *)openId;
 
+
+- (BOOL) initConfig:(DnsConfig *)config;
+
 #pragma mark - 域名解析接口，按需调用
 /**
  域名同步解析（通用接口）
@@ -80,12 +93,29 @@ extern NSString *AES_HTTPS_CHANNEL;         //aes加密 https
 - (NSArray *) WGGetHostByName:(NSString *) domain;
 
 /**
+ 域名批量同步解析（通用接口）
+
+ @param domains 域名数组
+ 
+ @return 查询到的IP字典
+ */
+- (NSDictionary *) WGGetHostsByNames:(NSArray *) domains;
+
+/**
  域名异步解析（通用接口）
 
  @param domain  域名
  @param handler 返回查询到的IP数组，超时（1s）或者未未查询到返回[0,0]数组
  */
 - (void) WGGetHostByNameAsync:(NSString *) domain returnIps:(void (^)(NSArray * ipsArray))handler;
+
+/**
+ 域名批量异步解析（通用接口）
+
+ @param domains  域名数组
+ @param handler 返回查询到的IP数组，超时（1s）或者未未查询到返回[0,0]数组
+ */
+- (void) WGGetHostsByNamesAsync:(NSArray *) domains returnIps:(void (^)(NSDictionary * ipsDictionary))handler;
 
 #pragma mark - SNI场景，仅调用一次即可，请勿多次调用
 /**

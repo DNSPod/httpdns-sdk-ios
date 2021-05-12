@@ -256,7 +256,7 @@ char MSDKDnsHexCharToChar(char high, char low) {
     NSData *encryData = [self aesCryptWithKey:AES_ENCRYPT src:(unsigned char *)plainText.UTF8String srcLen:(int)plainText.length key:(unsigned char *)key.UTF8String aesIv:(unsigned char *)[ivByte bytes]];//(unsigned char *)temphead.bytes];
     NSString *encryString = MSDKDnsDataToHexString(encryData);
     
-    NSLog(@"加密 ||| realText:%@ encryString：%@，iv：%@",plainText,encryString,ivStr);
+//    NSLog(@"加密 ||| realText:%@ encryString：%@，iv：%@",plainText,encryString,ivStr);
     return [ivStr stringByAppendingString:encryString];
 }
 
@@ -281,7 +281,7 @@ char MSDKDnsHexCharToChar(char high, char low) {
     }
     NSString *dencryString = [[NSString alloc] initWithData:dencryData encoding:NSUTF8StringEncoding];
     
-    NSLog(@"解密 === realContent：%@，iv：%@   dencryString:%@",realContent,ivStr,dencryString);
+//    NSLog(@"解密 === realContent：%@，iv：%@   dencryString:%@",realContent,ivStr,dencryString);
 
     return dencryString;
 }
@@ -370,12 +370,11 @@ char MSDKDnsHexCharToChar(char high, char low) {
         int_ch2 = hex_char2-87; //// a 的Ascll - 97
 
         int_ch = int_ch1+int_ch2;
-        NSLog(@"int_ch=%d",int_ch);
         bytes[j] = int_ch;  ///将转化后的数放入Byte数组里
         j++;
     }
     NSData *newData = [[NSData alloc] initWithBytes:bytes length:len];
-    NSLog(@"newData=%@",newData);
+//    NSLog(@"newData=%@",newData);
     return newData;
 }
 
@@ -392,16 +391,20 @@ char MSDKDnsHexCharToChar(char high, char low) {
     }
     
     //域名需DES加密，内外部加密秘钥以及url字段需要区分
-    NSString * domainEncrypStr = nil;
-    if (!dnsKey || dnsKey.length == 0) {
+    NSString *domainEncrypStr = nil;
+    NSString *protocol = @"http";
+    if (encryptType != 2 && (!dnsKey || dnsKey.length == 0)) {
         MSDKDNSLOG(@"Key is error!Please check your DNS_KEY in info.plist!");
         return nil;
     }
-    //  0：DES  1：AES
+    //  0：DES  1：AES 2: https
     if (encryptType == 0) {
         domainEncrypStr = [self encryptUseDES:domain key:dnsKey];
-    } else {
+    } else if (encryptType == 1) {
         domainEncrypStr = [self encryptUseAES:domain key:dnsKey];
+    } else if (encryptType == 2) {
+        domainEncrypStr = [domain copy];
+        protocol = @"https";
     }
 
     NSString *serviceIp = [[MSDKDnsParamsManager shareInstance] msdkDnsGetMDnsIp];
@@ -410,15 +413,18 @@ char MSDKDnsHexCharToChar(char high, char low) {
         if (!httpServer || httpServer.length == 0) {
             httpServer = serviceIp;
         }
-        NSString * urlStr = [NSString stringWithFormat:@"http://%@/d?dn=%@&clientip=1&ttl=1&id=%d", httpServer, domainEncrypStr, dnsId];
+        NSString * urlStr = [NSString stringWithFormat:@"%@://%@/d?dn=%@&clientip=1&ttl=1&query=1&id=%d", protocol, httpServer, domainEncrypStr, dnsId];
         if (use4A) {
             urlStr = [urlStr stringByAppendingString:@"&type=aaaa"];
         }
-        if (encryptType > 0) {
-            urlStr = [urlStr stringByAppendingFormat:@"&alg=aes&token=%i",1234];
+        if (encryptType == 1) {
+            urlStr = [urlStr stringByAppendingFormat:@"&alg=aes"];
+        } else if (encryptType == 2) {
+            NSString *token =  [[MSDKDnsParamsManager shareInstance] msdkDnsGetMToken];
+            urlStr = [urlStr stringByAppendingFormat:@"&token=%@", token];
         }
         NSURL * url = [NSURL URLWithString:urlStr];
-        NSLog(@"httpdns service url:%@",urlStr);
+//        NSLog(@"httpdns service url:%@",urlStr);
         MSDKDNSLOG(@"%@",url);
         return url;
     } else {

@@ -31,7 +31,7 @@ static MSDKDns * _sharedInstance = nil;
 }
 
 - (BOOL) initConfig:(NSString *)appId dnsId:(int)dnsId dnsKey:(NSString *)dnsKey dnsIp:(NSString *)dnsIp debug:(BOOL)debug timeout:(int)timeout {
-    return [self initConfig:appId dnsId:dnsId dnsKey:dnsKey dnsIp:dnsIp debug:debug timeout:timeout channel:DES_HTTP_CHANNEL];
+    return [self initConfig:appId dnsId:dnsId dnsKey:dnsKey dnsIp:dnsIp debug:debug timeout:timeout channel:DES_CHANNEL];
 }
 
 - (BOOL) initConfig:(NSString *)appId dnsId:(int)dnsId dnsKey:(NSString *)dnsKey dnsIp:(NSString *)dnsIp debug:(BOOL)debug timeout:(int)timeout channel:(NSString *)channel {
@@ -49,9 +49,17 @@ static MSDKDns * _sharedInstance = nil;
     return YES;
 }
 
+- (BOOL) initConfig:(DnsConfig *)config {
+    [[MSDKDnsLog sharedInstance] setEnableLog:config->debug];
+    [[MSDKDnsParamsManager shareInstance] msdkDnsSetMAppId:config->appId MToken:config->token MTimeOut:config->timeout MChannel:config->channel];
+    [[MSDKDnsParamsManager shareInstance] msdkDnsSetMDnsId:config->dnsId MDnsKey:config->dnsKey];
+    [[MSDKDnsParamsManager shareInstance] msdkDnsSetMDnsIp:config->dnsIp];
+    return YES;
+}
+
 - (BOOL) WGSetDnsAppKey:(NSString *) appkey DnsID:(int)dnsid DnsKey:(NSString *)dnsKey DnsIP:(NSString *)dnsip Debug:(BOOL)debug TimeOut:(int)timeout
 {
-    return [self WGSetDnsAppKey:appkey DnsID:dnsid DnsKey:dnsKey DnsIP:dnsip Debug:debug TimeOut:timeout channel:DES_HTTP_CHANNEL];
+    return [self WGSetDnsAppKey:appkey DnsID:dnsid DnsKey:dnsKey DnsIP:dnsip Debug:debug TimeOut:timeout channel:DES_CHANNEL];
 }
 
 //channel
@@ -106,6 +114,25 @@ static MSDKDns * _sharedInstance = nil;
     }
 }
 
+- (NSDictionary *) WGGetHostsByNames:(NSArray *)domains {
+    @synchronized(self) {
+        NSDictionary * dnsResult = @{};
+        MSDKDNSLOG(@"GetHostByName:%@",domains);
+        if (!domains || [domains count] == 0) {
+            //请求域名为空，返回空
+            MSDKDNSLOG(@"MSDKDns Result is Empty!");
+            return dnsResult;
+        }
+        //进行httpdns请求
+        NSDate * date = [NSDate date];
+        //进行httpdns请求
+        dnsResult = [[MSDKDnsManager shareInstance] getHostsByNames:domains];
+        NSTimeInterval time_consume = [[NSDate date] timeIntervalSinceDate:date] * 1000;
+        MSDKDNSLOG(@"MSDKDns WGGetHostByName Total Time Consume is %.1fms", time_consume);
+        return dnsResult;
+    }
+}
+
 - (void)WGGetHostByNameAsync:(NSString *)domain returnIps:(void (^)(NSArray *))handler {
     @synchronized(self) {
         MSDKDNSLOG(@"GetHostByNameAsync:%@",domain);
@@ -136,6 +163,39 @@ static MSDKDns * _sharedInstance = nil;
                 }
             } else {
                 NSArray * dnsResult = @[@"0", @"0"];
+                if (handler) {
+                    handler(dnsResult);
+                }
+            }
+        }];
+    }
+}
+
+- (void)WGGetHostsByNamesAsync:(NSArray *)domains returnIps:(void (^)(NSDictionary *))handler {
+    @synchronized(self) {
+        MSDKDNSLOG(@"GetHostByNameAsync:%@",domains);
+        if (!domains || [domains count] == 0) {
+            //请求域名为空，返回空
+            MSDKDNSLOG(@"MSDKDns Result is Empty!");
+            NSDictionary * dnsResult = @{};
+            if (handler) {
+                handler(dnsResult);
+                handler = nil;
+            }
+            return;
+        }
+        NSDate * date = [NSDate date];
+        [[MSDKDnsManager shareInstance] getHostsByNames:domains returnIps:^(NSDictionary *ipsDict) {
+            NSTimeInterval time_consume = [[NSDate date] timeIntervalSinceDate:date] * 1000;
+            MSDKDNSLOG(@"MSDKDns WGGetHostByNameAsync Total Time Consume is %.1fms", time_consume);
+            if (ipsDict) {
+                NSDictionary * dnsResult = [[NSDictionary alloc] initWithDictionary:ipsDict];
+                MSDKDNSLOG(@"%@, MSDKDns Result is:%@",domains, ipsDict);
+                if (handler) {
+                    handler(dnsResult);
+                }
+            } else {
+                NSDictionary * dnsResult = @{};
                 if (handler) {
                     handler(dnsResult);
                 }
