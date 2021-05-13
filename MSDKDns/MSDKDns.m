@@ -98,6 +98,8 @@ static MSDKDns * _sharedInstance = nil;
             MSDKDNSLOG(@"MSDKDns Result is Empty!");
             return dnsResult;
         }
+        // 转换成小写
+        domain = [domain lowercaseString];
         //进行httpdns请求
         NSDate * date = [NSDate date];
         //进行httpdns请求
@@ -123,6 +125,15 @@ static MSDKDns * _sharedInstance = nil;
             MSDKDNSLOG(@"MSDKDns Result is Empty!");
             return dnsResult;
         }
+        // 转换成小写
+        NSMutableArray *lowerCaseArray = [NSMutableArray array];
+        for(int i = 0; i < [domains count]; i++) {
+            NSString *d = [domains objectAtIndex:i];
+            if (d && d.length > 0) {
+                [lowerCaseArray addObject:[d lowercaseString]];
+            }
+        }
+        domains = lowerCaseArray;
         //进行httpdns请求
         NSDate * date = [NSDate date];
         //进行httpdns请求
@@ -146,6 +157,8 @@ static MSDKDns * _sharedInstance = nil;
             }
             return;
         }
+        // 转换成小写
+        domain = [domain lowercaseString];
         NSDate * date = [NSDate date];
         [[MSDKDnsManager shareInstance] getHostByName:domain returnIps:^(NSArray *ipsArray) {
             NSTimeInterval time_consume = [[NSDate date] timeIntervalSinceDate:date] * 1000;
@@ -184,6 +197,15 @@ static MSDKDns * _sharedInstance = nil;
             }
             return;
         }
+        // 转换成小写
+        NSMutableArray *lowerCaseArray = [NSMutableArray array];
+        for(int i = 0; i < [domains count]; i++) {
+            NSString *d = [domains objectAtIndex:i];
+            if (d && d.length > 0) {
+                [lowerCaseArray addObject:[d lowercaseString]];
+            }
+        }
+        domains = lowerCaseArray;
         NSDate * date = [NSDate date];
         [[MSDKDnsManager shareInstance] getHostsByNames:domains returnIps:^(NSDictionary *ipsDict) {
             NSTimeInterval time_consume = [[NSDate date] timeIntervalSinceDate:date] * 1000;

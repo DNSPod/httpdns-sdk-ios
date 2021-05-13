@@ -227,28 +227,27 @@
     return str;
 }
 
+- (void)parseSingleDomain:(NSString *)string intoDic:(NSDictionary *)resultDic {
+    // 找到第一个冒号，进行拆分
+    NSRange range = [string rangeOfString:@":"];
+    if (range.location != NSNotFound) {
+        NSString* queryDomain = [self getQueryDomain:[string substringToIndex:range.location]];
+        NSString* ipString = [string substringFromIndex:range.location + 1];
+        NSDictionary *domainInfo = [self parseIPString:ipString];
+        [resultDic setValue:domainInfo forKey:queryDomain];
+    }
+}
+
 - (NSDictionary *)parseResultString:(NSString *)string {
     NSDictionary *resultDic = [NSMutableDictionary dictionary];
     if ([string containsString:@"\n"]) {
         NSArray *lineArray = [string componentsSeparatedByString:@"\n"];
         for (int i = 0; i < [lineArray count]; i++) {
             NSString *lineString = [lineArray objectAtIndex:i];
-            NSArray *tempArray = [lineString componentsSeparatedByString: @":"];
-            if (tempArray && [tempArray count] == 2) {
-                NSString* queryDomain = [self getQueryDomain:[tempArray objectAtIndex:0]];
-                NSString* ipString = [tempArray objectAtIndex:1];
-                NSDictionary *domainInfo = [self parseIPString:ipString];
-                [resultDic setValue:domainInfo forKey:queryDomain];
-            }
+            [self parseSingleDomain:lineString intoDic:resultDic];
         }
     } else {
-        NSArray *tempArray = [string componentsSeparatedByString: @":"];
-        if (tempArray && [tempArray count] == 2) {
-            NSString* queryDomain = [self getQueryDomain:[tempArray objectAtIndex:0]];
-            NSString* ipString = [tempArray objectAtIndex:1];
-            NSDictionary *domainInfo = [self parseIPString:ipString];
-            [resultDic setValue:domainInfo forKey:queryDomain];
-        }
+        [self parseSingleDomain:string intoDic:resultDic];
     }
     return resultDic;
 }
