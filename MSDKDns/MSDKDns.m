@@ -30,25 +30,6 @@ static MSDKDns * _sharedInstance = nil;
     return self;
 }
 
-- (BOOL) initConfig:(NSString *)appId dnsId:(int)dnsId dnsKey:(NSString *)dnsKey dnsIp:(NSString *)dnsIp debug:(BOOL)debug timeout:(int)timeout {
-    return [self initConfig:appId dnsId:dnsId dnsKey:dnsKey dnsIp:dnsIp debug:debug timeout:timeout encryptType:HttpDnsEncryptTypeDES];
-}
-
-- (BOOL) initConfig:(NSString *)appId dnsId:(int)dnsId dnsKey:(NSString *)dnsKey dnsIp:(NSString *)dnsIp debug:(BOOL)debug timeout:(int)timeout encryptType:(HttpDnsEncryptType)encryptType {
-    [[MSDKDnsLog sharedInstance] setEnableLog:debug];
-    [[MSDKDnsParamsManager shareInstance] msdkDnsSetMAppId:appId MTimeOut:timeout MEncryptType:encryptType];
-    [[MSDKDnsParamsManager shareInstance] msdkDnsSetMDnsId:dnsId MDnsKey:dnsKey];
-    [[MSDKDnsParamsManager shareInstance] msdkDnsSetMDnsIp:dnsIp];
-    return YES;
-}
-
-- (BOOL) initConfig:(NSString *)appId dnsIp:(NSString *)dnsIp debug:(BOOL)debug timeout:(int)timeout {
-    [[MSDKDnsLog sharedInstance] setEnableLog:debug];
-    [[MSDKDnsParamsManager shareInstance] msdkDnsSetMAppId:appId MTimeOut:timeout];
-    [[MSDKDnsParamsManager shareInstance] msdkDnsSetMDnsIp:dnsIp];
-    return YES;
-}
-
 - (BOOL) initConfig:(DnsConfig *)config {
     [[MSDKDnsLog sharedInstance] setEnableLog:config->debug];
     [[MSDKDnsParamsManager shareInstance] msdkDnsSetMAppId:config->appId MToken:config->token MTimeOut:config->timeout MEncryptType:config->encryptType];

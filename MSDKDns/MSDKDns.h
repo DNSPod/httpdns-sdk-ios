@@ -22,13 +22,13 @@ typedef enum {
 } HttpDnsEncryptType;
 
 struct DnsConfig {
-    NSString* appId;
-    int dnsId;
-    NSString* dnsKey; // 加密方式为AES、DES时必传
+    NSString* appId; // 应用ID，腾讯云控制台申请获得，用于上报
+    int dnsId; // 授权ID，腾讯云控制台申请后，通过邮件发送，用于域名解析鉴权
+    NSString* dnsKey; // 加密密钥，加密方式为AES、DES时必传。腾讯云控制台申请后，通过邮件发送，用于域名解析鉴权
     NSString* token; // 加密方式为 HTTPS 时必传
-    NSString* dnsIp; // httpdns 服务器ip
-    BOOL debug; // 是否打印调试日志
-    int timeout; // 请求超时时间
+    NSString* dnsIp; // HTTPDNS 服务器IP
+    BOOL debug; // 是否开启Debug日志，YES：开启，NO：关闭。建议联调阶段开启，正式上线前关闭
+    int timeout; // 超时时间，单位ms，如设置0，则设置为默认值2000ms
     HttpDnsEncryptType encryptType; // 控制加密方式
     NSString* routeIp; // 线路IP地址
 };
@@ -41,32 +41,16 @@ struct DnsConfig {
 /**
  * 初始化SDK
  *
- * @param appId  SDK AppID，腾讯云官网（https://console.cloud.tencent.com/httpdns）申请获得，用于上报
- * @param dnsId   授权 ID，腾讯云官网（https://console.cloud.tencent.com/httpdns）申请后，通过邮件发送，用于域名解析鉴权
- * @param dnsKey  加密密钥，腾讯云官网（https://console.cloud.tencent.com/httpdns）申请后，通过邮件发送，用于域名解析鉴权
- * @param dnsIp   HTTPDNS IP 地址
- * @param debug   是否开启Debug日志，YES：开启，NO：关闭。建议联调阶段开启，正式上线前关闭
- * @param timeout 超时时间，单位ms，如设置0，则设置为默认值2000ms
+ * @param config  配置
  * @return YES：设置成功 NO：设置失败
  */
-- (BOOL) initConfig:(NSString *)appId dnsId:(int)dnsId dnsKey:(NSString *)dnsKey dnsIp:(NSString *)dnsIp debug:(BOOL)debug timeout:(int)timeout;
+- (BOOL) initConfig:(DnsConfig *)config;
 
 /**
  * @deprecated This method is deprecated starting in version 1.2.1i
  * @note Please use @code initConfig:dnsId:dnsKey:dnsIp:debug:timeout @endcode instead.
  */
 - (BOOL) WGSetDnsAppKey:(NSString *) appkey DnsID:(int)dnsid DnsKey:(NSString *)dnsKey DnsIP:(NSString *)dnsip Debug:(BOOL)debug TimeOut:(int)timeout DEPRECATED_ATTRIBUTE;
-
-/**
- * 初始化SDK
- *
- * @param appId  SDK AppID，腾讯云官网（https://console.cloud.tencent.com/httpdns）申请获得，用于上报
- * @param dnsIp   HTTPDNS IP 地址
- * @param debug   是否开启Debug日志，YES：开启，NO：关闭。建议联调阶段开启，正式上线前关闭
- * @param timeout 超时时间，单位ms，如设置0，则设置为默认值2000ms
- * @return YES：设置成功 NO：设置失败
- */
-- (BOOL) initConfig:(NSString *)appId dnsIp:(NSString *)dnsIp debug:(BOOL)debug timeout:(int)timeout;
 
 /**
  * @deprecated This method is deprecated starting in version 1.2.1i
@@ -81,9 +65,6 @@ struct DnsConfig {
  * @return YES：成功 NO：失败
  */
 - (BOOL) WGSetDnsOpenId:(NSString *)openId;
-
-
-- (BOOL) initConfig:(DnsConfig *)config;
 
 #pragma mark - 域名解析接口，按需调用
 /**
