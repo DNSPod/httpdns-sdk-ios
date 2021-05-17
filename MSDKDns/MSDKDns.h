@@ -30,7 +30,7 @@ struct DnsConfig {
     BOOL debug; // 是否开启Debug日志，YES：开启，NO：关闭。建议联调阶段开启，正式上线前关闭
     int timeout; // 超时时间，单位ms，如设置0，则设置为默认值2000ms
     HttpDnsEncryptType encryptType; // 控制加密方式
-    NSString* routeIp; // 线路IP地址
+    NSString* routeIp; // 查询线路IP地址
 };
 
 @interface MSDKDns : NSObject

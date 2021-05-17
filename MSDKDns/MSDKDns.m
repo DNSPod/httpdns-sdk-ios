@@ -35,6 +35,7 @@ static MSDKDns * _sharedInstance = nil;
     [[MSDKDnsParamsManager shareInstance] msdkDnsSetMAppId:config->appId MToken:config->token MTimeOut:config->timeout MEncryptType:config->encryptType];
     [[MSDKDnsParamsManager shareInstance] msdkDnsSetMDnsId:config->dnsId MDnsKey:config->dnsKey];
     [[MSDKDnsParamsManager shareInstance] msdkDnsSetMDnsIp:config->dnsIp];
+    [[MSDKDnsParamsManager shareInstance] msdkDnsSetRouteIp: config->routeIp];
     return YES;
 }
 

@@ -418,6 +418,8 @@ char MSDKDnsHexCharToChar(char high, char low) {
     }
 
     NSString *serviceIp = [[MSDKDnsParamsManager shareInstance] msdkDnsGetMDnsIp];
+    NSString *routeIp = [[MSDKDnsParamsManager shareInstance] msdkDnsGetRouteIp];
+    
     if (domainEncrypStr && domainEncrypStr.length > 0) {
         NSString * httpServer = [self getIPv6:[serviceIp UTF8String]];
         if (!httpServer || httpServer.length == 0) {
@@ -431,6 +433,9 @@ char MSDKDnsHexCharToChar(char high, char low) {
             urlStr = [urlStr stringByAppendingFormat:@"&alg=aes"];
         } else if (encryptType == HttpDnsEncryptTypeHTTPS) {
             urlStr = [urlStr stringByAppendingFormat:@"&token=%@", token];
+        }
+        if (routeIp && routeIp.length > 0) {
+            urlStr = [urlStr stringByAppendingFormat:@"&ip=%@", routeIp];
         }
         NSURL * url = [NSURL URLWithString:urlStr];
         MSDKDNSLOG(@"httpdns service url: %@",url);

@@ -17,6 +17,7 @@
 @property (strong, nonatomic, readwrite) NSString * msdkDnsKey;
 @property (assign, nonatomic, readwrite) int msdkDnsTimeOut;
 @property (assign, nonatomic, readwrite) HttpDnsEncryptType msdkEncryptType;
+@property (strong, nonatomic, readwrite) NSString *msdkDnsRouteIp;
 
 @end
 
@@ -83,6 +84,12 @@ static MSDKDnsParamsManager * _sharedInstance = nil;
     });
 }
 
+- (void)msdkDnsSetRouteIp:(NSString *)routeIp {
+    dispatch_async([MSDKDnsInfoTool msdkdns_queue], ^{
+        self.msdkDnsRouteIp = routeIp;
+    });
+}
+
 - (NSString *) msdkDnsGetMDnsIp {
     return [_msdkDnsIp copy];
 }
@@ -120,6 +127,10 @@ static MSDKDnsParamsManager * _sharedInstance = nil;
 - (HttpDnsEncryptType)msdkDnsGetEncryptType
 {
     return _msdkEncryptType;
+}
+
+- (NSString *)msdkDnsGetRouteIp {
+    return _msdkDnsRouteIp;
 }
 
 @end
