@@ -6,20 +6,18 @@
 #import "MSDKDnsInfoTool.h"
 #import "MSDKDnsPrivate.h"
 
-NSString *DES_HTTP_CHANNEL = @"DesHttp";
-NSString *DES_HTTPS_CHANNEL = @"DesHttps";
-NSString *AES_HTTP_CHANNEL = @"AesHttp";
-NSString *AES_HTTPS_CHANNEL = @"AesHttps";
 
 @interface MSDKDnsParamsManager()
 
 @property (strong, nonatomic, readwrite) NSString * msdkDnsIp;
 @property (strong, nonatomic, readwrite) NSString * msdkDnsOpenId;
 @property (strong, nonatomic, readwrite) NSString * msdkDnsAppId;
+@property (strong, nonatomic, readwrite) NSString * msdkDnsToken;
 @property (assign, nonatomic, readwrite) int msdkDnsId;
 @property (strong, nonatomic, readwrite) NSString * msdkDnsKey;
 @property (assign, nonatomic, readwrite) int msdkDnsTimeOut;
-@property (strong, nonatomic) NSString *msdkDnsChannel;
+@property (assign, nonatomic, readwrite) HttpDnsEncryptType msdkEncryptType;
+@property (strong, nonatomic, readwrite) NSString *msdkDnsRouteIp;
 
 @end
 
@@ -57,15 +55,25 @@ static MSDKDnsParamsManager * _sharedInstance = nil;
 
 - (void)msdkDnsSetMAppId:(NSString *) mdnsAppId MTimeOut:(int)mdnsTimeOut
 {
-    [self msdkDnsSetMAppId:mdnsAppId MTimeOut:mdnsTimeOut MChannel:DES_HTTP_CHANNEL];
+    [self msdkDnsSetMAppId:mdnsAppId MTimeOut:mdnsTimeOut MEncryptType:HttpDnsEncryptTypeDES];
 }
 
-- (void)msdkDnsSetMAppId:(NSString *) mdnsAppId MTimeOut:(int)mdnsTimeOut MChannel:(NSString *)mdnsChannel
+- (void)msdkDnsSetMAppId:(NSString *) mdnsAppId MTimeOut:(int)mdnsTimeOut MEncryptType:(HttpDnsEncryptType)mdnsEncryptType
 {
     dispatch_async([MSDKDnsInfoTool msdkdns_queue], ^{
         self.msdkDnsAppId = mdnsAppId;
         self.msdkDnsTimeOut = mdnsTimeOut;
-        self.msdkDnsChannel = mdnsChannel;
+        self.msdkEncryptType = mdnsEncryptType;
+    });
+}
+
+- (void)msdkDnsSetMAppId:(NSString *) mdnsAppId MToken:(NSString* )mdnsToken MTimeOut:(int)mdnsTimeOut MEncryptType:(HttpDnsEncryptType)mdnsEncryptType
+{
+    dispatch_async([MSDKDnsInfoTool msdkdns_queue], ^{
+        self.msdkDnsAppId = mdnsAppId;
+        self.msdkDnsTimeOut = mdnsTimeOut;
+        self.msdkEncryptType = mdnsEncryptType;
+        self.msdkDnsToken = mdnsToken;
     });
 }
 
@@ -73,6 +81,12 @@ static MSDKDnsParamsManager * _sharedInstance = nil;
     dispatch_async([MSDKDnsInfoTool msdkdns_queue], ^{
         self.msdkDnsId = mdnsId;
         self.msdkDnsKey = mdnsKey;
+    });
+}
+
+- (void)msdkDnsSetRouteIp:(NSString *)routeIp {
+    dispatch_async([MSDKDnsInfoTool msdkdns_queue], ^{
+        self.msdkDnsRouteIp = routeIp;
     });
 }
 
@@ -86,6 +100,10 @@ static MSDKDnsParamsManager * _sharedInstance = nil;
 
 - (NSString *) msdkDnsGetMAppId {
     return [_msdkDnsAppId copy];
+}
+
+- (NSString *) msdkDnsGetMToken {
+    return [_msdkDnsToken copy];
 }
 
 - (int) msdkDnsGetMDnsId {
@@ -106,9 +124,13 @@ static MSDKDnsParamsManager * _sharedInstance = nil;
     return timeOut;
 }
 
-- (NSString *)msdkDnsGetChannel
+- (HttpDnsEncryptType)msdkDnsGetEncryptType
 {
-    return _msdkDnsChannel;
+    return _msdkEncryptType;
+}
+
+- (NSString *)msdkDnsGetRouteIp {
+    return _msdkDnsRouteIp;
 }
 
 @end

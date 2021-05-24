@@ -15,10 +15,23 @@
     #endif
 #endif
 
-extern NSString *DES_HTTP_CHANNEL;          //des加密 http
-extern NSString *DES_HTTPS_CHANNEL;         //des加密 https
-extern NSString *AES_HTTP_CHANNEL;          //aes加密 http
-extern NSString *AES_HTTPS_CHANNEL;         //aes加密 https
+typedef enum {
+    HttpDnsEncryptTypeDES = 0,
+    HttpDnsEncryptTypeAES = 1,
+    HttpDnsEncryptTypeHTTPS = 2
+} HttpDnsEncryptType;
+
+struct DnsConfig {
+    NSString* appId; // 应用ID，腾讯云控制台申请获得，用于上报
+    int dnsId; // 授权ID，腾讯云控制台申请后，通过邮件发送，用于域名解析鉴权
+    NSString* dnsKey; // 加密密钥，加密方式为AES、DES时必传。腾讯云控制台申请后，通过邮件发送，用于域名解析鉴权
+    NSString* token; // 加密方式为 HTTPS 时必传
+    NSString* dnsIp; // HTTPDNS 服务器IP
+    BOOL debug; // 是否开启Debug日志，YES：开启，NO：关闭。建议联调阶段开启，正式上线前关闭
+    int timeout; // 超时时间，单位ms，如设置0，则设置为默认值2000ms
+    HttpDnsEncryptType encryptType; // 控制加密方式
+    NSString* routeIp; // 查询线路IP地址
+};
 
 @interface MSDKDns : NSObject
 
@@ -28,32 +41,16 @@ extern NSString *AES_HTTPS_CHANNEL;         //aes加密 https
 /**
  * 初始化SDK
  *
- * @param appId  SDK AppID，腾讯云官网（https://console.cloud.tencent.com/httpdns）申请获得，用于上报
- * @param dnsId   授权 ID，腾讯云官网（https://console.cloud.tencent.com/httpdns）申请后，通过邮件发送，用于域名解析鉴权
- * @param dnsKey  加密密钥，腾讯云官网（https://console.cloud.tencent.com/httpdns）申请后，通过邮件发送，用于域名解析鉴权
- * @param dnsIp   HTTPDNS IP 地址
- * @param debug   是否开启Debug日志，YES：开启，NO：关闭。建议联调阶段开启，正式上线前关闭
- * @param timeout 超时时间，单位ms，如设置0，则设置为默认值2000ms
+ * @param config  配置
  * @return YES：设置成功 NO：设置失败
  */
-- (BOOL) initConfig:(NSString *)appId dnsId:(int)dnsId dnsKey:(NSString *)dnsKey dnsIp:(NSString *)dnsIp debug:(BOOL)debug timeout:(int)timeout;
+- (BOOL) initConfig:(DnsConfig *)config;
 
 /**
  * @deprecated This method is deprecated starting in version 1.2.1i
  * @note Please use @code initConfig:dnsId:dnsKey:dnsIp:debug:timeout @endcode instead.
  */
 - (BOOL) WGSetDnsAppKey:(NSString *) appkey DnsID:(int)dnsid DnsKey:(NSString *)dnsKey DnsIP:(NSString *)dnsip Debug:(BOOL)debug TimeOut:(int)timeout DEPRECATED_ATTRIBUTE;
-
-/**
- * 初始化SDK
- *
- * @param appId  SDK AppID，腾讯云官网（https://console.cloud.tencent.com/httpdns）申请获得，用于上报
- * @param dnsIp   HTTPDNS IP 地址
- * @param debug   是否开启Debug日志，YES：开启，NO：关闭。建议联调阶段开启，正式上线前关闭
- * @param timeout 超时时间，单位ms，如设置0，则设置为默认值2000ms
- * @return YES：设置成功 NO：设置失败
- */
-- (BOOL) initConfig:(NSString *)appId dnsIp:(NSString *)dnsIp debug:(BOOL)debug timeout:(int)timeout;
 
 /**
  * @deprecated This method is deprecated starting in version 1.2.1i
@@ -80,12 +77,29 @@ extern NSString *AES_HTTPS_CHANNEL;         //aes加密 https
 - (NSArray *) WGGetHostByName:(NSString *) domain;
 
 /**
+ 域名批量同步解析（通用接口）
+
+ @param domains 域名数组
+ 
+ @return 查询到的IP字典
+ */
+- (NSDictionary *) WGGetHostsByNames:(NSArray *) domains;
+
+/**
  域名异步解析（通用接口）
 
  @param domain  域名
  @param handler 返回查询到的IP数组，超时（1s）或者未未查询到返回[0,0]数组
  */
 - (void) WGGetHostByNameAsync:(NSString *) domain returnIps:(void (^)(NSArray * ipsArray))handler;
+
+/**
+ 域名批量异步解析（通用接口）
+
+ @param domains  域名数组
+ @param handler 返回查询到的IP数组，超时（1s）或者未未查询到返回[0,0]数组
+ */
+- (void) WGGetHostsByNamesAsync:(NSArray *) domains returnIps:(void (^)(NSDictionary * ipsDictionary))handler;
 
 #pragma mark - SNI场景，仅调用一次即可，请勿多次调用
 /**
