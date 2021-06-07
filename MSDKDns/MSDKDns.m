@@ -39,6 +39,20 @@ static MSDKDns * _sharedInstance = nil;
     return YES;
 }
 
+- (BOOL) initConfigWithDictionary:(NSDictionary *)config {
+    DnsConfig *conf = new DnsConfig();
+    conf->appId = [config objectForKey:@"appId"];
+    conf->debug = [[config objectForKey:@"debug"] boolValue];
+    conf->dnsId = [[config objectForKey:@"dnsId"] intValue];
+    conf->dnsIp = [config objectForKey:@"dnsIp"];
+    conf->dnsKey = [config objectForKey:@"dnsKey"];
+    conf->token = [config objectForKey:@"token"];
+    conf->encryptType =(HttpDnsEncryptType)[[config objectForKey:@"encryptType"] intValue];
+    conf->routeIp = [config objectForKey:@"routeIp"];
+    conf->timeout = [[config objectForKey:@"timeout"] intValue];
+   return [self initConfig:conf];
+}
+
 - (BOOL) WGSetDnsAppKey:(NSString *) appkey DnsID:(int)dnsid DnsKey:(NSString *)dnsKey DnsIP:(NSString *)dnsip Debug:(BOOL)debug TimeOut:(int)timeout
 {
     return [self WGSetDnsAppKey:appkey DnsID:dnsid DnsKey:dnsKey DnsIP:dnsip Debug:debug TimeOut:timeout encryptType:HttpDnsEncryptTypeDES];
