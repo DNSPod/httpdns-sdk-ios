@@ -234,7 +234,9 @@
         NSString* queryDomain = [self getQueryDomain:[string substringToIndex:range.location]];
         NSString* ipString = [string substringFromIndex:range.location + 1];
         NSDictionary *domainInfo = [self parseIPString:ipString];
-        [resultDic setValue:domainInfo forKey:queryDomain];
+        if (queryDomain && domainInfo) {
+            [resultDic setValue:domainInfo forKey:queryDomain];
+        }
     }
 }
 
