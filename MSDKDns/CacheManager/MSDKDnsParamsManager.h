@@ -19,6 +19,7 @@
 - (void)msdkDnsSetMAppId:(NSString *) mdnsAppId MToken:(NSString* )mdnsToken MTimeOut:(int)mdnsTimeOut MEncryptType:(HttpDnsEncryptType)mdnsEncryptType;
 - (void)msdkDnsSetMDnsId:(int) mdnsId MDnsKey:(NSString *)mdnsKey;
 - (void)msdkDnsSetRouteIp:(NSString *)routeIp;
+- (void)msdkDnsSetHttpOnly:(BOOL)httpOnly;
 
 - (NSString *) msdkDnsGetMDnsIp;
 - (NSString *) msdkDnsGetMOpenId;
@@ -29,4 +30,5 @@
 - (HttpDnsEncryptType)msdkDnsGetEncryptType;
 - (NSString *)msdkDnsGetMToken;
 - (NSString *)msdkDnsGetRouteIp;
+- (BOOL)msdkDnsGetHttpOnly;
 @end

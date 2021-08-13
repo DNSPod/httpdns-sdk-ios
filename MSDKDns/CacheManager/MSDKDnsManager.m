@@ -291,16 +291,19 @@ static MSDKDnsManager * _sharedInstance = nil;
 
 - (NSArray *)resultArray: (NSString *)domain DomainDic:(NSDictionary *)domainDict {
     NSMutableArray * ipResult = [@[@"0", @"0"] mutableCopy];
+    BOOL httpOnly = [[MSDKDnsParamsManager shareInstance] msdkDnsGetHttpOnly];
     if (domainDict) {
         NSDictionary * cacheDict = domainDict[domain];
         if (cacheDict && [cacheDict isKindOfClass:[NSDictionary class]]) {
             
-            NSDictionary * lresultDict = cacheDict[kMSDKLocalDnsCache];
             NSDictionary * hresultDict_A = cacheDict[kMSDKHttpDnsCache_A];
             NSDictionary * hresultDict_4A = cacheDict[kMSDKHttpDnsCache_4A];
             
-            if (lresultDict && [lresultDict isKindOfClass:[NSDictionary class]]) {
-                ipResult = [lresultDict[kIP] mutableCopy];
+            if (!httpOnly) {
+                NSDictionary * lresultDict = cacheDict[kMSDKLocalDnsCache];
+                if (lresultDict && [lresultDict isKindOfClass:[NSDictionary class]]) {
+                    ipResult = [lresultDict[kIP] mutableCopy];
+                }
             }
             if (hresultDict_A && [hresultDict_A isKindOfClass:[NSDictionary class]]) {
                 NSArray * ipsArray = hresultDict_A[kIP];
@@ -484,8 +487,8 @@ static MSDKDnsManager * _sharedInstance = nil;
     [params setValue:networkType forKey:kMSDKDnsNetType];
     
     //SSID
-    NSString * ssid = [MSDKDnsInfoTool wifiSSID];
-    [params setValue:ssid forKey:kMSDKDnsSSID];
+//    NSString * ssid = [MSDKDnsInfoTool wifiSSID];
+//    [params setValue:ssid forKey:kMSDKDnsSSID];
     
     //domain
     NSString * domain_string = HTTP_DNS_UNKNOWN_STR;

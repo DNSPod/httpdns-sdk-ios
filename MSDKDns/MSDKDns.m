@@ -36,6 +36,7 @@ static MSDKDns * _sharedInstance = nil;
     [[MSDKDnsParamsManager shareInstance] msdkDnsSetMDnsId:config->dnsId MDnsKey:config->dnsKey];
     [[MSDKDnsParamsManager shareInstance] msdkDnsSetMDnsIp:config->dnsIp];
     [[MSDKDnsParamsManager shareInstance] msdkDnsSetRouteIp: config->routeIp];
+    [[MSDKDnsParamsManager shareInstance] msdkDnsSetHttpOnly: config->httpOnly];
     return YES;
 }
 
@@ -50,6 +51,7 @@ static MSDKDns * _sharedInstance = nil;
     conf->encryptType =(HttpDnsEncryptType)[[config objectForKey:@"encryptType"] intValue];
     conf->routeIp = [config objectForKey:@"routeIp"];
     conf->timeout = [[config objectForKey:@"timeout"] intValue];
+    conf->httpOnly = [[config objectForKey:@"httpOnly"] boolValue];
    return [self initConfig:conf];
 }
 

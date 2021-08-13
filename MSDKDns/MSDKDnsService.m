@@ -9,6 +9,7 @@
 #import "MSDKDnsLog.h"
 #import "MSDKDnsManager.h"
 #import "MSDKDnsNetworkManager.h"
+#import "MSDKDnsParamsManager.h"
 
 @interface MSDKDnsService () <MSDKDnsResolverDelegate>
 
@@ -93,9 +94,12 @@
         });
     }
     
-    dispatch_async([MSDKDnsInfoTool msdkdns_resolver_queue], ^{
-        [self startLocalDns:timeOut DnsId:dnsId DnsKey:dnsKey];
-    });
+    BOOL httpOnly = [[MSDKDnsParamsManager shareInstance] msdkDnsGetHttpOnly];
+    if (!httpOnly) {
+        dispatch_async([MSDKDnsInfoTool msdkdns_resolver_queue], ^{
+            [self startLocalDns:timeOut DnsId:dnsId DnsKey:dnsKey];
+        });
+    }
 }
 
 //进行httpdns请求
@@ -188,8 +192,9 @@
     }
     
     MSDKDNSLOG(@"callBack! :%@", self.toCheckDomains);
+    BOOL httpOnly = [[MSDKDnsParamsManager shareInstance] msdkDnsGetHttpOnly];
     //LocalHttp 和 HttpDns均完成，则返回结果
-    if (self.localDnsResolver.isFinished) {
+    if (httpOnly || self.localDnsResolver.isFinished) {
         if (self.httpDnsResolver_A && self.httpDnsResolver_4A) {
             if (self.httpDnsResolver_A.isFinished && self.httpDnsResolver_4A.isFinished) {
                 [self callNotify];

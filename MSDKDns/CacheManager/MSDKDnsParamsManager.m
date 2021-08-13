@@ -18,6 +18,7 @@
 @property (assign, nonatomic, readwrite) int msdkDnsTimeOut;
 @property (assign, nonatomic, readwrite) HttpDnsEncryptType msdkEncryptType;
 @property (strong, nonatomic, readwrite) NSString *msdkDnsRouteIp;
+@property (assign, nonatomic, readwrite) BOOL httpOnly;
 
 @end
 
@@ -88,6 +89,16 @@ static MSDKDnsParamsManager * _sharedInstance = nil;
     dispatch_async([MSDKDnsInfoTool msdkdns_queue], ^{
         self.msdkDnsRouteIp = routeIp;
     });
+}
+
+- (void)msdkDnsSetHttpOnly:(BOOL)httpOnly {
+    dispatch_async([MSDKDnsInfoTool msdkdns_queue], ^{
+        self.httpOnly = httpOnly;
+    });
+}
+
+- (BOOL)msdkDnsGetHttpOnly {
+    return _httpOnly;
 }
 
 - (NSString *) msdkDnsGetMDnsIp {
