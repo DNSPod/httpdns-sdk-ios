@@ -69,7 +69,7 @@ static MSDKDnsNetworkManager *manager = nil;
              {
                  MSDKDNSLOG(@"Network did changed,clear MSDKDns cache");
                  //网络状态发生变化时清除缓存
-                 [[MSDKDnsManager shareInstance] clearCache];
+                 [[MSDKDnsManager shareInstance] clearAllCache];
              }];
             
             [NSNotificationCenter.defaultCenter addObserverForName:UIApplicationDidEnterBackgroundNotification
@@ -79,7 +79,7 @@ static MSDKDnsNetworkManager *manager = nil;
              {
                  MSDKDNSLOG(@"Application did enter background,clear MSDKDns cache");
                  //进入后台时清除缓存，暂停网络监测
-                 [[MSDKDnsManager shareInstance] clearCache];
+                 [[MSDKDnsManager shareInstance] clearAllCache];
                  [self.reachability stopNotifier];
              }];
             

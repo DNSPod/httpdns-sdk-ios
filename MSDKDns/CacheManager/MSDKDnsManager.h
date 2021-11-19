@@ -32,7 +32,7 @@
 - (void)cacheDomainInfo:(NSDictionary *)domainInfo Domain:(NSString *)domain;
 - (void)clearCacheForDomain:(NSString *)domain;
 - (void)clearCacheForDomains:(NSArray *)domains;
-- (void)clearCache;
+- (void)clearAllCache;
 - (NSDictionary *) getDnsDetail:(NSString *) domain;
 
 @end

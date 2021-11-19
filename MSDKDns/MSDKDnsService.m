@@ -33,18 +33,10 @@
     [self setCompletionHandler:nil];
 }
 
-- (void)getHostByName:(NSString *)domain TimeOut:(float)timeOut DnsId:(int)dnsId DnsKey:(NSString *)dnsKey NetStack:(msdkdns::MSDKDNS_TLocalIPStack)netStack returnIps:(void (^)())handler
-{
-    [self getHostByName:domain TimeOut:timeOut DnsId:dnsId DnsKey:dnsKey NetStack:netStack encryptType:0 returnIps:handler];
-}
 
 - (void)getHostByName:(NSString *)domain TimeOut:(float)timeOut DnsId:(int)dnsId DnsKey:(NSString *)dnsKey NetStack:(msdkdns::MSDKDNS_TLocalIPStack)netStack encryptType:(NSInteger)encryptType returnIps:(void (^)())handler
 {
-    self.completionHandler = handler;
-    self.toCheckDomains = @[domain];
-    self.isCallBack = NO;
-    self.netStack = netStack;
-    [self startCheck:timeOut DnsId:dnsId DnsKey:dnsKey encryptType:encryptType];
+    [self getHostsByNames:@[domain] TimeOut:timeOut DnsId:dnsId DnsKey:dnsKey NetStack:netStack encryptType:encryptType returnIps:handler];
 }
 
 - (void)getHostsByNames:(NSArray *)domains TimeOut:(float)timeOut DnsId:(int)dnsId DnsKey:(NSString *)dnsKey NetStack:(msdkdns::MSDKDNS_TLocalIPStack)netStack encryptType:(NSInteger)encryptType returnIps:(void (^)())handler
@@ -57,11 +49,6 @@
 }
 
 #pragma mark - startCheck
-
-- (void)startCheck:(float)timeOut DnsId:(int)dnsId DnsKey:(NSString *)dnsKey
-{
-    [self startCheck:timeOut DnsId:dnsId DnsKey:dnsKey encryptType:0];
-}
 
 - (void)startCheck:(float)timeOut DnsId:(int)dnsId DnsKey:(NSString *)dnsKey encryptType:(NSInteger)encryptType
 {
@@ -103,11 +90,6 @@
 }
 
 //进行httpdns请求
-- (void)startHttpDns:(float)timeOut DnsId:(int)dnsId DnsKey:(NSString *)dnsKey
-{
-    [self startHttpDns:timeOut DnsId:dnsId DnsKey:dnsKey encryptType:0];
-}
-
 - (void)startHttpDns:(float)timeOut DnsId:(int)dnsId DnsKey:(NSString *)dnsKey encryptType:(NSInteger)encryptType
 {
     MSDKDNSLOG(@"%@ StartHttpDns!", self.toCheckDomains);
@@ -116,10 +98,6 @@
     [self.httpDnsResolver_A startWithDomains:self.toCheckDomains TimeOut:timeOut DnsId:dnsId DnsKey:dnsKey NetStack:msdkdns::MSDKDNS_ELocalIPStack_IPv4 encryptType:encryptType];
 }
 
-- (void)startHttpDns_4A:(float)timeOut DnsId:(int)dnsId DnsKey:(NSString *)dnsKey
-{
-    [self startHttpDns_4A:timeOut DnsId:dnsId DnsKey:dnsKey encryptType:0];
-}
 
 - (void)startHttpDns_4A:(float)timeOut DnsId:(int)dnsId DnsKey:(NSString *)dnsKey encryptType:(NSInteger)encryptType
 {

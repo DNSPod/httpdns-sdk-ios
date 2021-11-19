@@ -371,7 +371,7 @@ static MSDKDnsManager * _sharedInstance = nil;
     }
 }
 
-- (void)clearCache {
+- (void)clearAllCache {
     dispatch_async([MSDKDnsInfoTool msdkdns_queue], ^{
         MSDKDNSLOG(@"MSDKDns clearCache");
         if (self.domainDict) {

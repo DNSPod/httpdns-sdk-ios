@@ -6,6 +6,7 @@
 #import "MSDKDnsLog.h"
 #import <arpa/inet.h>
 #import "MSDKDnsInfoTool.h"
+#import "MSDKDnsLog.h"
 #include <netdb.h>
 #include <sys/socket.h>
 
@@ -107,7 +108,7 @@
                 case AF_INET6:
                     s6 = (struct sockaddr_in6 *)res->ai_addr;
                     if (inet_ntop(res->ai_family, (void *)&(s6->sin6_addr), buf, sizeof(buf)) == NULL) {
-                        NSLog(@"inet_ntop failed for v6!\n");
+                        MSDKDNSLOG(@"inet_ntop failed for v6!\n");
                     } else {
                         //surprisingly every address is in double, let's add this test
                         if ((![previousIP isEqualToString:[NSString stringWithUTF8String:buf]]) && ![result containsObject:[NSString stringWithUTF8String:buf]]) {
@@ -119,7 +120,7 @@
                 case AF_INET:
                     s4 = (struct sockaddr_in *)res->ai_addr;
                     if (inet_ntop(res->ai_family, (void *)&(s4->sin_addr), buf, sizeof(buf)) == NULL) {
-                        NSLog(@"inet_ntop failed for v4!\n");
+                        MSDKDNSLOG(@"inet_ntop failed for v4!\n");
                     } else {
                         //surprisingly every address is in double, let's add this test
                         if ((![previousIP isEqualToString:[NSString stringWithUTF8String:buf]]) && ![result4 containsObject:[NSString stringWithUTF8String:buf]]) {
@@ -128,7 +129,7 @@
                     }
                     break;
                 default:
-                    NSLog(@"Neither IPv4 nor IPv6!");
+                    MSDKDNSLOG(@"Neither IPv4 nor IPv6!");
             }
             //surprisingly every address is in double, let's add this test
             previousIP = [NSString stringWithUTF8String:buf];
