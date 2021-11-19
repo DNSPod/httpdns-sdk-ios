@@ -93,7 +93,7 @@
                 }
             }
         } else {
-            NSLog(@"Neither IPv4 nor IPv6!");
+            MSDKDNSLOG(@"Neither IPv4 nor IPv6!");
         }
     }
     freeaddrinfo(res0);
@@ -249,7 +249,7 @@ char MSDKDnsHexCharToChar(char high, char low) {
 //    plainText = @"t.tt";
 //    ivStr = @"d3ddee42c7e6f08a1077abc4f7a59d6c";
 //    Byte bytes[] = {0xd3,0xdd,0xee,0x42,0xc7,0xe6,0xf0,0x8a,0x10,0x77,0xab,0xc4,0xf7,0xa5,0x9d,0x6c};
-//    NSLog(@"bytes 的16进制数为:%@",[self hexStringFromBytes:bytes length:16]);
+//    MSDKDNSLOG(@"bytes 的16进制数为:%@",[self hexStringFromBytes:bytes length:16]);
     NSData *ivByte = [self bytesFromHexString:ivStr length:16];
     if (!ivStr) {
         return nil;
@@ -257,7 +257,7 @@ char MSDKDnsHexCharToChar(char high, char low) {
     NSData *encryData = [self aesCryptWithKey:AES_ENCRYPT src:(unsigned char *)plainText.UTF8String srcLen:(int)plainText.length key:(unsigned char *)key.UTF8String aesIv:(unsigned char *)[ivByte bytes]];//(unsigned char *)temphead.bytes];
     NSString *encryString = MSDKDnsDataToHexString(encryData);
     
-//    NSLog(@"加密 ||| realText:%@ encryString：%@，iv：%@",plainText,encryString,ivStr);
+//    MSDKDNSLOG(@"加密 ||| realText:%@ encryString：%@，iv：%@",plainText,encryString,ivStr);
     return [ivStr stringByAppendingString:encryString];
 }
 
@@ -282,7 +282,7 @@ char MSDKDnsHexCharToChar(char high, char low) {
     }
     NSString *dencryString = [[NSString alloc] initWithData:dencryData encoding:NSUTF8StringEncoding];
     
-//    NSLog(@"解密 === realContent：%@，iv：%@   dencryString:%@",realContent,ivStr,dencryString);
+//    MSDKDNSLOG(@"解密 === realContent：%@，iv：%@   dencryString:%@",realContent,ivStr,dencryString);
 
     return dencryString;
 }
@@ -375,7 +375,7 @@ char MSDKDnsHexCharToChar(char high, char low) {
         j++;
     }
     NSData *newData = [[NSData alloc] initWithBytes:bytes length:len];
-//    NSLog(@"newData=%@",newData);
+//    MSDKDNSLOG(@"newData=%@",newData);
     return newData;
 }
 
