@@ -20,7 +20,11 @@
 @property (nonatomic, strong) void (^ completionHandler)();
 @property (atomic, assign) BOOL isCallBack;
 @property (nonatomic) msdkdns::MSDKDNS_TLocalIPStack netStack;
-
+@property (nonatomic, assign) int httpdnsFailCount;
+@property (nonatomic, assign) float timeOut;
+@property (nonatomic, assign) int dnsId;
+@property (nonatomic, strong) NSString* dnsKey;
+@property (nonatomic, assign) NSUInteger encryptType;
 @end
 
 @implementation MSDKDnsService
@@ -68,6 +72,11 @@
         [self callNotify];
         return;
     }
+    
+    self.timeOut = timeOut;
+    self.dnsId = dnsId;
+    self.dnsKey = dnsKey;
+    self.encryptType = encryptType;
     
     if (_netStack != msdkdns::MSDKDNS_ELocalIPStack_IPv4) {
         dispatch_async([MSDKDnsInfoTool msdkdns_resolver_queue], ^{
@@ -133,6 +142,26 @@
         NSDictionary * info = @{kDnsErrCode:MSDKDns_Fail, kDnsErrMsg:@"", kDnsRetry:@"0"};
         [self callBack:resolver Info:info];
     });
+    [self retryHttpDns:resolver];
+}
+
+#pragma mark - retry
+- (void) retryHttpDns:(MSDKDnsResolver *)resolver {
+    self.httpdnsFailCount += 1;
+    if (self.httpdnsFailCount < 3) {
+        if (resolver == self.httpDnsResolver_A) {
+            dispatch_async([MSDKDnsInfoTool msdkdns_resolver_queue], ^{
+                [self startHttpDns:self.timeOut DnsId:self.dnsId DnsKey:self.dnsKey encryptType:self.encryptType];
+            });
+        } else if (resolver == self.httpDnsResolver_4A) {
+            dispatch_async([MSDKDnsInfoTool msdkdns_resolver_queue], ^{
+                [self startHttpDns_4A:self.timeOut DnsId:self.dnsId DnsKey:self.dnsKey encryptType:self.encryptType];
+            });
+        }
+    } else {
+        // 失败超过三次，切换备份ip
+        [[MSDKDnsParamsManager shareInstance] switchDnsServer];
+    }
 }
 
 #pragma mark - CallBack
@@ -142,9 +171,9 @@
         return;
     }
     
+    // 解析请求返回状态缓存
     for(int i = 0; i < [self.toCheckDomains count]; i++) {
         NSString *domain = [self.toCheckDomains objectAtIndex:i];
-        //信息存缓存
         NSDictionary * tempDict = [[[MSDKDnsManager shareInstance] domainDict] objectForKey:domain];
         NSMutableDictionary *cacheDict;
         
@@ -200,9 +229,9 @@
 
 #pragma mark - cacheDomainInfo
 
+// 解析结果存缓存
 - (void)cacheDomainInfo:(MSDKDnsResolver *)resolver {
     MSDKDNSLOG(@"cacheDomainInfo: %@", self.toCheckDomains);
-    //结果存缓存
     for(int i = 0; i < [self.toCheckDomains count]; i++) {
         NSString *domain = [self.toCheckDomains objectAtIndex:i];
         NSDictionary * tempDict = [[[MSDKDnsManager shareInstance] domainDict] objectForKey:domain];

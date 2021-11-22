@@ -19,7 +19,10 @@
 @property (assign, nonatomic, readwrite) HttpDnsEncryptType msdkEncryptType;
 @property (strong, nonatomic, readwrite) NSString *msdkDnsRouteIp;
 @property (assign, nonatomic, readwrite) BOOL httpOnly;
-
+@property (nonatomic, assign) int serverIndex;
+@property (nonatomic, strong) NSArray* serverArray;
+@property (nonatomic, strong) NSDate *firstFailTime; // 记录首次失败的时间
+@property (nonatomic, assign) BOOL waitToSwitch; // 防止连续多次切换
 @end
 
 @implementation MSDKDnsParamsManager
@@ -38,13 +41,40 @@ static MSDKDnsParamsManager * _sharedInstance = nil;
     if (self = [super init]) {
         _msdkDnsOpenId = HTTP_DNS_UNKNOWN_STR;
         _msdkDnsAppId = HTTP_DNS_UNKNOWN_STR;
+        _serverIndex = 0;
+        _waitToSwitch = NO;
     }
     return self;
 }
 
+- (void)switchDnsServer {
+    if (self.waitToSwitch) {
+        return;
+    }
+    self.waitToSwitch = YES;
+    dispatch_async([MSDKDnsInfoTool msdkdns_queue], ^{
+        self.serverIndex += 1;
+        if (!self.firstFailTime) {
+            self.firstFailTime = [NSDate date];
+            // 一定时间后自动切回主ip
+            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 60 * 10 * NSEC_PER_SEC), [MSDKDnsInfoTool msdkdns_queue], ^{
+                _serverIndex = 0;
+                _firstFailTime = nil;
+            });
+        }
+        if (self.serverIndex >= [self.serverArray count]) {
+            self.serverIndex = 0;
+        }
+        self.waitToSwitch = NO;
+    });
+}
+
+#pragma mark - setter
+
 - (void)msdkDnsSetMDnsIp:(NSString *) msdkDnsIp {
     dispatch_async([MSDKDnsInfoTool msdkdns_queue], ^{
         self.msdkDnsIp = msdkDnsIp;
+        self.serverArray = [NSArray arrayWithObjects:msdkDnsIp, nil];
     });
 }
 
@@ -52,11 +82,6 @@ static MSDKDnsParamsManager * _sharedInstance = nil;
     dispatch_async([MSDKDnsInfoTool msdkdns_queue], ^{
         self.msdkDnsOpenId = mdnsOpenId;
     });
-}
-
-- (void)msdkDnsSetMAppId:(NSString *) mdnsAppId MTimeOut:(int)mdnsTimeOut
-{
-    [self msdkDnsSetMAppId:mdnsAppId MTimeOut:mdnsTimeOut MEncryptType:HttpDnsEncryptTypeDES];
 }
 
 - (void)msdkDnsSetMAppId:(NSString *) mdnsAppId MTimeOut:(int)mdnsTimeOut MEncryptType:(HttpDnsEncryptType)mdnsEncryptType
@@ -68,20 +93,12 @@ static MSDKDnsParamsManager * _sharedInstance = nil;
     });
 }
 
-- (void)msdkDnsSetMAppId:(NSString *) mdnsAppId MToken:(NSString* )mdnsToken MTimeOut:(int)mdnsTimeOut MEncryptType:(HttpDnsEncryptType)mdnsEncryptType
-{
-    dispatch_async([MSDKDnsInfoTool msdkdns_queue], ^{
-        self.msdkDnsAppId = mdnsAppId;
-        self.msdkDnsTimeOut = mdnsTimeOut;
-        self.msdkEncryptType = mdnsEncryptType;
-        self.msdkDnsToken = mdnsToken;
-    });
-}
 
-- (void)msdkDnsSetMDnsId:(int) mdnsId MDnsKey:(NSString *)mdnsKey {
+- (void)msdkDnsSetMDnsId:(int) mdnsId MDnsKey:(NSString *)mdnsKey MToken:(NSString* )mdnsToken{
     dispatch_async([MSDKDnsInfoTool msdkdns_queue], ^{
         self.msdkDnsId = mdnsId;
         self.msdkDnsKey = mdnsKey;
+        self.msdkDnsToken = mdnsToken;
     });
 }
 
@@ -97,12 +114,14 @@ static MSDKDnsParamsManager * _sharedInstance = nil;
     });
 }
 
+#pragma mark - getter
+
 - (BOOL)msdkDnsGetHttpOnly {
     return _httpOnly;
 }
 
 - (NSString *) msdkDnsGetMDnsIp {
-    return [_msdkDnsIp copy];
+    return [_serverArray objectAtIndex:_serverIndex];
 }
 
 - (NSString *) msdkDnsGetMOpenId {
