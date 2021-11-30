@@ -273,7 +273,7 @@ char MSDKDnsHexCharToChar(char high, char low) {
 // AES解密
 + (NSString *)decryptUseAES:(NSString *)cipherString key:(NSString *)key
 {
-    if (!cipherString || !key || cipherString.length <= 16) {
+    if (!cipherString || !key || cipherString.length <= 32) {
         return nil;
     }
     

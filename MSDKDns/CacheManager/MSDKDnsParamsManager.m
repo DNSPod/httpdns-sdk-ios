@@ -5,6 +5,7 @@
 #import "MSDKDnsParamsManager.h"
 #import "MSDKDnsInfoTool.h"
 #import "MSDKDnsPrivate.h"
+#import "MSDKDnsLog.h"
 #if defined(__has_include)
     #if __has_include("httpdnsIps.h")
         #include "httpdnsIps.h"
@@ -62,7 +63,8 @@ static MSDKDnsParamsManager * _sharedInstance = nil;
         if (!self.firstFailTime) {
             self.firstFailTime = [NSDate date];
             // 一定时间后自动切回主ip
-            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 60 * 10 * NSEC_PER_SEC), [MSDKDnsInfoTool msdkdns_queue], ^{
+            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, MSDKDns_Resume_Server_Interval), [MSDKDnsInfoTool msdkdns_queue], ^{
+                MSDKDNSLOG(@"auto reset server index, use main ip now.");
                 _serverIndex = 0;
                 _firstFailTime = nil;
             });
