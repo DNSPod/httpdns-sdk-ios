@@ -5,6 +5,11 @@
 #import "MSDKDnsParamsManager.h"
 #import "MSDKDnsInfoTool.h"
 #import "MSDKDnsPrivate.h"
+#if defined(__has_include)
+    #if __has_include("httpdnsIps.h")
+        #include "httpdnsIps.h"
+    #endif
+#endif
 
 
 @interface MSDKDnsParamsManager()
@@ -75,6 +80,13 @@ static MSDKDnsParamsManager * _sharedInstance = nil;
     dispatch_async([MSDKDnsInfoTool msdkdns_queue], ^{
         self.msdkDnsIp = msdkDnsIp;
         self.serverArray = [NSArray arrayWithObjects:msdkDnsIp, nil];
+#ifdef httpdnsIps_h
+        if (self.msdkEncryptType == HttpDnsEncryptTypeHTTPS) {
+            self.serverArray = [self.serverArray arrayByAddingObjectsFromArray:httpsServerIps];
+        } else {
+            self.serverArray = [self.serverArray arrayByAddingObjectsFromArray:httpServerIps];
+        }
+#endif
     });
 }
 
@@ -90,6 +102,16 @@ static MSDKDnsParamsManager * _sharedInstance = nil;
         self.msdkDnsAppId = mdnsAppId;
         self.msdkDnsTimeOut = mdnsTimeOut;
         self.msdkEncryptType = mdnsEncryptType;
+        if (self.msdkDnsIp) {
+            self.serverArray = [NSArray arrayWithObjects:self.msdkDnsIp, nil];
+#ifdef httpdnsIps_h
+            if (mdnsEncryptType == HttpDnsEncryptTypeHTTPS) {
+                self.serverArray = [self.serverArray arrayByAddingObjectsFromArray:httpsServerIps];
+            } else {
+                self.serverArray = [self.serverArray arrayByAddingObjectsFromArray:httpServerIps];
+            }
+#endif
+        }
     });
 }
 

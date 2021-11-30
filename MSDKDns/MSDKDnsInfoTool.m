@@ -45,6 +45,15 @@
     return msdkdns_local_queue;
 }
 
++ (dispatch_queue_t) msdkdns_retry_queue {
+    static dispatch_queue_t msdkdns_retry_queue;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        msdkdns_retry_queue = dispatch_queue_create("com.tencent.msdkdns.retry_queue", DISPATCH_QUEUE_SERIAL);
+    });
+    return msdkdns_retry_queue;
+}
+
 + (NSString *) getIPv6: (const char *)mHost {
     if (NULL == mHost)
         return nil;

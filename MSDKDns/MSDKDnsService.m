@@ -96,6 +96,10 @@
             [self startLocalDns:timeOut DnsId:dnsId DnsKey:dnsKey];
         });
     }
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, timeOut * NSEC_PER_SEC), [MSDKDnsInfoTool msdkdns_queue], ^{
+        MSDKDNSLOG(@"DnsService TimeOut!");
+        [self callNotify];
+    });
 }
 
 //进行httpdns请求
@@ -137,11 +141,7 @@
 }
 
 - (void)resolver:(MSDKDnsResolver *)resolver getDomainError:(NSString *)error {
-    dispatch_async([MSDKDnsInfoTool msdkdns_queue], ^{
-        MSDKDNSLOG(@"%@ %@ error = %@",self.toCheckDomains, [resolver class], error);
-        NSDictionary * info = @{kDnsErrCode:MSDKDns_Fail, kDnsErrMsg:@"", kDnsRetry:@"0"};
-        [self callBack:resolver Info:info];
-    });
+    MSDKDNSLOG(@"%@ %@ error = %@",self.toCheckDomains, [resolver class], error);
     [self retryHttpDns:resolver];
 }
 
@@ -150,16 +150,21 @@
     self.httpdnsFailCount += 1;
     if (self.httpdnsFailCount < 3) {
         if (resolver == self.httpDnsResolver_A) {
-            dispatch_async([MSDKDnsInfoTool msdkdns_resolver_queue], ^{
+            dispatch_async([MSDKDnsInfoTool msdkdns_retry_queue], ^{
                 [self startHttpDns:self.timeOut DnsId:self.dnsId DnsKey:self.dnsKey encryptType:self.encryptType];
             });
         } else if (resolver == self.httpDnsResolver_4A) {
-            dispatch_async([MSDKDnsInfoTool msdkdns_resolver_queue], ^{
+            dispatch_async([MSDKDnsInfoTool msdkdns_retry_queue], ^{
                 [self startHttpDns_4A:self.timeOut DnsId:self.dnsId DnsKey:self.dnsKey encryptType:self.encryptType];
             });
         }
     } else {
-        // 失败超过三次，切换备份ip
+        MSDKDNSLOG(@"fail 3 times, switch server!");
+        // 失败超过三次，返回错误结果并切换备份ip
+        dispatch_async([MSDKDnsInfoTool msdkdns_queue], ^{
+            NSDictionary * info = @{kDnsErrCode:MSDKDns_Fail, kDnsErrMsg:@"", kDnsRetry:@"0"};
+            [self callBack:resolver Info:info];
+        });
         [[MSDKDnsParamsManager shareInstance] switchDnsServer];
     }
 }

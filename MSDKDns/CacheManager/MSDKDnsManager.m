@@ -290,7 +290,7 @@ static MSDKDnsManager * _sharedInstance = nil;
 }
 
 - (NSArray *)resultArray: (NSString *)domain DomainDic:(NSDictionary *)domainDict {
-    NSMutableArray * ipResult = [@[@"0", @"0"] mutableCopy];
+    NSMutableArray * ipResult = [@[@"0", @"0", @0] mutableCopy];
     BOOL httpOnly = [[MSDKDnsParamsManager shareInstance] msdkDnsGetHttpOnly];
     if (domainDict) {
         NSDictionary * cacheDict = domainDict[domain];
@@ -303,18 +303,21 @@ static MSDKDnsManager * _sharedInstance = nil;
                 NSDictionary * lresultDict = cacheDict[kMSDKLocalDnsCache];
                 if (lresultDict && [lresultDict isKindOfClass:[NSDictionary class]]) {
                     ipResult = [lresultDict[kIP] mutableCopy];
+                    [ipResult addObject:@0];
                 }
             }
             if (hresultDict_A && [hresultDict_A isKindOfClass:[NSDictionary class]]) {
                 NSArray * ipsArray = hresultDict_A[kIP];
                 if (ipsArray && [ipsArray isKindOfClass:[NSArray class]] && ipsArray.count > 0) {
                     ipResult[0] = ipsArray[0];
+                    ipResult[2] = @1;
                 }
             }
             if (hresultDict_4A && [hresultDict_4A isKindOfClass:[NSDictionary class]]) {
                 NSArray * ipsArray = hresultDict_4A[kIP];
                 if (ipsArray && [ipsArray isKindOfClass:[NSArray class]] && ipsArray.count > 0) {
                     ipResult[1] = ipsArray[0];
+                    ipResult[2] = @1;
                 }
             }
         }

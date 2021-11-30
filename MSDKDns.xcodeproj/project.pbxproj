@@ -97,6 +97,7 @@
 		502422EB2140073F0094403C /* MSDKDnsParamsManager.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MSDKDnsParamsManager.m; sourceTree = "<group>"; };
 		504F54381ECAF89F001BD7A9 /* MSDKDnsHttpMessageTools.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MSDKDnsHttpMessageTools.h; sourceTree = "<group>"; };
 		504F54391ECAF89F001BD7A9 /* MSDKDnsHttpMessageTools.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MSDKDnsHttpMessageTools.m; sourceTree = "<group>"; };
+		54EA81F1275478D1005F68A9 /* httpdnsIps.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = httpdnsIps.h; sourceTree = "<group>"; };
 		C8EBE7D1256664C400BEFEEC /* aes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = aes.h; sourceTree = "<group>"; };
 		C8EBE7D2256664C500BEFEEC /* aes.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = aes.mm; sourceTree = "<group>"; };
 		C8EBE7DA2566675800BEFEEC /* libc++.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = "libc++.tbd"; path = "Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk/usr/lib/libc++.tbd"; sourceTree = DEVELOPER_DIR; };
@@ -146,6 +147,7 @@
 		44224FC21B312DD6003497C4 /* MSDKDns */ = {
 			isa = PBXGroup;
 			children = (
+				54EA81F1275478D1005F68A9 /* httpdnsIps.h */,
 				4455D15C1B3A5B90005BF126 /* MSDKDns.h */,
 				4455D15D1B3A5B90005BF126 /* MSDKDns.m */,
 				444044F71B3133A30010F5D5 /* MSDKDnsService.h */,
