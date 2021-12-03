@@ -34,6 +34,14 @@
 		502422EE2140073F0094403C /* MSDKDnsParamsManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 502422EB2140073F0094403C /* MSDKDnsParamsManager.m */; };
 		504F543A1ECAF89F001BD7A9 /* MSDKDnsHttpMessageTools.h in Headers */ = {isa = PBXBuildFile; fileRef = 504F54381ECAF89F001BD7A9 /* MSDKDnsHttpMessageTools.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		504F543C1ECAF89F001BD7A9 /* MSDKDnsHttpMessageTools.m in Sources */ = {isa = PBXBuildFile; fileRef = 504F54391ECAF89F001BD7A9 /* MSDKDnsHttpMessageTools.m */; };
+		54EA820E2759ED39005F68A9 /* MSDKDnsKeychainManager.h in Headers */ = {isa = PBXBuildFile; fileRef = 54EA820C2759ED39005F68A9 /* MSDKDnsKeychainManager.h */; };
+		54EA820F2759ED3A005F68A9 /* MSDKDnsKeychainManager.h in Headers */ = {isa = PBXBuildFile; fileRef = 54EA820C2759ED39005F68A9 /* MSDKDnsKeychainManager.h */; };
+		54EA82102759ED3A005F68A9 /* MSDKDnsKeychainManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 54EA820D2759ED39005F68A9 /* MSDKDnsKeychainManager.m */; };
+		54EA82112759ED3A005F68A9 /* MSDKDnsKeychainManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 54EA820D2759ED39005F68A9 /* MSDKDnsKeychainManager.m */; };
+		54EA82142759EDC4005F68A9 /* MSDKDnsUUIDManager.h in Headers */ = {isa = PBXBuildFile; fileRef = 54EA82122759EDC4005F68A9 /* MSDKDnsUUIDManager.h */; };
+		54EA82152759EDC4005F68A9 /* MSDKDnsUUIDManager.h in Headers */ = {isa = PBXBuildFile; fileRef = 54EA82122759EDC4005F68A9 /* MSDKDnsUUIDManager.h */; };
+		54EA82162759EDC4005F68A9 /* MSDKDnsUUIDManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 54EA82132759EDC4005F68A9 /* MSDKDnsUUIDManager.m */; };
+		54EA82172759EDC4005F68A9 /* MSDKDnsUUIDManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 54EA82132759EDC4005F68A9 /* MSDKDnsUUIDManager.m */; };
 		C8EBE7D3256664C500BEFEEC /* aes.h in Headers */ = {isa = PBXBuildFile; fileRef = C8EBE7D1256664C400BEFEEC /* aes.h */; };
 		C8EBE7D4256664C500BEFEEC /* aes.mm in Sources */ = {isa = PBXBuildFile; fileRef = C8EBE7D2256664C500BEFEEC /* aes.mm */; };
 		C8EBE7F4256668A300BEFEEC /* libc++.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = C8EBE7DA2566675800BEFEEC /* libc++.tbd */; };
@@ -98,6 +106,10 @@
 		504F54381ECAF89F001BD7A9 /* MSDKDnsHttpMessageTools.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MSDKDnsHttpMessageTools.h; sourceTree = "<group>"; };
 		504F54391ECAF89F001BD7A9 /* MSDKDnsHttpMessageTools.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MSDKDnsHttpMessageTools.m; sourceTree = "<group>"; };
 		54EA81F1275478D1005F68A9 /* httpdnsIps.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = httpdnsIps.h; sourceTree = "<group>"; };
+		54EA820C2759ED39005F68A9 /* MSDKDnsKeychainManager.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MSDKDnsKeychainManager.h; sourceTree = "<group>"; };
+		54EA820D2759ED39005F68A9 /* MSDKDnsKeychainManager.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MSDKDnsKeychainManager.m; sourceTree = "<group>"; };
+		54EA82122759EDC4005F68A9 /* MSDKDnsUUIDManager.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MSDKDnsUUIDManager.h; sourceTree = "<group>"; };
+		54EA82132759EDC4005F68A9 /* MSDKDnsUUIDManager.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MSDKDnsUUIDManager.m; sourceTree = "<group>"; };
 		C8EBE7D1256664C400BEFEEC /* aes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = aes.h; sourceTree = "<group>"; };
 		C8EBE7D2256664C500BEFEEC /* aes.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = aes.mm; sourceTree = "<group>"; };
 		C8EBE7DA2566675800BEFEEC /* libc++.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = "libc++.tbd"; path = "Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk/usr/lib/libc++.tbd"; sourceTree = DEVELOPER_DIR; };
@@ -183,10 +195,14 @@
 			children = (
 				445B36611CBD095C00BD4345 /* MSDKDnsManager.h */,
 				445B36621CBD095C00BD4345 /* MSDKDnsManager.m */,
+				54EA82122759EDC4005F68A9 /* MSDKDnsUUIDManager.h */,
+				54EA82132759EDC4005F68A9 /* MSDKDnsUUIDManager.m */,
 				502422EA2140073F0094403C /* MSDKDnsParamsManager.h */,
 				502422EB2140073F0094403C /* MSDKDnsParamsManager.m */,
 				445B36671CBD1D4700BD4345 /* MSDKDnsNetworkManager.h */,
 				445B36681CBD1D4700BD4345 /* MSDKDnsNetworkManager.m */,
+				54EA820C2759ED39005F68A9 /* MSDKDnsKeychainManager.h */,
+				54EA820D2759ED39005F68A9 /* MSDKDnsKeychainManager.m */,
 			);
 			name = Manager;
 			path = CacheManager;
@@ -239,7 +255,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				44BFE2481CA59D9800D7FE87 /* MSDKDnsReachability.h in Headers */,
+				54EA820E2759ED39005F68A9 /* MSDKDnsKeychainManager.h in Headers */,
 				504F543A1ECAF89F001BD7A9 /* MSDKDnsHttpMessageTools.h in Headers */,
+				54EA82142759EDC4005F68A9 /* MSDKDnsUUIDManager.h in Headers */,
 				445B36691CBD1D4700BD4345 /* MSDKDnsNetworkManager.h in Headers */,
 				C8EBE7D3256664C500BEFEEC /* aes.h in Headers */,
 				445B36631CBD095C00BD4345 /* MSDKDnsManager.h in Headers */,
@@ -261,7 +279,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				DD43F4A6231CC36D0000A89F /* MSDKDnsReachability.h in Headers */,
+				54EA820F2759ED3A005F68A9 /* MSDKDnsKeychainManager.h in Headers */,
 				DD43F4A7231CC36D0000A89F /* MSDKDnsHttpMessageTools.h in Headers */,
+				54EA82152759EDC4005F68A9 /* MSDKDnsUUIDManager.h in Headers */,
 				DD43F4A8231CC36D0000A89F /* MSDKDnsNetworkManager.h in Headers */,
 				2FBE52E825E77AFE0012A0DF /* aes.h in Headers */,
 				DD43F4A9231CC36D0000A89F /* MSDKDnsManager.h in Headers */,
@@ -465,7 +485,9 @@
 				DD5935561DDC56B200BF9348 /* HttpsDnsResolver.m in Sources */,
 				445B36651CBD095C00BD4345 /* MSDKDnsManager.m in Sources */,
 				444044FA1B3133A30010F5D5 /* MSDKDnsService.m in Sources */,
+				54EA82162759EDC4005F68A9 /* MSDKDnsUUIDManager.m in Sources */,
 				501001EE215E1F1D003288A5 /* msdkdns_local_ip_stack.cpp in Sources */,
+				54EA82102759ED3A005F68A9 /* MSDKDnsKeychainManager.m in Sources */,
 				44BFE24A1CA59D9800D7FE87 /* MSDKDnsReachability.m in Sources */,
 				C8EBE7D4256664C500BEFEEC /* aes.mm in Sources */,
 				445B366B1CBD1D4700BD4345 /* MSDKDnsNetworkManager.m in Sources */,
@@ -486,7 +508,9 @@
 				DD43F498231CC36D0000A89F /* HttpsDnsResolver.m in Sources */,
 				DD43F499231CC36D0000A89F /* MSDKDnsManager.m in Sources */,
 				DD43F49A231CC36D0000A89F /* MSDKDnsService.m in Sources */,
+				54EA82172759EDC4005F68A9 /* MSDKDnsUUIDManager.m in Sources */,
 				2FBE52E925E77B000012A0DF /* aes.mm in Sources */,
+				54EA82112759ED3A005F68A9 /* MSDKDnsKeychainManager.m in Sources */,
 				DD43F49B231CC36D0000A89F /* msdkdns_local_ip_stack.cpp in Sources */,
 				DD43F49C231CC36D0000A89F /* MSDKDnsReachability.m in Sources */,
 				DD43F49D231CC36D0000A89F /* MSDKDnsNetworkManager.m in Sources */,

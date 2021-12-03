@@ -31,4 +31,6 @@
 - (NSString *)msdkDnsGetMToken;
 - (NSString *)msdkDnsGetRouteIp;
 - (BOOL)msdkDnsGetHttpOnly;
+- (NSArray *)msdkDnsGetServerIps;
+- (NSNumber*)msdkDnsGetServerIndex;
 @end

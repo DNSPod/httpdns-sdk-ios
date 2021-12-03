@@ -187,4 +187,12 @@ static MSDKDnsParamsManager * _sharedInstance = nil;
     return _msdkDnsRouteIp;
 }
 
+- (NSArray *)msdkDnsGetServerIps {
+    return _serverArray;
+}
+
+- (NSNumber*)msdkDnsGetServerIndex {
+    return [NSNumber numberWithInt:_serverIndex];
+}
+
 @end

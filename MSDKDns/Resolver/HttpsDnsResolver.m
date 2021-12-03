@@ -38,8 +38,8 @@
         self.isFinished = YES;
         self.isSucceed = NO;
         self.errorInfo = @"Domian is null";
-        if (self.delegate && [self.delegate respondsToSelector:@selector(resolver:getDomainError:)]) {
-            [self.delegate resolver:self getDomainError:self.errorInfo];
+        if (self.delegate && [self.delegate respondsToSelector:@selector(resolver:getDomainError:retry:)]) {
+            [self.delegate resolver:self getDomainError:self.errorInfo retry:NO];
         }
         return;
     }
@@ -67,8 +67,8 @@
         self.isFinished = YES;
         self.isSucceed = NO;
         self.errorInfo = @"httpUrl is null";
-        if (self.delegate && [self.delegate respondsToSelector:@selector(resolver:getDomainError:)]) {
-            [self.delegate resolver:self getDomainError:self.errorInfo];
+        if (self.delegate && [self.delegate respondsToSelector:@selector(resolver:getDomainError:retry:)]) {
+            [self.delegate resolver:self getDomainError:self.errorInfo retry:NO];
         }
     }
 }
@@ -195,8 +195,8 @@
     self.isFinished = YES;
     self.isSucceed = NO;
     self.errorInfo = errorInfo;
-    if (self.delegate && [self.delegate respondsToSelector:@selector(resolver:getDomainError:)]) {
-        [self.delegate resolver:self getDomainError:self.errorInfo];
+    if (self.delegate && [self.delegate respondsToSelector:@selector(resolver:getDomainError:retry:)]) {
+        [self.delegate resolver:self getDomainError:self.errorInfo retry:NO];
     }
     CFRunLoopStop(self.rl);
 }
@@ -207,8 +207,8 @@
     self.isFinished = YES;
     self.isSucceed = NO;
     self.errorInfo = error.userInfo[@"NSLocalizedDescription"];
-    if (self.delegate && [self.delegate respondsToSelector:@selector(resolver:getDomainError:)]) {
-        [self.delegate resolver:self getDomainError:self.errorInfo];
+    if (self.delegate && [self.delegate respondsToSelector:@selector(resolver:getDomainError:retry:)]) {
+        [self.delegate resolver:self getDomainError:self.errorInfo retry:YES];
     }
     CFRunLoopStop(self.rl);
 }

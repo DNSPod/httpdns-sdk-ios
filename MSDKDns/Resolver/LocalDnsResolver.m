@@ -64,8 +64,8 @@
         self.isFinished = YES;
         self.isSucceed = NO;
         self.errorInfo = @"LocalDns timeout";
-        if (self.delegate && [self.delegate respondsToSelector:@selector(resolver:getDomainError:)]) {
-            [self.delegate resolver:self getDomainError:nil];
+        if (self.delegate && [self.delegate respondsToSelector:@selector(resolver:getDomainError:retry:)]) {
+            [self.delegate resolver:self getDomainError:nil retry:NO];
         }
     }
 }

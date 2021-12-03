@@ -12,7 +12,7 @@
 @optional
 
 - (void)resolver:(MSDKDnsResolver *)resolver didGetDomainInfo:(NSDictionary *)domainInfo;
-- (void)resolver:(MSDKDnsResolver *)resolver getDomainError:(NSString *)errorInfo;
+- (void)resolver:(MSDKDnsResolver *)resolver getDomainError:(NSString *)errorInfo retry:(BOOL)retry;
 
 @end
 

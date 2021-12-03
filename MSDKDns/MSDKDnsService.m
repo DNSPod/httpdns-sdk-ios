@@ -140,9 +140,17 @@
     });
 }
 
-- (void)resolver:(MSDKDnsResolver *)resolver getDomainError:(NSString *)error {
+- (void)resolver:(MSDKDnsResolver *)resolver getDomainError:(NSString *)error retry:(BOOL)retry {
     MSDKDNSLOG(@"%@ %@ error = %@",self.toCheckDomains, [resolver class], error);
-    [self retryHttpDns:resolver];
+    if (retry) {
+        [self retryHttpDns:resolver];
+    } else {
+        dispatch_async([MSDKDnsInfoTool msdkdns_queue], ^{
+            NSDictionary * info = @{kDnsErrCode:MSDKDns_Fail, kDnsErrMsg:@"", kDnsRetry:@"0"};
+            [self callBack:resolver Info:info];
+        });
+    }
+    
 }
 
 #pragma mark - retry
@@ -165,6 +173,7 @@
             NSDictionary * info = @{kDnsErrCode:MSDKDns_Fail, kDnsErrMsg:@"", kDnsRetry:@"0"};
             [self callBack:resolver Info:info];
         });
+        [[MSDKDnsManager shareInstance] uploadDnsError];
         [[MSDKDnsParamsManager shareInstance] switchDnsServer];
     }
 }

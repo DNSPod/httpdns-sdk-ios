@@ -10,16 +10,43 @@
 #import "MSDKDnsParamsManager.h"
 #import "MSDKDnsNetworkManager.h"
 #import "msdkdns_local_ip_stack.h"
+#import "MSDKDnsUUIDManager.h"
 
+static const NSString * BeaconAppkey = @"DOU0FVFIN4G5KYK";
 
 @interface MSDKDnsManager ()
 
 @property (strong, nonatomic, readwrite) NSMutableArray * serviceArray;
 @property (strong, nonatomic, readwrite) NSMutableDictionary * domainDict;
+@property (strong, nonatomic, readwrite) id beaconInstance;
 
 @end
 
 @implementation MSDKDnsManager
+
++(id)reflectInvocation:(id)target selector:(SEL)selector params:(NSArray*)params
+{
+    NSMethodSignature *methodSignature = [target methodSignatureForSelector:selector];
+    NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:methodSignature];
+    [invocation setTarget:target];
+    [invocation setSelector:selector];
+    if (params && params.count > 0) {
+        for (int i = 0; i < params.count; i++) {
+            id arg = [params objectAtIndex:i];
+            [invocation setArgument:&arg atIndex:2+i];
+        }
+        [invocation retainArguments];
+    }
+    [invocation invoke];
+    // 判断是否有返回值
+    if (methodSignature.methodReturnLength) {
+        __weak id weakReturnValue;
+        [invocation getReturnValue:&weakReturnValue];
+        id returnValue = weakReturnValue;
+        return returnValue;
+    }
+    return nil;
+}
 
 - (void)dealloc {
     if (_domainDict) {
@@ -37,8 +64,28 @@ static MSDKDnsManager * _sharedInstance = nil;
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
         _sharedInstance = [[MSDKDnsManager alloc] init];
+        [_sharedInstance initBeaconReport];
     });
     return _sharedInstance;
+}
+
+- (void)initBeaconReport {
+    Class beaconClass = NSClassFromString(@"BeaconReport");
+    if (beaconClass == 0x0) {
+        MSDKDNSLOG(@"Beacon framework is not imported");
+        return;
+    }
+//    [BeaconReport sharedInstance];
+    self.beaconInstance = [self.class reflectInvocation:beaconClass selector:NSSelectorFromString(@"sharedInstance") params:nil];
+//    [BeaconReport.sharedInstance startWithAppkey:@"0DOU0FVFIN4G5KYK" config:nil];
+    [self.class reflectInvocation:self.beaconInstance selector:NSSelectorFromString(@"startWithAppkey:config:") params:@[BeaconAppkey]];
+//    [BeaconReport.sharedInstance setOStarO16:@"dnspod-test-o16" o36:nil];
+    NSString *deviceId = [MSDKDnsUUIDManager getUUID];
+    [self.class reflectInvocation:self.beaconInstance selector:NSSelectorFromString(@"setOStarO16:o36:") params:@[deviceId]];
+//    [BeaconReport.sharedInstance setLogLevel:10];
+    /// 设置本地调试时控制台输出的日志级别：1 fetal, 2 error, 3 warn, 4 info, debug, 5 debug, 10 all, 默认为0，不打印日志
+//    [self.class reflectInvocation:self.beaconInstance selector:NSSelectorFromString(@"setLogLevel:") params:@[@2]];
+    MSDKDNSLOG(@"BeaconReport init success: deviceId = %@", deviceId);
 }
 
 - (NSArray *) getHostByName:(NSString *)domain {
@@ -419,36 +466,57 @@ static MSDKDnsManager * _sharedInstance = nil;
 
 #pragma mark - uploadReport
 - (void)uploadReport:(BOOL)isFromCache Domain:(NSString *)domain NetStack:(msdkdns::MSDKDNS_TLocalIPStack)netStack {
-    Class beaconClass = NSClassFromString(@"BeaconBaseInterface");
-    if (beaconClass == 0x0) {
+    Class eventClass = NSClassFromString(@"BeaconEvent");
+    if (eventClass == 0x0) {
         MSDKDNSLOG(@"Beacon framework is not imported");
         return;
     }
+    if (self.beaconInstance) {
+        id tmp = [MSDKDnsManager reflectInvocation:eventClass selector:NSSelectorFromString(@"alloc") params:nil];
+        NSMutableDictionary *params = [self formatParams:isFromCache Domain:domain NetStack:netStack];
+        NSString *eventName = MSDKDnsEventName;
+        id event = [MSDKDnsManager reflectInvocation:tmp selector:NSSelectorFromString(@"initWithAppKey:code:type:success:params:") params:@[
+            BeaconAppkey,
+            eventName,
+            @0, // 0 BeaconEventTypeNormal 普通事件
+            @YES,
+            params
+        ]];
+        [MSDKDnsManager reflectInvocation:self.beaconInstance selector:NSSelectorFromString(@"reportEvent:") params:@[event]];
+        MSDKDNSLOG(@"ReportingEvent, name:%@, events:%@", eventName, params);
+    }
+}
 
-    // 反射调用
-    // [BeaconBaseInterface onUserAction:MSDKDnsEventName isSucceed:YES elapse:0 size:0 params:params];
-    SEL methodSelector = NSSelectorFromString(@"onUserAction:isSucceed:elapse:size:params:");
-    NSMethodSignature *methodSignature = [beaconClass methodSignatureForSelector:methodSelector];
-    NSInvocation *myInvocation = [NSInvocation invocationWithMethodSignature:methodSignature];
-    [myInvocation setTarget:beaconClass];
-    [myInvocation setSelector:methodSelector];
-    // 接口传参
-    NSString *eventName = MSDKDnsEventName;
-    [myInvocation setArgument:&eventName atIndex:2];
-    BOOL success = YES;
-    [myInvocation setArgument:&success atIndex:3];
-    NSUInteger elapse = 0;
-    [myInvocation setArgument:&elapse atIndex:4];
-    NSUInteger size = 0;
-    [myInvocation setArgument:&size atIndex:5];
-    NSMutableDictionary *params = [self formatParams:isFromCache Domain:domain NetStack:netStack];
-    [myInvocation setArgument:&params atIndex:6];
-    // 在调用结束前，保持参数
-    [myInvocation retainArguments];
-
-    [myInvocation invoke];
-
-    MSDKDNSLOG(@"ReportingEvent, name:%@, events:%@", eventName, params);
+// 上报内容：clientIP、运营商、地域、何时从何IP切换到了哪个IP，
+- (void)uploadDnsError {
+    Class eventClass = NSClassFromString(@"BeaconEvent");
+    if (eventClass == 0x0) {
+        MSDKDNSLOG(@"Beacon framework is not imported");
+        return;
+    }
+    if (self.beaconInstance) {
+        id tmp = [MSDKDnsManager reflectInvocation:eventClass selector:NSSelectorFromString(@"alloc") params:nil];
+        NSString *errorName = @"HDNSRequestFail";
+        int dnsID = [[MSDKDnsParamsManager shareInstance] msdkDnsGetMDnsId];
+        NSString * networkType = [[MSDKDnsNetworkManager shareInstance] networkType];
+        NSString * serverIps = [[[MSDKDnsParamsManager shareInstance] msdkDnsGetServerIps] componentsJoinedByString:@","];
+        NSDictionary *params = @{
+            kMSDKDnsID: [NSNumber numberWithInt:dnsID], // 授权ID
+            kMSDKDnsSDK_Version: MSDKDns_Version,
+            kMSDKDnsNetType:networkType, // 网络类型,
+            @"serverIps": serverIps, // 主备ip
+            @"failIndex": [[MSDKDnsParamsManager shareInstance] msdkDnsGetServerIndex], //哪个IP解析失败了
+        };
+        id event = [MSDKDnsManager reflectInvocation:tmp selector:NSSelectorFromString(@"initWithAppKey:code:type:success:params:") params:@[
+            BeaconAppkey,
+            errorName,
+            @1, // 1 BeaconEventTypeRealTime 实时事件
+            @YES,
+            params
+        ]];
+        [MSDKDnsManager reflectInvocation:self.beaconInstance selector:NSSelectorFromString(@"reportEvent:") params:@[event]];
+        MSDKDNSLOG(@"ReportingError, name:%@, events:%@", errorName, params);
+    }
 }
 
 - (NSMutableDictionary *)formatParams:(BOOL)isFromCache Domain:(NSString *)domain NetStack:(msdkdns::MSDKDNS_TLocalIPStack)netStack {
