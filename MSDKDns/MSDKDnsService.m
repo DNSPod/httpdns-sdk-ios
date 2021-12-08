@@ -10,6 +10,7 @@
 #import "MSDKDnsManager.h"
 #import "MSDKDnsNetworkManager.h"
 #import "MSDKDnsParamsManager.h"
+#import "AttaReport.h"
 
 @interface MSDKDnsService () <MSDKDnsResolverDelegate>
 
@@ -173,7 +174,11 @@
             NSDictionary * info = @{kDnsErrCode:MSDKDns_Fail, kDnsErrMsg:@"", kDnsRetry:@"0"};
             [self callBack:resolver Info:info];
         });
-        [[MSDKDnsManager shareInstance] uploadDnsError];
+        [[AttaReport sharedInstance] reportEvent:@{
+            @"eventName": @"HttpDnsfail",
+            @"eventTime": [NSNumber numberWithDouble:[[NSDate date] timeIntervalSince1970]],
+            @"dnsIp": [[MSDKDnsParamsManager shareInstance] msdkDnsGetMDnsIp]
+        }];
         [[MSDKDnsParamsManager shareInstance] switchDnsServer];
     }
 }

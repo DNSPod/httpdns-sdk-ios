@@ -71,6 +71,7 @@ static MSDKDnsParamsManager * _sharedInstance = nil;
         }
         if (self.serverIndex >= [self.serverArray count]) {
             self.serverIndex = 0;
+            self.firstFailTime = nil;
         }
         self.waitToSwitch = NO;
     });

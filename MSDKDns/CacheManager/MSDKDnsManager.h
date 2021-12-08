@@ -30,5 +30,5 @@
 - (void)clearCacheForDomains:(NSArray *)domains;
 - (void)clearAllCache;
 - (NSDictionary *) getDnsDetail:(NSString *) domain;
-- (void)uploadDnsError;
+
 @end

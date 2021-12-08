@@ -487,38 +487,6 @@ static MSDKDnsManager * _sharedInstance = nil;
     }
 }
 
-// 上报内容：clientIP、运营商、地域、何时从何IP切换到了哪个IP，
-- (void)uploadDnsError {
-    Class eventClass = NSClassFromString(@"BeaconEvent");
-    if (eventClass == 0x0) {
-        MSDKDNSLOG(@"Beacon framework is not imported");
-        return;
-    }
-    if (self.beaconInstance) {
-        id tmp = [MSDKDnsManager reflectInvocation:eventClass selector:NSSelectorFromString(@"alloc") params:nil];
-        NSString *errorName = @"HDNSRequestFail";
-        int dnsID = [[MSDKDnsParamsManager shareInstance] msdkDnsGetMDnsId];
-        NSString * networkType = [[MSDKDnsNetworkManager shareInstance] networkType];
-        NSString * serverIps = [[[MSDKDnsParamsManager shareInstance] msdkDnsGetServerIps] componentsJoinedByString:@","];
-        NSDictionary *params = @{
-            kMSDKDnsID: [NSNumber numberWithInt:dnsID], // 授权ID
-            kMSDKDnsSDK_Version: MSDKDns_Version,
-            kMSDKDnsNetType:networkType, // 网络类型,
-            @"serverIps": serverIps, // 主备ip
-            @"failIndex": [[MSDKDnsParamsManager shareInstance] msdkDnsGetServerIndex], //哪个IP解析失败了
-        };
-        id event = [MSDKDnsManager reflectInvocation:tmp selector:NSSelectorFromString(@"initWithAppKey:code:type:success:params:") params:@[
-            BeaconAppkey,
-            errorName,
-            @1, // 1 BeaconEventTypeRealTime 实时事件
-            @YES,
-            params
-        ]];
-        [MSDKDnsManager reflectInvocation:self.beaconInstance selector:NSSelectorFromString(@"reportEvent:") params:@[event]];
-        MSDKDNSLOG(@"ReportingError, name:%@, events:%@", errorName, params);
-    }
-}
-
 - (NSMutableDictionary *)formatParams:(BOOL)isFromCache Domain:(NSString *)domain NetStack:(msdkdns::MSDKDNS_TLocalIPStack)netStack {
     MSDKDNSLOG(@"uploadReport %@",domain);
     //dns结束时上报结果

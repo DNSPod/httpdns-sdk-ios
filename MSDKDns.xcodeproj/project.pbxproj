@@ -42,6 +42,10 @@
 		54EA82152759EDC4005F68A9 /* MSDKDnsUUIDManager.h in Headers */ = {isa = PBXBuildFile; fileRef = 54EA82122759EDC4005F68A9 /* MSDKDnsUUIDManager.h */; };
 		54EA82162759EDC4005F68A9 /* MSDKDnsUUIDManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 54EA82132759EDC4005F68A9 /* MSDKDnsUUIDManager.m */; };
 		54EA82172759EDC4005F68A9 /* MSDKDnsUUIDManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 54EA82132759EDC4005F68A9 /* MSDKDnsUUIDManager.m */; };
+		54EA82222760890B005F68A9 /* AttaReport.h in Headers */ = {isa = PBXBuildFile; fileRef = 54EA82202760890B005F68A9 /* AttaReport.h */; };
+		54EA82232760890B005F68A9 /* AttaReport.m in Sources */ = {isa = PBXBuildFile; fileRef = 54EA82212760890B005F68A9 /* AttaReport.m */; };
+		54EA822427608A55005F68A9 /* AttaReport.h in Headers */ = {isa = PBXBuildFile; fileRef = 54EA82202760890B005F68A9 /* AttaReport.h */; };
+		54EA822527608A58005F68A9 /* AttaReport.m in Sources */ = {isa = PBXBuildFile; fileRef = 54EA82212760890B005F68A9 /* AttaReport.m */; };
 		C8EBE7D3256664C500BEFEEC /* aes.h in Headers */ = {isa = PBXBuildFile; fileRef = C8EBE7D1256664C400BEFEEC /* aes.h */; };
 		C8EBE7D4256664C500BEFEEC /* aes.mm in Sources */ = {isa = PBXBuildFile; fileRef = C8EBE7D2256664C500BEFEEC /* aes.mm */; };
 		C8EBE7F4256668A300BEFEEC /* libc++.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = C8EBE7DA2566675800BEFEEC /* libc++.tbd */; };
@@ -110,6 +114,8 @@
 		54EA820D2759ED39005F68A9 /* MSDKDnsKeychainManager.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MSDKDnsKeychainManager.m; sourceTree = "<group>"; };
 		54EA82122759EDC4005F68A9 /* MSDKDnsUUIDManager.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MSDKDnsUUIDManager.h; sourceTree = "<group>"; };
 		54EA82132759EDC4005F68A9 /* MSDKDnsUUIDManager.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MSDKDnsUUIDManager.m; sourceTree = "<group>"; };
+		54EA82202760890B005F68A9 /* AttaReport.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AttaReport.h; sourceTree = "<group>"; };
+		54EA82212760890B005F68A9 /* AttaReport.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AttaReport.m; sourceTree = "<group>"; };
 		C8EBE7D1256664C400BEFEEC /* aes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = aes.h; sourceTree = "<group>"; };
 		C8EBE7D2256664C500BEFEEC /* aes.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = aes.mm; sourceTree = "<group>"; };
 		C8EBE7DA2566675800BEFEEC /* libc++.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = "libc++.tbd"; path = "Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk/usr/lib/libc++.tbd"; sourceTree = DEVELOPER_DIR; };
@@ -161,6 +167,7 @@
 			children = (
 				54EA81F1275478D1005F68A9 /* httpdnsIps.h */,
 				4455D15C1B3A5B90005BF126 /* MSDKDns.h */,
+				54EA821F2760890B005F68A9 /* Reporter */,
 				4455D15D1B3A5B90005BF126 /* MSDKDns.m */,
 				444044F71B3133A30010F5D5 /* MSDKDnsService.h */,
 				444044F81B3133A30010F5D5 /* MSDKDnsService.m */,
@@ -239,6 +246,15 @@
 			path = Network;
 			sourceTree = "<group>";
 		};
+		54EA821F2760890B005F68A9 /* Reporter */ = {
+			isa = PBXGroup;
+			children = (
+				54EA82202760890B005F68A9 /* AttaReport.h */,
+				54EA82212760890B005F68A9 /* AttaReport.m */,
+			);
+			path = Reporter;
+			sourceTree = "<group>";
+		};
 		C8EBE7D92566675800BEFEEC /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
@@ -266,6 +282,7 @@
 				448EE4E61B329899004A2131 /* LocalDnsResolver.h in Headers */,
 				DD5935581DDC56B200BF9348 /* HttpsDnsResolver.h in Headers */,
 				448EE4E81B329899004A2131 /* MSDKDnsResolver.h in Headers */,
+				54EA82222760890B005F68A9 /* AttaReport.h in Headers */,
 				44BFE2371CA58C3A00D7FE87 /* MSDKDnsInfoTool.h in Headers */,
 				502422EC2140073F0094403C /* MSDKDnsParamsManager.h in Headers */,
 				4497F8BD1B46306200D51391 /* MSDKDnsPrivate.h in Headers */,
@@ -290,6 +307,7 @@
 				DD43F4AC231CC36D0000A89F /* LocalDnsResolver.h in Headers */,
 				DD43F4AD231CC36D0000A89F /* HttpsDnsResolver.h in Headers */,
 				DD43F4AE231CC36D0000A89F /* MSDKDnsResolver.h in Headers */,
+				54EA822427608A55005F68A9 /* AttaReport.h in Headers */,
 				DD43F4AF231CC36D0000A89F /* MSDKDnsInfoTool.h in Headers */,
 				DD43F4B0231CC36D0000A89F /* MSDKDnsParamsManager.h in Headers */,
 				DD43F4B1231CC36D0000A89F /* MSDKDnsPrivate.h in Headers */,
@@ -494,6 +512,7 @@
 				4497F8BA1B4628F000D51391 /* MSDKDnsLog.m in Sources */,
 				504F543C1ECAF89F001BD7A9 /* MSDKDnsHttpMessageTools.m in Sources */,
 				448EE4E91B329899004A2131 /* MSDKDnsResolver.m in Sources */,
+				54EA82232760890B005F68A9 /* AttaReport.m in Sources */,
 				4455D15F1B3A5B90005BF126 /* MSDKDns.m in Sources */,
 				448EE4E71B329899004A2131 /* LocalDnsResolver.m in Sources */,
 			);
@@ -517,6 +536,7 @@
 				DD43F49E231CC36D0000A89F /* MSDKDnsLog.m in Sources */,
 				DD43F49F231CC36D0000A89F /* MSDKDnsHttpMessageTools.m in Sources */,
 				DD43F4A0231CC36D0000A89F /* MSDKDnsResolver.m in Sources */,
+				54EA822527608A58005F68A9 /* AttaReport.m in Sources */,
 				DD43F4A1231CC36D0000A89F /* MSDKDns.m in Sources */,
 				DD43F4A2231CC36D0000A89F /* LocalDnsResolver.m in Sources */,
 			);
