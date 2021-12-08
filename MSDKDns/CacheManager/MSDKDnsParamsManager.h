@@ -20,6 +20,12 @@
 - (void)msdkDnsSetMDnsId:(int) mdnsId MDnsKey:(NSString *)mdnsKey MToken:(NSString* )mdnsToken;
 - (void)msdkDnsSetRouteIp:(NSString *)routeIp;
 - (void)msdkDnsSetHttpOnly:(BOOL)httpOnly;
+// 设置切换ip之前重试次数
+- (void)msdkDnsSetRetryTimesBeforeSwitchServer:(NSUInteger)times;
+// 设置切回主ip间隔时长
+- (void)msdkDnsSetMinutesBeforeSwitchToMain:(NSUInteger)minutes;
+// 设置备份ip
+- (void)msdkDnsSetBackupServerIps: (NSArray *)ips;
 
 - (NSString *) msdkDnsGetMDnsIp;
 - (NSString *) msdkDnsGetMOpenId;
@@ -33,4 +39,6 @@
 - (BOOL)msdkDnsGetHttpOnly;
 - (NSArray *)msdkDnsGetServerIps;
 - (NSNumber*)msdkDnsGetServerIndex;
+- (NSUInteger)msdkDnsGetRetryTimesBeforeSwitchServer;
+- (NSUInteger)msdkDnsGetMinutesBeforeSwitchToMain;
 @end

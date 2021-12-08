@@ -25,10 +25,13 @@
 @property (assign, nonatomic, readwrite) HttpDnsEncryptType msdkEncryptType;
 @property (strong, nonatomic, readwrite) NSString *msdkDnsRouteIp;
 @property (assign, nonatomic, readwrite) BOOL httpOnly;
-@property (nonatomic, assign) int serverIndex;
-@property (nonatomic, strong) NSArray* serverArray;
-@property (nonatomic, strong) NSDate *firstFailTime; // 记录首次失败的时间
-@property (nonatomic, assign) BOOL waitToSwitch; // 防止连续多次切换
+@property (nonatomic, assign, readwrite) int serverIndex;
+@property (nonatomic, strong, readwrite) NSArray* serverArray;
+@property (nonatomic, strong, readwrite) NSDate *firstFailTime; // 记录首次失败的时间
+@property (nonatomic, assign, readwrite) BOOL waitToSwitch; // 防止连续多次切换
+@property (nonatomic, assign, readwrite) NSUInteger retryTimesBeforeSwitchServer;
+@property (nonatomic, assign, readwrite) NSUInteger minutesBeforeSwitchToMain;
+@property (nonatomic, strong, readwrite) NSArray * backupServerIps;
 @end
 
 @implementation MSDKDnsParamsManager
@@ -49,6 +52,8 @@ static MSDKDnsParamsManager * _sharedInstance = nil;
         _msdkDnsAppId = HTTP_DNS_UNKNOWN_STR;
         _serverIndex = 0;
         _waitToSwitch = NO;
+        _retryTimesBeforeSwitchServer = 3;
+        _minutesBeforeSwitchToMain = 10;
     }
     return self;
 }
@@ -63,7 +68,7 @@ static MSDKDnsParamsManager * _sharedInstance = nil;
         if (!self.firstFailTime) {
             self.firstFailTime = [NSDate date];
             // 一定时间后自动切回主ip
-            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, MSDKDns_Resume_Server_Interval), [MSDKDnsInfoTool msdkdns_queue], ^{
+            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, self.minutesBeforeSwitchToMain * 60 * NSEC_PER_SEC), [MSDKDnsInfoTool msdkdns_queue], ^{
                 MSDKDNSLOG(@"auto reset server index, use main ip now.");
                 _serverIndex = 0;
                 _firstFailTime = nil;
@@ -139,6 +144,29 @@ static MSDKDnsParamsManager * _sharedInstance = nil;
     });
 }
 
+// 设置切换ip之前重试次数
+- (void)msdkDnsSetRetryTimesBeforeSwitchServer:(NSUInteger)times {
+    dispatch_async([MSDKDnsInfoTool msdkdns_queue], ^{
+        self.retryTimesBeforeSwitchServer = times;
+    });
+}
+
+// 设置切回主ip间隔时长
+- (void)msdkDnsSetMinutesBeforeSwitchToMain:(NSUInteger)minutes {
+    dispatch_async([MSDKDnsInfoTool msdkdns_queue], ^{
+        self.minutesBeforeSwitchToMain = minutes;
+    });
+}
+
+// 设置备份ip
+- (void)msdkDnsSetBackupServerIps: (NSArray *)ips {
+    dispatch_async([MSDKDnsInfoTool msdkdns_queue], ^{
+        self.backupServerIps = ips;
+        self.serverArray = [NSArray arrayWithObjects:self.msdkDnsIp, nil];
+        self.serverArray = [self.serverArray arrayByAddingObjectsFromArray:ips];
+    });
+}
+
 #pragma mark - getter
 
 - (BOOL)msdkDnsGetHttpOnly {
@@ -194,6 +222,14 @@ static MSDKDnsParamsManager * _sharedInstance = nil;
 
 - (NSNumber*)msdkDnsGetServerIndex {
     return [NSNumber numberWithInt:_serverIndex];
+}
+
+- (NSUInteger)msdkDnsGetRetryTimesBeforeSwitchServer {
+    return _retryTimesBeforeSwitchServer;
+}
+
+- (NSUInteger)msdkDnsGetMinutesBeforeSwitchToMain {
+    return _minutesBeforeSwitchToMain;
 }
 
 @end

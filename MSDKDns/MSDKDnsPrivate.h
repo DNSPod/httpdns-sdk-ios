@@ -61,7 +61,5 @@ static NSString * const kMSDKDns_DNS_4A_IP = @"dns_4a_ips";          // 域名�
 static NSString * const MSDKDns_Fail = @"-1";   // 失败
 static NSString * const MSDKDns_Success = @"0"; // 成功
 
-// 自动切回主ip的时间间隔
-static unsigned long long const MSDKDns_Resume_Server_Interval = 60 * 10 * NSEC_PER_SEC;
 
 #endif

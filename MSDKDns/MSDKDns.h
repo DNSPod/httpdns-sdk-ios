@@ -31,7 +31,9 @@ typedef struct DnsConfigStruct {
     int timeout; // 可选，超时时间，单位ms，如设置0，则设置为默认值2000ms
     HttpDnsEncryptType encryptType; // 控制加密方式
     NSString* routeIp; // 可选，查询线路IP地址
-    BOOL httpOnly; // 可选，是否仅返回 httpDns 解析结果。默认 false，即当 httpDns 解析失败时会返回 localDns 解析结果，设置为 true 时，仅返回 httpDns 的解析结果
+    BOOL httpOnly;// 可选，是否仅返回 httpDns 解析结果。默认 false，即当 httpDns 解析失败时会返回 localDns 解析结果，设置为 true 时，仅返回 httpDns 的解析结果
+    NSUInteger retryTimesBeforeSwitchServer; // 可选，切换ip之前重试次数, 默认3次
+    NSUInteger minutesBeforeSwitchToMain; // 可选，设置切回主ip间隔时长，默认10分钟
 } DnsConfig;
 
 @interface MSDKDns : NSObject
@@ -69,6 +71,11 @@ typedef struct DnsConfigStruct {
  * @return YES：成功 NO：失败
  */
 - (BOOL) WGSetDnsOpenId:(NSString *)openId;
+
+/**
+ * 设置 httpdns 备份服务器ip（无需手动设置，sdk 会自动设置）
+ */
+- (void) WGSetDnsBackupServerIps:(NSArray *)ips;
 
 #pragma mark - 域名解析接口，按需调用
 /**

@@ -157,7 +157,7 @@
 #pragma mark - retry
 - (void) retryHttpDns:(MSDKDnsResolver *)resolver {
     self.httpdnsFailCount += 1;
-    if (self.httpdnsFailCount < 3) {
+    if (self.httpdnsFailCount < [[MSDKDnsParamsManager shareInstance] msdkDnsGetRetryTimesBeforeSwitchServer]) {
         if (resolver == self.httpDnsResolver_A) {
             dispatch_async([MSDKDnsInfoTool msdkdns_retry_queue], ^{
                 [self startHttpDns:self.timeOut DnsId:self.dnsId DnsKey:self.dnsKey encryptType:self.encryptType];
@@ -168,7 +168,7 @@
             });
         }
     } else {
-        MSDKDNSLOG(@"fail 3 times, switch server!");
+        MSDKDNSLOG(@"fail %lu times, switch server!", (unsigned long)[[MSDKDnsParamsManager shareInstance] msdkDnsGetRetryTimesBeforeSwitchServer]);
         // 失败超过三次，返回错误结果并切换备份ip
         dispatch_async([MSDKDnsInfoTool msdkdns_queue], ^{
             NSDictionary * info = @{kDnsErrCode:MSDKDns_Fail, kDnsErrMsg:@"", kDnsRetry:@"0"};

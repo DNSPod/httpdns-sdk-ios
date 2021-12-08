@@ -86,8 +86,6 @@ static AttaReport * _sharedInstance = nil;
         return @"其他";
     }
 
-    // 参考 https://en.wikipedia.org/wiki/Mobile_country_code
-
     if ([mobileNetWorkCode isEqualToString:@"00"] ||
         [mobileNetWorkCode isEqualToString:@"02"] ||
         [mobileNetWorkCode isEqualToString:@"07"]) {

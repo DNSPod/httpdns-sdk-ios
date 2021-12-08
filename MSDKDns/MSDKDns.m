@@ -37,6 +37,13 @@ static MSDKDns * _sharedInstance = nil;
     [[MSDKDnsParamsManager shareInstance] msdkDnsSetMDnsIp:config->dnsIp];
     [[MSDKDnsParamsManager shareInstance] msdkDnsSetRouteIp: config->routeIp];
     [[MSDKDnsParamsManager shareInstance] msdkDnsSetHttpOnly: config->httpOnly];
+    if (config->retryTimesBeforeSwitchServer) {
+        [[MSDKDnsParamsManager shareInstance] msdkDnsSetRetryTimesBeforeSwitchServer: config->retryTimesBeforeSwitchServer];
+    }
+    if (config->minutesBeforeSwitchToMain) {
+        [[MSDKDnsParamsManager shareInstance] msdkDnsSetMinutesBeforeSwitchToMain:config->minutesBeforeSwitchToMain];
+    }
+    
     return YES;
 }
 
@@ -52,6 +59,8 @@ static MSDKDns * _sharedInstance = nil;
     conf->routeIp = [config objectForKey:@"routeIp"];
     conf->timeout = [[config objectForKey:@"timeout"] intValue];
     conf->httpOnly = [[config objectForKey:@"httpOnly"] boolValue];
+    conf->retryTimesBeforeSwitchServer = [[config objectForKey:@"retryTimesBeforeSwitchServer"] intValue];
+    conf->minutesBeforeSwitchToMain = [[config objectForKey:@"minutesBeforeSwitchToMain"] intValue];
    return [self initConfig:conf];
 }
 
@@ -60,7 +69,6 @@ static MSDKDns * _sharedInstance = nil;
     return [self WGSetDnsAppKey:appkey DnsID:dnsid DnsKey:dnsKey DnsIP:dnsip Debug:debug TimeOut:timeout encryptType:HttpDnsEncryptTypeDES];
 }
 
-//channel
 - (BOOL) WGSetDnsAppKey:(NSString *) appkey DnsID:(int)dnsid DnsKey:(NSString *)dnsKey DnsIP:(NSString *)dnsip Debug:(BOOL)debug TimeOut:(int)timeout encryptType:(HttpDnsEncryptType)encryptType
 {
     [[MSDKDnsLog sharedInstance] setEnableLog:debug];
@@ -78,6 +86,10 @@ static MSDKDns * _sharedInstance = nil;
     // 保存openid
     [[MSDKDnsParamsManager shareInstance] msdkDnsSetMOpenId:openId];
     return YES;
+}
+
+- (void) WGSetDnsBackupServerIps:(NSArray *)ips {
+    [[MSDKDnsParamsManager shareInstance] msdkDnsSetBackupServerIps:ips];
 }
 
 - (NSArray *) WGGetHostByName:(NSString *)domain {
