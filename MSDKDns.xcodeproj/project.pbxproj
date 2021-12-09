@@ -377,11 +377,11 @@
 			};
 			buildConfigurationList = 44224FBB1B312DD6003497C4 /* Build configuration list for PBXProject "MSDKDns" */;
 			compatibilityVersion = "Xcode 3.2";
-			developmentRegion = English;
+			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
-				English,
 				en,
+				Base,
 			);
 			mainGroup = 44224FB71B312DD6003497C4;
 			productRefGroup = 44224FC11B312DD6003497C4 /* Products */;

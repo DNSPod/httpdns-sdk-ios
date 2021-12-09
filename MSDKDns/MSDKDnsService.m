@@ -176,7 +176,6 @@
         });
         [[AttaReport sharedInstance] reportEvent:@{
             @"eventName": @"HttpDnsfail",
-            @"eventTime": [NSNumber numberWithDouble:[[NSDate date] timeIntervalSince1970]],
             @"dnsIp": [[MSDKDnsParamsManager shareInstance] msdkDnsGetMDnsIp]
         }];
         [[MSDKDnsParamsManager shareInstance] switchDnsServer];

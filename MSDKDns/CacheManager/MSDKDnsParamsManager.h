@@ -13,6 +13,7 @@
 + (instancetype)shareInstance;
 
 - (void)switchDnsServer;
+- (void)switchToMainServer;
 
 - (void)msdkDnsSetMDnsIp:(NSString *) mdnsIp;
 - (void)msdkDnsSetMOpenId:(NSString *) mdnsOpenId;

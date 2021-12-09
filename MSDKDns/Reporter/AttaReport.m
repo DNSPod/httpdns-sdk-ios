@@ -46,11 +46,13 @@ static AttaReport * _sharedInstance = nil;
     NSString * networkType = [[MSDKDnsNetworkManager shareInstance] networkType];
     int dnsId = [[MSDKDnsParamsManager shareInstance] msdkDnsGetMDnsId];
     int encryptType = [[MSDKDnsParamsManager shareInstance] msdkDnsGetEncryptType];
-    NSMutableString *reportData = [NSMutableString stringWithFormat:@"attaid=0f500064192&token=4725229671&carrier=%@&networkType=%@&dnsId=%d&encryptType=%d",
-                            carrier,
-                            networkType,
-                            dnsId,
-                            encryptType];
+    unsigned long eventTime = [[NSNumber numberWithDouble:[[NSDate date] timeIntervalSince1970]] unsignedIntegerValue];
+    NSMutableString *reportData = [NSMutableString stringWithFormat:@"attaid=0f500064192&token=4725229671&carrier=%@&networkType=%@&dnsId=%d&encryptType=%d&eventTime=%lu",
+                                   carrier,
+                                   networkType,
+                                   dnsId,
+                                   encryptType,
+                                   eventTime];
     if (params) {
         for (id key in params) {
             [reportData appendFormat:@"&%@=%@", key, [params objectForKey:key]];

@@ -5,6 +5,7 @@
 #import "MSDKDnsNetworkManager.h"
 #import "MSDKDnsLog.h"
 #import "MSDKDnsManager.h"
+#import "MSDKDnsParamsManager.h"
 #import <UIKit/UIKit.h>
 #import <CoreTelephony/CTTelephonyNetworkInfo.h>
 #import <CoreTelephony/CTCarrier.h>
@@ -70,6 +71,8 @@ static MSDKDnsNetworkManager *manager = nil;
                  MSDKDNSLOG(@"Network did changed,clear MSDKDns cache");
                  //网络状态发生变化时清除缓存
                  [[MSDKDnsManager shareInstance] clearAllCache];
+                 //重置ip指针
+                 [[MSDKDnsParamsManager shareInstance] switchToMainServer];
              }];
             
             [NSNotificationCenter.defaultCenter addObserverForName:UIApplicationDidEnterBackgroundNotification

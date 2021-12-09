@@ -68,16 +68,30 @@ static MSDKDnsParamsManager * _sharedInstance = nil;
         if (!self.firstFailTime) {
             self.firstFailTime = [NSDate date];
             // 一定时间后自动切回主ip
+            __weak __typeof__(self) weakSelf = self;
             dispatch_after(dispatch_time(DISPATCH_TIME_NOW, self.minutesBeforeSwitchToMain * 60 * NSEC_PER_SEC), [MSDKDnsInfoTool msdkdns_queue], ^{
                 MSDKDNSLOG(@"auto reset server index, use main ip now.");
-                _serverIndex = 0;
-                _firstFailTime = nil;
+                weakSelf.serverIndex = 0;
+                weakSelf.firstFailTime = nil;
             });
         }
         if (self.serverIndex >= [self.serverArray count]) {
             self.serverIndex = 0;
             self.firstFailTime = nil;
         }
+        self.waitToSwitch = NO;
+    });
+}
+
+- (void)switchToMainServer {
+    if (self.serverIndex == 0) {
+        return;
+    }
+    MSDKDNSLOG(@"switch back to main server ip.");
+    self.waitToSwitch = YES;
+    dispatch_async([MSDKDnsInfoTool msdkdns_queue], ^{
+        self.serverIndex = 0;
+        self.firstFailTime = nil;
         self.waitToSwitch = NO;
     });
 }
