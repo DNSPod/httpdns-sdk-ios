@@ -11,13 +11,17 @@
 #import "MSDKDnsNetworkManager.h"
 #import "msdkdns_local_ip_stack.h"
 #import "MSDKDnsUUIDManager.h"
-
-static const NSString * BeaconAppkey = @"DOU0FVFIN4G5KYK";
+#if defined(__has_include)
+    #if __has_include("httpdnsIps.h")
+        #include "httpdnsIps.h"
+    #endif
+#endif
 
 @interface MSDKDnsManager ()
 
 @property (strong, nonatomic, readwrite) NSMutableArray * serviceArray;
 @property (strong, nonatomic, readwrite) NSMutableDictionary * domainDict;
+@property (strong, nonatomic, readwrite) NSString * beaconAppkey;
 @property (strong, nonatomic, readwrite) id beaconInstance;
 
 @end
@@ -75,11 +79,14 @@ static MSDKDnsManager * _sharedInstance = nil;
         MSDKDNSLOG(@"Beacon framework is not imported");
         return;
     }
+#ifdef httpdnsIps_h
+    self.beaconAppkey = BeaconAppkey;
+#endif
 //    [BeaconReport sharedInstance];
     self.beaconInstance = [self.class reflectInvocation:beaconClass selector:NSSelectorFromString(@"sharedInstance") params:nil];
-//    [BeaconReport.sharedInstance startWithAppkey:@"0DOU0FVFIN4G5KYK" config:nil];
-    [self.class reflectInvocation:self.beaconInstance selector:NSSelectorFromString(@"startWithAppkey:config:") params:@[BeaconAppkey]];
-//    [BeaconReport.sharedInstance setOStarO16:@"dnspod-test-o16" o36:nil];
+//    [BeaconReport.sharedInstance startWithAppkey:@"xxx" config:nil];
+    [self.class reflectInvocation:self.beaconInstance selector:NSSelectorFromString(@"startWithAppkey:config:") params:@[self.beaconAppkey]];
+//    [BeaconReport.sharedInstance setOStarO16:@"xxx" o36:nil];
     NSString *deviceId = [MSDKDnsUUIDManager getUUID];
     [self.class reflectInvocation:self.beaconInstance selector:NSSelectorFromString(@"setOStarO16:o36:") params:@[deviceId]];
 //    [BeaconReport.sharedInstance setLogLevel:10];
@@ -473,7 +480,7 @@ static MSDKDnsManager * _sharedInstance = nil;
         NSMutableDictionary *params = [self formatParams:isFromCache Domain:domain NetStack:netStack];
         NSString *eventName = MSDKDnsEventName;
         id event = [MSDKDnsManager reflectInvocation:tmp selector:NSSelectorFromString(@"initWithAppKey:code:type:success:params:") params:@[
-            BeaconAppkey,
+            self.beaconAppkey,
             eventName,
             @0, // 0 BeaconEventTypeNormal 普通事件
             @YES,

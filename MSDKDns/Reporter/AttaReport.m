@@ -12,11 +12,17 @@
 #import "MSDKDnsParamsManager.h"
 #import <CoreTelephony/CTCarrier.h>
 #import <CoreTelephony/CTTelephonyNetworkInfo.h>
-
-static NSString * const reportUrl = @"https://h.trace.qq.com/kv";
+#if defined(__has_include)
+    #if __has_include("httpdnsIps.h")
+        #include "httpdnsIps.h"
+    #endif
+#endif
 
 @interface AttaReport ()
 @property (strong, nonatomic) NSURLSession * session;
+@property (strong, nonatomic) NSString *attaid;
+@property (strong, nonatomic) NSString *token;
+@property (strong, nonatomic) NSString *reportUrl;
 @end
 
 
@@ -36,6 +42,11 @@ static AttaReport * _sharedInstance = nil;
     if (self = [super init]) {
         NSURLSessionConfiguration *defaultSessionConfiguration = [NSURLSessionConfiguration defaultSessionConfiguration];
         self.session = [NSURLSession sessionWithConfiguration:defaultSessionConfiguration delegate:nil delegateQueue:nil];
+#ifdef httpdnsIps_h
+        self.attaid = ATTAID;
+        self.token = ATTAToken;
+        self.reportUrl = ATTAReportUrl;
+#endif
     }
     return self;
 }
@@ -47,7 +58,9 @@ static AttaReport * _sharedInstance = nil;
     int dnsId = [[MSDKDnsParamsManager shareInstance] msdkDnsGetMDnsId];
     int encryptType = [[MSDKDnsParamsManager shareInstance] msdkDnsGetEncryptType];
     unsigned long eventTime = [[NSNumber numberWithDouble:[[NSDate date] timeIntervalSince1970]] unsignedIntegerValue];
-    NSMutableString *reportData = [NSMutableString stringWithFormat:@"attaid=0f500064192&token=4725229671&carrier=%@&networkType=%@&dnsId=%d&encryptType=%d&eventTime=%lu",
+    NSMutableString *reportData = [NSMutableString stringWithFormat:@"attaid=%@&token=%@&carrier=%@&networkType=%@&dnsId=%d&encryptType=%d&eventTime=%lu",
+                                   _attaid,
+                                   _token,
                                    carrier,
                                    networkType,
                                    dnsId,
@@ -62,7 +75,7 @@ static AttaReport * _sharedInstance = nil;
 }
 
 - (void)reportEvent:(NSDictionary *)params {
-    NSURL *url = [NSURL URLWithString:reportUrl];
+    NSURL *url = [NSURL URLWithString:_reportUrl];
     NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:url];
     request.HTTPMethod = @"POST";
     NSString *postData = [self formatReportParams:params];
