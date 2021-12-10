@@ -12,6 +12,8 @@
 #import "MSDKDnsParamsManager.h"
 #import <CoreTelephony/CTCarrier.h>
 #import <CoreTelephony/CTTelephonyNetworkInfo.h>
+#import <UIKit/UIKit.h>
+#import "MSDKDns.h"
 #if defined(__has_include)
     #if __has_include("httpdnsIps.h")
         #include "httpdnsIps.h"
@@ -57,21 +59,33 @@ static AttaReport * _sharedInstance = nil;
     NSString * networkType = [[MSDKDnsNetworkManager shareInstance] networkType];
     int dnsId = [[MSDKDnsParamsManager shareInstance] msdkDnsGetMDnsId];
     int encryptType = [[MSDKDnsParamsManager shareInstance] msdkDnsGetEncryptType];
-    unsigned long eventTime = [[NSNumber numberWithDouble:[[NSDate date] timeIntervalSince1970]] unsignedIntegerValue];
-    NSMutableString *reportData = [NSMutableString stringWithFormat:@"attaid=%@&token=%@&carrier=%@&networkType=%@&dnsId=%d&encryptType=%d&eventTime=%lu",
-                                   _attaid,
-                                   _token,
-                                   carrier,
-                                   networkType,
-                                   dnsId,
-                                   encryptType,
-                                   eventTime];
+    unsigned long eventTime = [[NSNumber numberWithDouble:[[NSDate date] timeIntervalSince1970] * 1000] unsignedIntegerValue];
+    NSString *deviceName = [[UIDevice currentDevice] name];
+    NSString *systemName = [[UIDevice currentDevice] systemName];
+    NSString *systemVersion = [[UIDevice currentDevice] systemVersion];
+    NSMutableDictionary *dic = [NSMutableDictionary dictionaryWithDictionary:params];
+    [dic addEntriesFromDictionary:@{
+        @"carrier": carrier,
+        @"networkType": networkType,
+        @"dnsId": [NSNumber numberWithInt:dnsId],
+        @"encryptType": encryptType == 0 ? @"DesHttp" : (encryptType == 1 ? @"AesHttp" : @"Https"),
+        @"eventTime": [NSNumber numberWithLong:eventTime],
+        @"deviceName": deviceName,
+        @"systemName": systemName,
+        @"systemVersion": systemVersion,
+        @"sdkVersion": MSDKDns_Version,
+    }];
+    return [self paramsToUrlString:dic];
+}
+
+- (NSString *)paramsToUrlString:(NSDictionary *)params {
+    NSMutableString *res = [NSMutableString stringWithFormat:@"attaid=%@&token=%@",  _attaid, _token];
     if (params) {
         for (id key in params) {
-            [reportData appendFormat:@"&%@=%@", key, [params objectForKey:key]];
+            [res appendFormat:@"&%@=%@", key, [params objectForKey:key]];
         }
     }
-    return reportData;
+    return res;
 }
 
 - (void)reportEvent:(NSDictionary *)params {
@@ -98,7 +112,7 @@ static AttaReport * _sharedInstance = nil;
     NSString *mobileNetWorkCode = [carrier mobileNetworkCode];
 
     if (![currentCountryCode isEqualToString:@"460"]) {
-        return @"其他";
+        return @"unknown";
     }
 
     if ([mobileNetWorkCode isEqualToString:@"00"] ||
@@ -106,7 +120,7 @@ static AttaReport * _sharedInstance = nil;
         [mobileNetWorkCode isEqualToString:@"07"]) {
 
         // 中国移动
-        return @"中国移动";
+        return @"China Mobile";
     }
 
     if ([mobileNetWorkCode isEqualToString:@"01"] ||
@@ -114,7 +128,7 @@ static AttaReport * _sharedInstance = nil;
         [mobileNetWorkCode isEqualToString:@"09"]) {
 
         // 中国联通
-        return @"中国联通";
+        return @"China Unicom";
     }
 
     if ([mobileNetWorkCode isEqualToString:@"03"] ||
@@ -122,16 +136,16 @@ static AttaReport * _sharedInstance = nil;
         [mobileNetWorkCode isEqualToString:@"11"]) {
 
         // 中国电信
-        return @"中国电信";
+        return @"China Telecom";
     }
 
     if ([mobileNetWorkCode isEqualToString:@"20"]) {
 
         // 中国铁通
-        return @"中国铁通";
+        return @"China Tietong";
     }
 
-    return @"其他";
+    return @"unknown";
 }
 
 @end
