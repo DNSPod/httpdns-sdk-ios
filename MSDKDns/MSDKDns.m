@@ -43,6 +43,7 @@ static MSDKDns * _sharedInstance = nil;
     if (config->minutesBeforeSwitchToMain) {
         [[MSDKDnsParamsManager shareInstance] msdkDnsSetMinutesBeforeSwitchToMain:config->minutesBeforeSwitchToMain];
     }
+    [[MSDKDnsManager shareInstance] switchToMainServer];
     
     return YES;
 }
@@ -64,20 +65,6 @@ static MSDKDns * _sharedInstance = nil;
    return [self initConfig:conf];
 }
 
-- (BOOL) WGSetDnsAppKey:(NSString *) appkey DnsID:(int)dnsid DnsKey:(NSString *)dnsKey DnsIP:(NSString *)dnsip Debug:(BOOL)debug TimeOut:(int)timeout
-{
-    return [self WGSetDnsAppKey:appkey DnsID:dnsid DnsKey:dnsKey DnsIP:dnsip Debug:debug TimeOut:timeout encryptType:HttpDnsEncryptTypeDES];
-}
-
-- (BOOL) WGSetDnsAppKey:(NSString *) appkey DnsID:(int)dnsid DnsKey:(NSString *)dnsKey DnsIP:(NSString *)dnsip Debug:(BOOL)debug TimeOut:(int)timeout encryptType:(HttpDnsEncryptType)encryptType
-{
-    [[MSDKDnsLog sharedInstance] setEnableLog:debug];
-    [[MSDKDnsParamsManager shareInstance] msdkDnsSetMAppId:appkey MTimeOut:timeout MEncryptType:encryptType];
-    [[MSDKDnsParamsManager shareInstance] msdkDnsSetMDnsId:dnsid MDnsKey:dnsKey MToken:nil];
-    [[MSDKDnsParamsManager shareInstance] msdkDnsSetMDnsIp:dnsip];
-    return YES;
-}
-
 - (BOOL) WGSetDnsOpenId:(NSString *)openId {
     if (!openId || ([openId length] == 0)) {
         [[MSDKDnsParamsManager shareInstance] msdkDnsSetMOpenId:HTTP_DNS_UNKNOWN_STR];
@@ -90,6 +77,7 @@ static MSDKDns * _sharedInstance = nil;
 
 - (void) WGSetDnsBackupServerIps:(NSArray *)ips {
     [[MSDKDnsParamsManager shareInstance] msdkDnsSetBackupServerIps:ips];
+    [[MSDKDnsManager shareInstance] switchToMainServer];
 }
 
 - (NSArray *) WGGetHostByName:(NSString *)domain {
