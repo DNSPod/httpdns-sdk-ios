@@ -7,8 +7,12 @@
 #import "MSDKDnsPrivate.h"
 
 #if defined(__has_include)
-    #if __has_include(<BeaconAPI_Base/BeaconReport.h>)
-        #include <BeaconAPI_Base/BeaconReport.h>
+    #if __has_include(<MSDK/BeaconBaseInterface.h>)
+        #include <MSDK/BeaconBaseInterface.h>
+    #endif
+
+    #if __has_include("BeaconAPI_Base/BeaconBaseInterface.h")
+        #include "BeaconAPI_Base/BeaconBaseInterface.h"
     #endif
 #endif
 
