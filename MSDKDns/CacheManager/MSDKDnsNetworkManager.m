@@ -72,7 +72,7 @@ static MSDKDnsNetworkManager *manager = nil;
                  //网络状态发生变化时清除缓存
                  [[MSDKDnsManager shareInstance] clearAllCache];
                  //重置ip指针
-                 [[MSDKDnsParamsManager shareInstance] switchToMainServer];
+                 [[MSDKDnsManager shareInstance] switchToMainServer];
              }];
             
             [NSNotificationCenter.defaultCenter addObserverForName:UIApplicationDidEnterBackgroundNotification

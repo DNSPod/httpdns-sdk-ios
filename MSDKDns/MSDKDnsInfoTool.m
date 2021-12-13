@@ -426,7 +426,7 @@ char MSDKDnsHexCharToChar(char high, char low) {
         protocol = @"https";
     }
 
-    NSString *serviceIp = [[MSDKDnsParamsManager shareInstance] msdkDnsGetMDnsIp];
+    NSString *serviceIp = [[MSDKDnsManager shareInstance] currentDnsServer];
     NSString *routeIp = [[MSDKDnsParamsManager shareInstance] msdkDnsGetRouteIp];
     
     if (domainEncrypStr && domainEncrypStr.length > 0) {

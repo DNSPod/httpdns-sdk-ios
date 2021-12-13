@@ -31,4 +31,7 @@
 - (void)clearAllCache;
 - (NSDictionary *) getDnsDetail:(NSString *) domain;
 
+- (NSString *)currentDnsServer;
+- (void)switchDnsServer;
+- (void)switchToMainServer;
 @end

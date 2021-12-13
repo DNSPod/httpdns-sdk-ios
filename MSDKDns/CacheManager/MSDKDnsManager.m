@@ -23,6 +23,9 @@
 @property (strong, nonatomic, readwrite) NSMutableDictionary * domainDict;
 @property (strong, nonatomic, readwrite) NSString * beaconAppkey;
 @property (strong, nonatomic, readwrite) id beaconInstance;
+@property (nonatomic, assign, readwrite) int serverIndex;
+@property (nonatomic, strong, readwrite) NSDate *firstFailTime; // 记录首次失败的时间
+@property (nonatomic, assign, readwrite) BOOL waitToSwitch; // 防止连续多次切换
 
 @end
 
@@ -63,6 +66,8 @@
     }
 }
 
+#pragma mark - init
+
 static MSDKDnsManager * _sharedInstance = nil;
 + (instancetype)shareInstance {
     static dispatch_once_t onceToken;
@@ -71,6 +76,15 @@ static MSDKDnsManager * _sharedInstance = nil;
         [_sharedInstance initBeaconReport];
     });
     return _sharedInstance;
+}
+
+- (instancetype) init {
+    if (self = [super init]) {
+        _serverIndex = 0;
+        _firstFailTime = nil;
+        _waitToSwitch = NO;
+    }
+    return self;
 }
 
 - (void)initBeaconReport {
@@ -94,6 +108,8 @@ static MSDKDnsManager * _sharedInstance = nil;
 //    [self.class reflectInvocation:self.beaconInstance selector:NSSelectorFromString(@"setLogLevel:") params:@[@2]];
     MSDKDNSLOG(@"BeaconReport init success: deviceId = %@", deviceId);
 }
+
+#pragma mark - getHostByDomain
 
 - (NSArray *) getHostByName:(NSString *)domain {
     // 获取当前ipv4/ipv6/双栈网络环境
@@ -398,6 +414,41 @@ static MSDKDnsManager * _sharedInstance = nil;
     [self.serviceArray removeObjectsInArray:tmp];
 }
 
+- (NSDictionary *) getDnsDetail:(NSString *) domain {
+    __block NSDictionary * cacheDomainDict = nil;
+    dispatch_sync([MSDKDnsInfoTool msdkdns_queue], ^{
+        if (domain && _domainDict) {
+            cacheDomainDict = [[NSDictionary alloc] initWithDictionary:_domainDict];
+        }
+    });
+    NSMutableDictionary * detailDict = [@{@"v4_ips": @"",
+                                          @"v6_ips": @"",
+                                          @"v4_ttl": @"",
+                                          @"v6_ttl": @"",
+                                          @"v4_client_ip": @"",
+                                          @"v6_client_ip": @""} mutableCopy];
+    if (cacheDomainDict) {
+        NSDictionary * domainInfo = cacheDomainDict[domain];
+        if (domainInfo && [domainInfo isKindOfClass:[NSDictionary class]]) {
+            NSDictionary * cacheDict_A = domainInfo[kMSDKHttpDnsCache_A];
+            if (cacheDict_A && [cacheDict_A isKindOfClass:[NSDictionary class]]) {
+                detailDict[@"v4_ips"] = [self getIPsStringFromIPsArray:cacheDict_A[kIP]];
+                detailDict[@"v4_ttl"] = cacheDict_A[kTTL];
+                detailDict[@"v4_client_ip"] = cacheDict_A[kClientIP];
+            }
+            NSDictionary * cacheDict_4A = domainInfo[kMSDKHttpDnsCache_4A];
+            if (cacheDict_4A && [cacheDict_4A isKindOfClass:[NSDictionary class]]) {
+                detailDict[@"v6_ips"] = [self getIPsStringFromIPsArray:cacheDict_4A[kIP]];
+                detailDict[@"v6_ttl"] = cacheDict_4A[kTTL];
+                detailDict[@"v6_client_ip"] = cacheDict_4A[kClientIP];
+            }
+        }
+    }
+    return detailDict;
+}
+
+#pragma mark - clear cache
+
 - (void)cacheDomainInfo:(NSDictionary *)domainInfo Domain:(NSString *)domain {
     if (domain && domain.length > 0 && domainInfo && domainInfo.count > 0) {
         MSDKDNSLOG(@"Cache domain:%@ %@", domain, domainInfo);
@@ -433,39 +484,6 @@ static MSDKDnsManager * _sharedInstance = nil;
             self.domainDict = nil;
         }
     });
-}
-
-- (NSDictionary *) getDnsDetail:(NSString *) domain {
-    __block NSDictionary * cacheDomainDict = nil;
-    dispatch_sync([MSDKDnsInfoTool msdkdns_queue], ^{
-        if (domain && _domainDict) {
-            cacheDomainDict = [[NSDictionary alloc] initWithDictionary:_domainDict];
-        }
-    });
-    NSMutableDictionary * detailDict = [@{@"v4_ips": @"",
-                                          @"v6_ips": @"",
-                                          @"v4_ttl": @"",
-                                          @"v6_ttl": @"",
-                                          @"v4_client_ip": @"",
-                                          @"v6_client_ip": @""} mutableCopy];
-    if (cacheDomainDict) {
-        NSDictionary * domainInfo = cacheDomainDict[domain];
-        if (domainInfo && [domainInfo isKindOfClass:[NSDictionary class]]) {
-            NSDictionary * cacheDict_A = domainInfo[kMSDKHttpDnsCache_A];
-            if (cacheDict_A && [cacheDict_A isKindOfClass:[NSDictionary class]]) {
-                detailDict[@"v4_ips"] = [self getIPsStringFromIPsArray:cacheDict_A[kIP]];
-                detailDict[@"v4_ttl"] = cacheDict_A[kTTL];
-                detailDict[@"v4_client_ip"] = cacheDict_A[kClientIP];
-            }
-            NSDictionary * cacheDict_4A = domainInfo[kMSDKHttpDnsCache_4A];
-            if (cacheDict_4A && [cacheDict_4A isKindOfClass:[NSDictionary class]]) {
-                detailDict[@"v6_ips"] = [self getIPsStringFromIPsArray:cacheDict_4A[kIP]];
-                detailDict[@"v6_ttl"] = cacheDict_4A[kTTL];
-                detailDict[@"v6_client_ip"] = cacheDict_4A[kClientIP];
-            }
-        }
-    }
-    return detailDict;
 }
 
 #pragma mark - uploadReport
@@ -715,6 +733,54 @@ static MSDKDnsManager * _sharedInstance = nil;
         }
     }
     return NO;
+}
+
+# pragma mark - servers
+- (NSString *)currentDnsServer {
+    if (self.serverIndex < [[[MSDKDnsParamsManager shareInstance] msdkDnsGetServerIps] count]) {
+        return  [[[MSDKDnsParamsManager shareInstance] msdkDnsGetServerIps] objectAtIndex:self.serverIndex];
+    }
+    return  [[MSDKDnsParamsManager shareInstance] msdkDnsGetMDnsIp];
+}
+
+- (void)switchDnsServer {
+    if (self.waitToSwitch) {
+        return;
+    }
+    self.waitToSwitch = YES;
+    dispatch_async([MSDKDnsInfoTool msdkdns_queue], ^{
+        self.serverIndex += 1;
+        if (!self.firstFailTime) {
+            self.firstFailTime = [NSDate date];
+            // 一定时间后自动切回主ip
+            __weak __typeof__(self) weakSelf = self;
+            dispatch_after(dispatch_time(DISPATCH_TIME_NOW,[[MSDKDnsParamsManager shareInstance] msdkDnsGetMinutesBeforeSwitchToMain] * 60 * NSEC_PER_SEC), [MSDKDnsInfoTool msdkdns_queue], ^{
+                if (weakSelf.firstFailTime && [[NSDate date] timeIntervalSinceDate:weakSelf.firstFailTime] >= [[MSDKDnsParamsManager shareInstance] msdkDnsGetMinutesBeforeSwitchToMain] * 60) {
+                    MSDKDNSLOG(@"auto reset server index, use main ip now.");
+                    weakSelf.serverIndex = 0;
+                    weakSelf.firstFailTime = nil;
+                }
+            });
+        }
+        if (self.serverIndex >= [[[MSDKDnsParamsManager shareInstance] msdkDnsGetServerIps] count]) {
+            self.serverIndex = 0;
+            self.firstFailTime = nil;
+        }
+        self.waitToSwitch = NO;
+    });
+}
+
+- (void)switchToMainServer {
+    if (self.serverIndex == 0) {
+        return;
+    }
+    MSDKDNSLOG(@"switch back to main server ip.");
+    self.waitToSwitch = YES;
+    dispatch_async([MSDKDnsInfoTool msdkdns_queue], ^{
+        self.serverIndex = 0;
+        self.firstFailTime = nil;
+        self.waitToSwitch = NO;
+    });
 }
 
 @end

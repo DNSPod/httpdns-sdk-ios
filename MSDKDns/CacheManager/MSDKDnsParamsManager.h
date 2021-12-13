@@ -12,9 +12,6 @@
 
 + (instancetype)shareInstance;
 
-- (void)switchDnsServer;
-- (void)switchToMainServer;
-
 - (void)msdkDnsSetMDnsIp:(NSString *) mdnsIp;
 - (void)msdkDnsSetMOpenId:(NSString *) mdnsOpenId;
 - (void)msdkDnsSetMAppId:(NSString *) mdnsAppId MTimeOut:(int)mdnsTimeOut MEncryptType:(HttpDnsEncryptType)mdnsEncryptType;
@@ -39,7 +36,6 @@
 - (NSString *)msdkDnsGetRouteIp;
 - (BOOL)msdkDnsGetHttpOnly;
 - (NSArray *)msdkDnsGetServerIps;
-- (NSNumber*)msdkDnsGetServerIndex;
 - (NSUInteger)msdkDnsGetRetryTimesBeforeSwitchServer;
 - (NSUInteger)msdkDnsGetMinutesBeforeSwitchToMain;
 @end

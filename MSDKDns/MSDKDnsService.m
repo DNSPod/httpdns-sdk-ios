@@ -176,9 +176,9 @@
         });
         [[AttaReport sharedInstance] reportEvent:@{
             @"eventName": @"HttpDnsfail",
-            @"dnsIp": [[MSDKDnsParamsManager shareInstance] msdkDnsGetMDnsIp]
+            @"dnsIp": [[MSDKDnsManager shareInstance] currentDnsServer]
         }];
-        [[MSDKDnsParamsManager shareInstance] switchDnsServer];
+        [[MSDKDnsManager shareInstance] switchDnsServer];
     }
 }
 
