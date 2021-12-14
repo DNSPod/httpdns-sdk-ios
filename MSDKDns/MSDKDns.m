@@ -233,4 +233,8 @@ static MSDKDns * _sharedInstance = nil;
     return [[MSDKDnsManager shareInstance] getDnsDetail:domain];
 }
 
+- (void)clearCache {
+    [[MSDKDnsManager shareInstance] clearAllCache];
+}
+
 @end
