@@ -43,6 +43,7 @@ static MSDKDns * _sharedInstance = nil;
     if (config->minutesBeforeSwitchToMain) {
         [[MSDKDnsParamsManager shareInstance] msdkDnsSetMinutesBeforeSwitchToMain:config->minutesBeforeSwitchToMain];
     }
+    [[MSDKDnsParamsManager shareInstance] msdkDnsSetEnableReport:config->enableReport];
     [[MSDKDnsManager shareInstance] switchToMainServer];
     
     return YES;
@@ -62,6 +63,7 @@ static MSDKDns * _sharedInstance = nil;
     conf->httpOnly = [[config objectForKey:@"httpOnly"] boolValue];
     conf->retryTimesBeforeSwitchServer = [[config objectForKey:@"retryTimesBeforeSwitchServer"] intValue];
     conf->minutesBeforeSwitchToMain = [[config objectForKey:@"minutesBeforeSwitchToMain"] intValue];
+    conf->enableReport = [[config objectForKey:@"enableReport"] boolValue];
    return [self initConfig:conf];
 }
 

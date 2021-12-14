@@ -24,6 +24,7 @@
 - (void)msdkDnsSetMinutesBeforeSwitchToMain:(NSUInteger)minutes;
 // 设置备份ip
 - (void)msdkDnsSetBackupServerIps: (NSArray *)ips;
+- (void)msdkDnsSetEnableReport: (BOOL)enableReport;
 
 - (NSString *) msdkDnsGetMDnsIp;
 - (NSString *) msdkDnsGetMOpenId;
@@ -38,4 +39,5 @@
 - (NSArray *)msdkDnsGetServerIps;
 - (NSUInteger)msdkDnsGetRetryTimesBeforeSwitchServer;
 - (NSUInteger)msdkDnsGetMinutesBeforeSwitchToMain;
+- (BOOL)msdkDnsGetEnableReport;
 @end

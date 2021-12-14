@@ -174,10 +174,12 @@
             NSDictionary * info = @{kDnsErrCode:MSDKDns_Fail, kDnsErrMsg:@"", kDnsRetry:@"0"};
             [self callBack:resolver Info:info];
         });
-        [[AttaReport sharedInstance] reportEvent:@{
-            @"eventName": @"HttpDnsfail",
-            @"dnsIp": [[MSDKDnsManager shareInstance] currentDnsServer]
-        }];
+        if ([[MSDKDnsParamsManager shareInstance] msdkDnsGetEnableReport]) {
+            [[AttaReport sharedInstance] reportEvent:@{
+                @"eventName": @"HttpDnsfail",
+                @"dnsIp": [[MSDKDnsManager shareInstance] currentDnsServer]
+            }];
+        }
         [[MSDKDnsManager shareInstance] switchDnsServer];
     }
 }

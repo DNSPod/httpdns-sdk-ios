@@ -25,10 +25,11 @@
 @property (assign, nonatomic, readwrite) HttpDnsEncryptType msdkEncryptType;
 @property (strong, nonatomic, readwrite) NSString *msdkDnsRouteIp;
 @property (assign, nonatomic, readwrite) BOOL httpOnly;
-@property (nonatomic, strong, readwrite) NSArray* serverArray;
-@property (nonatomic, assign, readwrite) NSUInteger retryTimesBeforeSwitchServer;
-@property (nonatomic, assign, readwrite) NSUInteger minutesBeforeSwitchToMain;
-@property (nonatomic, strong, readwrite) NSArray * backupServerIps;
+@property (strong, nonatomic, readwrite) NSArray* serverArray;
+@property (assign, nonatomic, readwrite) NSUInteger retryTimesBeforeSwitchServer;
+@property (assign, nonatomic, readwrite) NSUInteger minutesBeforeSwitchToMain;
+@property (strong, nonatomic, readwrite) NSArray * backupServerIps;
+@property (assign, nonatomic, readwrite) BOOL enableReport;
 @end
 
 @implementation MSDKDnsParamsManager
@@ -49,6 +50,7 @@ static MSDKDnsParamsManager * _sharedInstance = nil;
         _msdkDnsAppId = HTTP_DNS_UNKNOWN_STR;
         _retryTimesBeforeSwitchServer = 3;
         _minutesBeforeSwitchToMain = 10;
+        _enableReport = NO;
     }
     return self;
 }
@@ -133,6 +135,12 @@ static MSDKDnsParamsManager * _sharedInstance = nil;
     });
 }
 
+- (void)msdkDnsSetEnableReport: (BOOL)enableReport {
+    dispatch_async([MSDKDnsInfoTool msdkdns_queue], ^{
+        self.enableReport = enableReport;
+    });
+}
+
 #pragma mark - getter
 
 - (BOOL)msdkDnsGetHttpOnly {
@@ -192,6 +200,10 @@ static MSDKDnsParamsManager * _sharedInstance = nil;
 
 - (NSUInteger)msdkDnsGetMinutesBeforeSwitchToMain {
     return _minutesBeforeSwitchToMain;
+}
+
+- (BOOL)msdkDnsGetEnableReport {
+    return _enableReport;
 }
 
 @end
