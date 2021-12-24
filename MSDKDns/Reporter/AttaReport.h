@@ -16,6 +16,8 @@ NS_ASSUME_NONNULL_BEGIN
 
 - (void)reportEvent:(NSDictionary *)params;
 
+- (BOOL)shoulReportDnsSpend;
+
 @end
 
 NS_ASSUME_NONNULL_END

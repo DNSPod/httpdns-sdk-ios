@@ -25,6 +25,10 @@
 @property (strong, nonatomic) NSString *attaid;
 @property (strong, nonatomic) NSString *token;
 @property (strong, nonatomic) NSString *reportUrl;
+@property (assign, nonatomic) NSUInteger limit;
+@property (assign, nonatomic) NSUInteger interval;
+@property (assign, nonatomic) NSUInteger count;
+@property (strong, nonatomic) NSDate *lastReportTime;
 @end
 
 
@@ -48,6 +52,10 @@ static AttaReport * _sharedInstance = nil;
         self.attaid = ATTAID;
         self.token = ATTAToken;
         self.reportUrl = ATTAReportUrl;
+        self.limit = ATTAReportDnsSpendLimit;
+        self.interval = ATTAReportDnsSpendInterval;
+        self.count = 0;
+        self.lastReportTime = [NSDate date];
 #endif
     }
     return self;
@@ -111,41 +119,23 @@ static AttaReport * _sharedInstance = nil;
     NSString *currentCountryCode = [carrier mobileCountryCode];
     NSString *mobileNetWorkCode = [carrier mobileNetworkCode];
 
-    if (![currentCountryCode isEqualToString:@"460"]) {
-        return @"unknown";
+    if (currentCountryCode || mobileNetWorkCode) {
+        return [NSString stringWithFormat:@"%@%@", currentCountryCode, mobileNetWorkCode];
     }
+    return @"-1";
+}
 
-    if ([mobileNetWorkCode isEqualToString:@"00"] ||
-        [mobileNetWorkCode isEqualToString:@"02"] ||
-        [mobileNetWorkCode isEqualToString:@"07"]) {
-
-        // 中国移动
-        return @"China Mobile";
+- (BOOL)shoulReportDnsSpend {
+    if (self.count >= self.limit) {
+        return NO;
     }
-
-    if ([mobileNetWorkCode isEqualToString:@"01"] ||
-        [mobileNetWorkCode isEqualToString:@"06"] ||
-        [mobileNetWorkCode isEqualToString:@"09"]) {
-
-        // 中国联通
-        return @"China Unicom";
+    NSDate *now = [NSDate date];
+    if ([now timeIntervalSinceDate:self.lastReportTime] >= self.interval) {
+        self.lastReportTime = now;
+        self.count += 1;
+        return YES;
     }
-
-    if ([mobileNetWorkCode isEqualToString:@"03"] ||
-        [mobileNetWorkCode isEqualToString:@"05"] ||
-        [mobileNetWorkCode isEqualToString:@"11"]) {
-
-        // 中国电信
-        return @"China Telecom";
-    }
-
-    if ([mobileNetWorkCode isEqualToString:@"20"]) {
-
-        // 中国铁通
-        return @"China Tietong";
-    }
-
-    return @"unknown";
+    return NO;
 }
 
 @end

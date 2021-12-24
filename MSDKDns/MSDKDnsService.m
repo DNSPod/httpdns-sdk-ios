@@ -133,12 +133,29 @@
 
 - (void)resolver:(MSDKDnsResolver *)resolver didGetDomainInfo:(NSDictionary *)domainInfo {
     MSDKDNSLOG(@"%@ %@ domainInfo = %@", self.toCheckDomains, [resolver class], domainInfo);
-    //结果存缓存
+    // 结果存缓存
     dispatch_async([MSDKDnsInfoTool msdkdns_queue], ^{
         [self cacheDomainInfo:resolver];
         NSDictionary * info = @{kDnsErrCode:MSDKDns_Success, kDnsErrMsg:@"", kDnsRetry:@"0"};
         [self callBack:resolver Info:info];
     });
+    // 正常解析结果上报，上报解析耗时
+    if(resolver == self.httpDnsResolver_A || resolver == self.httpDnsResolver_4A) {
+        if ([[MSDKDnsParamsManager shareInstance] msdkDnsGetEnableReport] && [[AttaReport sharedInstance] shoulReportDnsSpend]) {
+            NSDictionary *domainDic = [domainInfo objectForKey:[self.toCheckDomains firstObject]];
+            [[AttaReport sharedInstance] reportEvent:@{
+                @"eventName": MSDKDnsEventHttpDnsSpend,
+                @"dnsIp": [[MSDKDnsManager shareInstance] currentDnsServer],
+                @"req_dn": [self.toCheckDomains componentsJoinedByString:@","],
+                @"req_type": resolver == self.httpDnsResolver_4A ? @"aaaa" : @"a",
+                @"req_timeout": @(self.timeOut * 1000),
+                @"req_ttl": @1,
+                @"req_query": @1,
+                @"req_ip": [[MSDKDnsParamsManager shareInstance] msdkDnsGetRouteIp],
+                @"spend": [domainDic objectForKey:kDnsTimeConsuming],
+            }];
+        }
+    }
 }
 
 - (void)resolver:(MSDKDnsResolver *)resolver getDomainError:(NSString *)error retry:(BOOL)retry {
@@ -176,8 +193,15 @@
         });
         if ([[MSDKDnsParamsManager shareInstance] msdkDnsGetEnableReport]) {
             [[AttaReport sharedInstance] reportEvent:@{
-                @"eventName": @"HttpDnsfail",
-                @"dnsIp": [[MSDKDnsManager shareInstance] currentDnsServer]
+                @"eventName": MSDKDnsEventHttpDnsfail,
+//                @"errorCode":
+                @"dnsIp": [[MSDKDnsManager shareInstance] currentDnsServer],
+                @"req_dn": [self.toCheckDomains componentsJoinedByString:@","],
+                @"req_type": resolver == self.httpDnsResolver_4A ? @"aaaa" : @"a",
+                @"req_timeout": @(self.timeOut * 1000),
+                @"req_ttl": @1,
+                @"req_query": @1,
+                @"req_ip": [[MSDKDnsParamsManager shareInstance] msdkDnsGetRouteIp],
             }];
         }
         [[MSDKDnsManager shareInstance] switchDnsServer];

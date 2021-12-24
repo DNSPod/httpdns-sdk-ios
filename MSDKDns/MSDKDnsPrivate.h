@@ -61,5 +61,8 @@ static NSString * const kMSDKDns_DNS_4A_IP = @"dns_4a_ips";          // 域名�
 static NSString * const MSDKDns_Fail = @"-1";   // 失败
 static NSString * const MSDKDns_Success = @"0"; // 成功
 
+/** 上报事件*/
+static NSString * const MSDKDnsEventHttpDnsfail = @"HttpDnsfail";
+static NSString * const MSDKDnsEventHttpDnsSpend = @"HttpDnsSpend";
 
 #endif
