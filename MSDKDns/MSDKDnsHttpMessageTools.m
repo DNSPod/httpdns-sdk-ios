@@ -6,6 +6,7 @@
 #import "MSDKDnsHttpMessageTools.h"
 #import "MSDKDnsLog.h"
 #import "MSDKDnsParamsManager.h"
+#import "MSDKDnsManager.h"
 #import <objc/runtime.h>
 #import "MSDKDns.h"
 
@@ -54,7 +55,7 @@ static NSString *const kAnchorAlreadyAdded = @"AnchorAlreadyAdded";
         }
     }
     // 如果url以https开头，且不为httpdns服务器ip，则进行拦截处理，否则不处理
-    NSString *dnsIp = [[MSDKDnsParamsManager shareInstance] msdkDnsGetMDnsIp];
+    NSString *dnsIp = [[MSDKDnsManager shareInstance] currentDnsServer];
     if ([url hasPrefix:@"https"] && ![url containsString:dnsIp]) {
         return YES;
     }

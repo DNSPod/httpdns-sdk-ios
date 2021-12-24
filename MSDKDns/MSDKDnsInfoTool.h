@@ -9,6 +9,7 @@
 + (dispatch_queue_t) msdkdns_queue;
 + (dispatch_queue_t) msdkdns_resolver_queue;
 + (dispatch_queue_t) msdkdns_local_queue;
++ (dispatch_queue_t) msdkdns_retry_queue;
 + (NSString *) wifiSSID;
 
 + (NSString *) encryptUseDES:(NSString *)plainText key:(NSString *)key;

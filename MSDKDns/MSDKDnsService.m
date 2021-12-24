@@ -10,6 +10,7 @@
 #import "MSDKDnsManager.h"
 #import "MSDKDnsNetworkManager.h"
 #import "MSDKDnsParamsManager.h"
+#import "AttaReport.h"
 
 @interface MSDKDnsService () <MSDKDnsResolverDelegate>
 
@@ -20,7 +21,11 @@
 @property (nonatomic, strong) void (^ completionHandler)();
 @property (atomic, assign) BOOL isCallBack;
 @property (nonatomic) msdkdns::MSDKDNS_TLocalIPStack netStack;
-
+@property (nonatomic, assign) int httpdnsFailCount;
+@property (nonatomic, assign) float timeOut;
+@property (nonatomic, assign) int dnsId;
+@property (nonatomic, strong) NSString* dnsKey;
+@property (nonatomic, assign) NSUInteger encryptType;
 @end
 
 @implementation MSDKDnsService
@@ -33,18 +38,10 @@
     [self setCompletionHandler:nil];
 }
 
-- (void)getHostByName:(NSString *)domain TimeOut:(float)timeOut DnsId:(int)dnsId DnsKey:(NSString *)dnsKey NetStack:(msdkdns::MSDKDNS_TLocalIPStack)netStack returnIps:(void (^)())handler
-{
-    [self getHostByName:domain TimeOut:timeOut DnsId:dnsId DnsKey:dnsKey NetStack:netStack encryptType:0 returnIps:handler];
-}
 
 - (void)getHostByName:(NSString *)domain TimeOut:(float)timeOut DnsId:(int)dnsId DnsKey:(NSString *)dnsKey NetStack:(msdkdns::MSDKDNS_TLocalIPStack)netStack encryptType:(NSInteger)encryptType returnIps:(void (^)())handler
 {
-    self.completionHandler = handler;
-    self.toCheckDomains = @[domain];
-    self.isCallBack = NO;
-    self.netStack = netStack;
-    [self startCheck:timeOut DnsId:dnsId DnsKey:dnsKey encryptType:encryptType];
+    [self getHostsByNames:@[domain] TimeOut:timeOut DnsId:dnsId DnsKey:dnsKey NetStack:netStack encryptType:encryptType returnIps:handler];
 }
 
 - (void)getHostsByNames:(NSArray *)domains TimeOut:(float)timeOut DnsId:(int)dnsId DnsKey:(NSString *)dnsKey NetStack:(msdkdns::MSDKDNS_TLocalIPStack)netStack encryptType:(NSInteger)encryptType returnIps:(void (^)())handler
@@ -57,11 +54,6 @@
 }
 
 #pragma mark - startCheck
-
-- (void)startCheck:(float)timeOut DnsId:(int)dnsId DnsKey:(NSString *)dnsKey
-{
-    [self startCheck:timeOut DnsId:dnsId DnsKey:dnsKey encryptType:0];
-}
 
 - (void)startCheck:(float)timeOut DnsId:(int)dnsId DnsKey:(NSString *)dnsKey encryptType:(NSInteger)encryptType
 {
@@ -82,6 +74,11 @@
         return;
     }
     
+    self.timeOut = timeOut;
+    self.dnsId = dnsId;
+    self.dnsKey = dnsKey;
+    self.encryptType = encryptType;
+    
     if (_netStack != msdkdns::MSDKDNS_ELocalIPStack_IPv4) {
         dispatch_async([MSDKDnsInfoTool msdkdns_resolver_queue], ^{
             [self startHttpDns_4A:timeOut DnsId:dnsId DnsKey:dnsKey encryptType:encryptType];
@@ -100,14 +97,13 @@
             [self startLocalDns:timeOut DnsId:dnsId DnsKey:dnsKey];
         });
     }
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, timeOut * NSEC_PER_SEC), [MSDKDnsInfoTool msdkdns_queue], ^{
+        MSDKDNSLOG(@"DnsService TimeOut!");
+        [self callNotify];
+    });
 }
 
 //进行httpdns请求
-- (void)startHttpDns:(float)timeOut DnsId:(int)dnsId DnsKey:(NSString *)dnsKey
-{
-    [self startHttpDns:timeOut DnsId:dnsId DnsKey:dnsKey encryptType:0];
-}
-
 - (void)startHttpDns:(float)timeOut DnsId:(int)dnsId DnsKey:(NSString *)dnsKey encryptType:(NSInteger)encryptType
 {
     MSDKDNSLOG(@"%@ StartHttpDns!", self.toCheckDomains);
@@ -116,10 +112,6 @@
     [self.httpDnsResolver_A startWithDomains:self.toCheckDomains TimeOut:timeOut DnsId:dnsId DnsKey:dnsKey NetStack:msdkdns::MSDKDNS_ELocalIPStack_IPv4 encryptType:encryptType];
 }
 
-- (void)startHttpDns_4A:(float)timeOut DnsId:(int)dnsId DnsKey:(NSString *)dnsKey
-{
-    [self startHttpDns_4A:timeOut DnsId:dnsId DnsKey:dnsKey encryptType:0];
-}
 
 - (void)startHttpDns_4A:(float)timeOut DnsId:(int)dnsId DnsKey:(NSString *)dnsKey encryptType:(NSInteger)encryptType
 {
@@ -141,20 +133,79 @@
 
 - (void)resolver:(MSDKDnsResolver *)resolver didGetDomainInfo:(NSDictionary *)domainInfo {
     MSDKDNSLOG(@"%@ %@ domainInfo = %@", self.toCheckDomains, [resolver class], domainInfo);
-    //结果存缓存
+    // 结果存缓存
     dispatch_async([MSDKDnsInfoTool msdkdns_queue], ^{
         [self cacheDomainInfo:resolver];
         NSDictionary * info = @{kDnsErrCode:MSDKDns_Success, kDnsErrMsg:@"", kDnsRetry:@"0"};
         [self callBack:resolver Info:info];
     });
+    // 正常解析结果上报，上报解析耗时
+    if(resolver == self.httpDnsResolver_A || resolver == self.httpDnsResolver_4A) {
+        if ([[MSDKDnsParamsManager shareInstance] msdkDnsGetEnableReport] && [[AttaReport sharedInstance] shoulReportDnsSpend]) {
+            NSDictionary *domainDic = [domainInfo objectForKey:[self.toCheckDomains firstObject]];
+            [[AttaReport sharedInstance] reportEvent:@{
+                @"eventName": MSDKDnsEventHttpDnsSpend,
+                @"dnsIp": [[MSDKDnsManager shareInstance] currentDnsServer],
+                @"req_dn": [self.toCheckDomains componentsJoinedByString:@","],
+                @"req_type": resolver == self.httpDnsResolver_4A ? @"aaaa" : @"a",
+                @"req_timeout": @(self.timeOut * 1000),
+                @"req_ttl": @1,
+                @"req_query": @1,
+                @"req_ip": [[MSDKDnsParamsManager shareInstance] msdkDnsGetRouteIp],
+                @"spend": [domainDic objectForKey:kDnsTimeConsuming],
+            }];
+        }
+    }
 }
 
-- (void)resolver:(MSDKDnsResolver *)resolver getDomainError:(NSString *)error {
-    dispatch_async([MSDKDnsInfoTool msdkdns_queue], ^{
-        MSDKDNSLOG(@"%@ %@ error = %@",self.toCheckDomains, [resolver class], error);
-        NSDictionary * info = @{kDnsErrCode:MSDKDns_Fail, kDnsErrMsg:@"", kDnsRetry:@"0"};
-        [self callBack:resolver Info:info];
-    });
+- (void)resolver:(MSDKDnsResolver *)resolver getDomainError:(NSString *)error retry:(BOOL)retry {
+    MSDKDNSLOG(@"%@ %@ error = %@",self.toCheckDomains, [resolver class], error);
+    if (retry) {
+        [self retryHttpDns:resolver];
+    } else {
+        dispatch_async([MSDKDnsInfoTool msdkdns_queue], ^{
+            NSDictionary * info = @{kDnsErrCode:MSDKDns_Fail, kDnsErrMsg:@"", kDnsRetry:@"0"};
+            [self callBack:resolver Info:info];
+        });
+    }
+    
+}
+
+#pragma mark - retry
+- (void) retryHttpDns:(MSDKDnsResolver *)resolver {
+    self.httpdnsFailCount += 1;
+    if (self.httpdnsFailCount < [[MSDKDnsParamsManager shareInstance] msdkDnsGetRetryTimesBeforeSwitchServer]) {
+        if (resolver == self.httpDnsResolver_A) {
+            dispatch_async([MSDKDnsInfoTool msdkdns_retry_queue], ^{
+                [self startHttpDns:self.timeOut DnsId:self.dnsId DnsKey:self.dnsKey encryptType:self.encryptType];
+            });
+        } else if (resolver == self.httpDnsResolver_4A) {
+            dispatch_async([MSDKDnsInfoTool msdkdns_retry_queue], ^{
+                [self startHttpDns_4A:self.timeOut DnsId:self.dnsId DnsKey:self.dnsKey encryptType:self.encryptType];
+            });
+        }
+    } else {
+        MSDKDNSLOG(@"fail %lu times, switch server!", (unsigned long)[[MSDKDnsParamsManager shareInstance] msdkDnsGetRetryTimesBeforeSwitchServer]);
+        // 失败超过三次，返回错误结果并切换备份ip
+        dispatch_async([MSDKDnsInfoTool msdkdns_queue], ^{
+            NSDictionary * info = @{kDnsErrCode:MSDKDns_Fail, kDnsErrMsg:@"", kDnsRetry:@"0"};
+            [self callBack:resolver Info:info];
+        });
+        if ([[MSDKDnsParamsManager shareInstance] msdkDnsGetEnableReport]) {
+            [[AttaReport sharedInstance] reportEvent:@{
+                @"eventName": MSDKDnsEventHttpDnsfail,
+//                @"errorCode":
+                @"dnsIp": [[MSDKDnsManager shareInstance] currentDnsServer],
+                @"req_dn": [self.toCheckDomains componentsJoinedByString:@","],
+                @"req_type": resolver == self.httpDnsResolver_4A ? @"aaaa" : @"a",
+                @"req_timeout": @(self.timeOut * 1000),
+                @"req_ttl": @1,
+                @"req_query": @1,
+                @"req_ip": [[MSDKDnsParamsManager shareInstance] msdkDnsGetRouteIp],
+            }];
+        }
+        [[MSDKDnsManager shareInstance] switchDnsServer];
+    }
 }
 
 #pragma mark - CallBack
@@ -164,9 +215,9 @@
         return;
     }
     
+    // 解析请求返回状态缓存
     for(int i = 0; i < [self.toCheckDomains count]; i++) {
         NSString *domain = [self.toCheckDomains objectAtIndex:i];
-        //信息存缓存
         NSDictionary * tempDict = [[[MSDKDnsManager shareInstance] domainDict] objectForKey:domain];
         NSMutableDictionary *cacheDict;
         
@@ -222,9 +273,9 @@
 
 #pragma mark - cacheDomainInfo
 
+// 解析结果存缓存
 - (void)cacheDomainInfo:(MSDKDnsResolver *)resolver {
     MSDKDNSLOG(@"cacheDomainInfo: %@", self.toCheckDomains);
-    //结果存缓存
     for(int i = 0; i < [self.toCheckDomains count]; i++) {
         NSString *domain = [self.toCheckDomains objectAtIndex:i];
         NSDictionary * tempDict = [[[MSDKDnsManager shareInstance] domainDict] objectForKey:domain];
