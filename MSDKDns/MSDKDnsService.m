@@ -143,6 +143,10 @@
     if(resolver == self.httpDnsResolver_A || resolver == self.httpDnsResolver_4A) {
         if ([[MSDKDnsParamsManager shareInstance] msdkDnsGetEnableReport] && [[AttaReport sharedInstance] shoulReportDnsSpend]) {
             NSDictionary *domainDic = [domainInfo objectForKey:[self.toCheckDomains firstObject]];
+            NSString* routeip = [[MSDKDnsParamsManager shareInstance] msdkDnsGetRouteIp];
+            if (!routeip) {
+                routeip = @"";
+            }
             [[AttaReport sharedInstance] reportEvent:@{
                 @"eventName": MSDKDnsEventHttpDnsSpend,
                 @"dnsIp": [[MSDKDnsManager shareInstance] currentDnsServer],
@@ -151,7 +155,7 @@
                 @"req_timeout": @(self.timeOut * 1000),
                 @"req_ttl": @1,
                 @"req_query": @1,
-                @"req_ip": [[MSDKDnsParamsManager shareInstance] msdkDnsGetRouteIp],
+                @"req_ip": routeip,
                 @"spend": [domainDic objectForKey:kDnsTimeConsuming],
             }];
         }
@@ -192,16 +196,19 @@
             [self callBack:resolver Info:info];
         });
         if ([[MSDKDnsParamsManager shareInstance] msdkDnsGetEnableReport]) {
+            NSString* routeip = [[MSDKDnsParamsManager shareInstance] msdkDnsGetRouteIp];
+            if (!routeip) {
+                routeip = @"";
+            }
             [[AttaReport sharedInstance] reportEvent:@{
                 @"eventName": MSDKDnsEventHttpDnsfail,
-//                @"errorCode":
                 @"dnsIp": [[MSDKDnsManager shareInstance] currentDnsServer],
                 @"req_dn": [self.toCheckDomains componentsJoinedByString:@","],
                 @"req_type": resolver == self.httpDnsResolver_4A ? @"aaaa" : @"a",
                 @"req_timeout": @(self.timeOut * 1000),
                 @"req_ttl": @1,
                 @"req_query": @1,
-                @"req_ip": [[MSDKDnsParamsManager shareInstance] msdkDnsGetRouteIp],
+                @"req_ip": routeip,
             }];
         }
         [[MSDKDnsManager shareInstance] switchDnsServer];
