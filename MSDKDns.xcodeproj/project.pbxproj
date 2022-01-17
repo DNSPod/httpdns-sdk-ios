@@ -628,7 +628,7 @@
 				LINK_WITH_STANDARD_LIBRARIES = NO;
 				MACH_O_TYPE = mh_object;
 				MACOSX_DEPLOYMENT_TARGET = "";
-				MARKETING_VERSION = 1.3.0;
+				MARKETING_VERSION = 1.3.1;
 				ONLY_ACTIVE_ARCH = NO;
 				OTHER_CFLAGS = "-fembed-bitcode";
 				OTHER_LDFLAGS = (
@@ -667,7 +667,7 @@
 				LINK_WITH_STANDARD_LIBRARIES = NO;
 				MACH_O_TYPE = mh_object;
 				MACOSX_DEPLOYMENT_TARGET = "";
-				MARKETING_VERSION = 1.3.0;
+				MARKETING_VERSION = 1.3.1;
 				OTHER_CFLAGS = "-fembed-bitcode";
 				OTHER_LDFLAGS = (
 					"-ObjC",
@@ -704,7 +704,7 @@
 				LINK_WITH_STANDARD_LIBRARIES = NO;
 				MACH_O_TYPE = mh_object;
 				MACOSX_DEPLOYMENT_TARGET = "";
-				MARKETING_VERSION = 1.3.0;
+				MARKETING_VERSION = 1.3.1;
 				ONLY_ACTIVE_ARCH = NO;
 				OTHER_CFLAGS = "-fembed-bitcode";
 				OTHER_LDFLAGS = (
@@ -743,7 +743,7 @@
 				LINK_WITH_STANDARD_LIBRARIES = NO;
 				MACH_O_TYPE = mh_object;
 				MACOSX_DEPLOYMENT_TARGET = "";
-				MARKETING_VERSION = 1.3.0;
+				MARKETING_VERSION = 1.3.1;
 				OTHER_CFLAGS = "-fembed-bitcode";
 				OTHER_LDFLAGS = (
 					"-ObjC",
