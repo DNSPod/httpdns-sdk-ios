@@ -734,20 +734,21 @@ static MSDKDnsManager * _sharedInstance = nil;
     }
     self.waitToSwitch = YES;
     dispatch_async([MSDKDnsInfoTool msdkdns_queue], ^{
-        self.serverIndex += 1;
-        if (!self.firstFailTime) {
-            self.firstFailTime = [NSDate date];
-            // 一定时间后自动切回主ip
-            __weak __typeof__(self) weakSelf = self;
-            dispatch_after(dispatch_time(DISPATCH_TIME_NOW,[[MSDKDnsParamsManager shareInstance] msdkDnsGetMinutesBeforeSwitchToMain] * 60 * NSEC_PER_SEC), [MSDKDnsInfoTool msdkdns_queue], ^{
-                if (weakSelf.firstFailTime && [[NSDate date] timeIntervalSinceDate:weakSelf.firstFailTime] >= [[MSDKDnsParamsManager shareInstance] msdkDnsGetMinutesBeforeSwitchToMain] * 60) {
-                    MSDKDNSLOG(@"auto reset server index, use main ip now.");
-                    weakSelf.serverIndex = 0;
-                    weakSelf.firstFailTime = nil;
-                }
-            });
-        }
-        if (self.serverIndex >= [[[MSDKDnsParamsManager shareInstance] msdkDnsGetServerIps] count]) {
+        if (self.serverIndex < [[[MSDKDnsParamsManager shareInstance] msdkDnsGetServerIps] count]) {
+            self.serverIndex += 1;
+            if (!self.firstFailTime) {
+                self.firstFailTime = [NSDate date];
+                // 一定时间后自动切回主ip
+                __weak __typeof__(self) weakSelf = self;
+                dispatch_after(dispatch_time(DISPATCH_TIME_NOW,[[MSDKDnsParamsManager shareInstance] msdkDnsGetMinutesBeforeSwitchToMain] * 60 * NSEC_PER_SEC), [MSDKDnsInfoTool msdkdns_queue], ^{
+                    if (weakSelf.firstFailTime && [[NSDate date] timeIntervalSinceDate:weakSelf.firstFailTime] >= [[MSDKDnsParamsManager shareInstance] msdkDnsGetMinutesBeforeSwitchToMain] * 60) {
+                        MSDKDNSLOG(@"auto reset server index, use main ip now.");
+                        weakSelf.serverIndex = 0;
+                        weakSelf.firstFailTime = nil;
+                    }
+                });
+            }
+        } else {
             self.serverIndex = 0;
             self.firstFailTime = nil;
         }
