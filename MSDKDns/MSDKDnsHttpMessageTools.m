@@ -108,6 +108,27 @@ static NSString *const kAnchorAlreadyAdded = @"AnchorAlreadyAdded";
         bodyData = (__bridge_retained CFDataRef) [headFields[@"originalBody"] dataUsingEncoding:NSUTF8StringEncoding];
     }
     
+     _block NSArray* result;
+    [[MSDKDns sharedInstance] WGGetHostByNameAsync:_curRequest.URL.host returnIps:^(NSArray *ipsArray) {
+        result = ipsArray;
+    }];
+    NSString *ip = nil;
+    if (result && result.count > 1) {
+        if (![result[1] isEqualToString:@"0"]) {
+            ip = result[1];
+        } else {
+            ip = result[0];
+        }
+    }
+
+    if (ip.length > 1) {
+        NSString *originalHost = _curRequest.URL.host;
+        NSMutableString *originalURLStr = _curRequest.URL.absoluteString.mutableCopy;
+        NSString *newUrlString = [originalURLStr stringByReplacingOccurrencesOfString:originalHost withString:ip];
+        _curRequest.URL = [NSURL URLWithString:newUrlString];
+        [_curRequest setValue:originalHost forHTTPHeaderField:@"host"];
+    }
+    
     CFStringRef url = (__bridge CFStringRef) [_curRequest.URL absoluteString];
     CFURLRef requestURL = CFURLCreateWithString(kCFAllocatorDefault, url, NULL);
     
