@@ -28,12 +28,15 @@
 - (NSArray *)getHostByName:(NSString *)domain;
 - (void)getHostsByNames:(NSArray *)domains returnIps:(void (^)(NSDictionary * ipsDict))handler;
 - (NSDictionary *)getHostsByNames:(NSArray *)domains;
+- (void)getAllHostsByNames:(NSArray *)domains returnIps:(void (^)(NSDictionary *))handler;
+- (NSDictionary *)getAllHostsByNames:(NSArray *)domains;
+- (void)preResolveDomains;
 - (void)dnsHasDone:(MSDKDnsService *)service;
 - (void)cacheDomainInfo:(NSDictionary *)domainInfo Domain:(NSString *)domain;
 - (void)clearCacheForDomain:(NSString *)domain;
 - (void)clearCacheForDomains:(NSArray *)domains;
 - (void)clearAllCache;
-- (NSDictionary *) getDnsDetail:(NSString *) domain;
+- (NSDictionary *)getDnsDetail:(NSString *)domain;
 
 - (NSString *)currentDnsServer;
 - (void)switchDnsServer;

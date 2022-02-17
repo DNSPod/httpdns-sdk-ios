@@ -66,6 +66,11 @@ typedef struct DnsConfigStruct {
  */
 - (void) WGSetDnsBackupServerIps:(NSArray *)ips;
 
+/**
+ * 设置预解析的域名，设置的域名会在sdk初始化完成后自动进行解析
+ */
+- (void) WGSetPreResolvedDomains:(NSArray *)domains;
+
 #pragma mark - 域名解析接口，按需调用
 /**
  域名同步解析（通用接口）
@@ -86,6 +91,15 @@ typedef struct DnsConfigStruct {
 - (NSDictionary *) WGGetHostsByNames:(NSArray *) domains;
 
 /**
+ 域名批量同步解析（查询所有ip）
+
+ @param domains 域名数组
+ 
+ @return 查询到的IP字典
+ */
+- (NSDictionary *) WGGetAllHostsByNames:(NSArray *)domains;
+
+/**
  域名异步解析（通用接口）
 
  @param domain  域名
@@ -100,6 +114,14 @@ typedef struct DnsConfigStruct {
  @param handler 返回查询到的IP数组，超时（1s）或者未未查询到返回[0,0]数组
  */
 - (void) WGGetHostsByNamesAsync:(NSArray *) domains returnIps:(void (^)(NSDictionary * ipsDictionary))handler;
+
+/**
+ 域名批量异步解析（查询所有ip）
+
+ @param domains  域名数组
+ @param handler 返回查询到的IP数组，超时（1s）或者未未查询到返回[0,0]数组
+ */
+- (void)WGGetAllHostsByNamesAsync:(NSArray *)domains returnIps:(void (^)(NSDictionary * ipsDictionary))handler;
 
 #pragma mark - SNI场景，仅调用一次即可，请勿多次调用
 /**

@@ -14,6 +14,8 @@
 @implementation MSDKDns
 
 static MSDKDns * _sharedInstance = nil;
+
+#pragma mark - init
 + (instancetype) sharedInstance {
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
@@ -45,7 +47,7 @@ static MSDKDns * _sharedInstance = nil;
     }
     [[MSDKDnsParamsManager shareInstance] msdkDnsSetEnableReport:config->enableReport];
     [[MSDKDnsManager shareInstance] switchToMainServer];
-    
+    MSDKDNSLOG(@"MSDKDns init success.");
     return YES;
 }
 
@@ -67,6 +69,8 @@ static MSDKDns * _sharedInstance = nil;
    return [self initConfig:conf];
 }
 
+#pragma mark - setting
+
 - (BOOL) WGSetDnsOpenId:(NSString *)openId {
     if (!openId || ([openId length] == 0)) {
         [[MSDKDnsParamsManager shareInstance] msdkDnsSetMOpenId:HTTP_DNS_UNKNOWN_STR];
@@ -81,6 +85,25 @@ static MSDKDns * _sharedInstance = nil;
     [[MSDKDnsParamsManager shareInstance] msdkDnsSetBackupServerIps:ips];
     [[MSDKDnsManager shareInstance] switchToMainServer];
 }
+
+- (void) WGSetPreResolvedDomains:(NSArray *)domains {
+    [[MSDKDnsParamsManager shareInstance] msdkDnsSetPreResolvedDomains:domains];
+    [[MSDKDnsManager shareInstance] preResolveDomains];
+}
+
+- (void) WGSetHijackDomainArray:(NSArray *)hijackDomainArray {
+    if (hijackDomainArray) {
+        [[MSDKDnsParamsManager shareInstance] setHijackDomainArray:[hijackDomainArray copy]];
+    }
+}
+
+- (void) WGSetNoHijackDomainArray:(NSArray *)noHijackDomainArray {
+    if (noHijackDomainArray) {
+        [[MSDKDnsParamsManager shareInstance] setNoHijackDomainArray:[noHijackDomainArray copy]];
+    }
+}
+
+#pragma mark - get host by name
 
 - (NSArray *) WGGetHostByName:(NSString *)domain {
     @synchronized(self) {
@@ -132,6 +155,36 @@ static MSDKDns * _sharedInstance = nil;
         //进行httpdns请求
         dnsResult = [[MSDKDnsManager shareInstance] getHostsByNames:domains];
         NSTimeInterval time_consume = [[NSDate date] timeIntervalSinceDate:date] * 1000;
+        MSDKDNSLOG(@"%@, MSDKDns Result is:%@",domains, dnsResult);
+        MSDKDNSLOG(@"MSDKDns WGGetHostByName Total Time Consume is %.1fms", time_consume);
+        return dnsResult;
+    }
+}
+
+- (NSDictionary *) WGGetAllHostsByNames:(NSArray *)domains {
+    @synchronized(self) {
+        NSDictionary * dnsResult = @{};
+        MSDKDNSLOG(@"GetAllHostByName:%@",domains);
+        if (!domains || [domains count] == 0) {
+            //请求域名为空，返回空
+            MSDKDNSLOG(@"MSDKDns Result is Empty!");
+            return dnsResult;
+        }
+        // 转换成小写
+        NSMutableArray *lowerCaseArray = [NSMutableArray array];
+        for(int i = 0; i < [domains count]; i++) {
+            NSString *d = [domains objectAtIndex:i];
+            if (d && d.length > 0) {
+                [lowerCaseArray addObject:[d lowercaseString]];
+            }
+        }
+        domains = lowerCaseArray;
+        //进行httpdns请求
+        NSDate * date = [NSDate date];
+        //进行httpdns请求
+        dnsResult = [[MSDKDnsManager shareInstance] getAllHostsByNames:domains];
+        NSTimeInterval time_consume = [[NSDate date] timeIntervalSinceDate:date] * 1000;
+        MSDKDNSLOG(@"%@, MSDKDns Result is:%@",domains, dnsResult);
         MSDKDNSLOG(@"MSDKDns WGGetHostByName Total Time Consume is %.1fms", time_consume);
         return dnsResult;
     }
@@ -219,21 +272,53 @@ static MSDKDns * _sharedInstance = nil;
     }
 }
 
-- (void) WGSetHijackDomainArray:(NSArray *)hijackDomainArray {
-    if (hijackDomainArray) {
-        [[MSDKDnsParamsManager shareInstance] setHijackDomainArray:[hijackDomainArray copy]];
-    }
-}
-
-- (void) WGSetNoHijackDomainArray:(NSArray *)noHijackDomainArray {
-    if (noHijackDomainArray) {
-        [[MSDKDnsParamsManager shareInstance] setNoHijackDomainArray:[noHijackDomainArray copy]];
+- (void)WGGetAllHostsByNamesAsync:(NSArray *)domains returnIps:(void (^)(NSDictionary *))handler {
+    @synchronized(self) {
+        MSDKDNSLOG(@"GetHostByNameAsync:%@",domains);
+        if (!domains || [domains count] == 0) {
+            //请求域名为空，返回空
+            MSDKDNSLOG(@"MSDKDns Result is Empty!");
+            NSDictionary * dnsResult = @{};
+            if (handler) {
+                handler(dnsResult);
+                handler = nil;
+            }
+            return;
+        }
+        // 转换成小写
+        NSMutableArray *lowerCaseArray = [NSMutableArray array];
+        for(int i = 0; i < [domains count]; i++) {
+            NSString *d = [domains objectAtIndex:i];
+            if (d && d.length > 0) {
+                [lowerCaseArray addObject:[d lowercaseString]];
+            }
+        }
+        domains = lowerCaseArray;
+        NSDate * date = [NSDate date];
+        [[MSDKDnsManager shareInstance] getAllHostsByNames:domains returnIps:^(NSDictionary *ipsDict) {
+            NSTimeInterval time_consume = [[NSDate date] timeIntervalSinceDate:date] * 1000;
+            MSDKDNSLOG(@"MSDKDns WGGetHostByNameAsync Total Time Consume is %.1fms", time_consume);
+            if (ipsDict) {
+                NSDictionary * dnsResult = [[NSDictionary alloc] initWithDictionary:ipsDict];
+                MSDKDNSLOG(@"%@, MSDKDns Result is:%@",domains, ipsDict);
+                if (handler) {
+                    handler(dnsResult);
+                }
+            } else {
+                NSDictionary * dnsResult = @{};
+                if (handler) {
+                    handler(dnsResult);
+                }
+            }
+        }];
     }
 }
 
 - (NSDictionary *) WGGetDnsDetail:(NSString *) domain {
     return [[MSDKDnsManager shareInstance] getDnsDetail:domain];
 }
+
+#pragma mark - others
 
 - (void)clearCache {
     [[MSDKDnsManager shareInstance] clearAllCache];

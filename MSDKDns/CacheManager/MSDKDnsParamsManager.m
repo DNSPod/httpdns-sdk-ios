@@ -30,6 +30,7 @@
 @property (assign, nonatomic, readwrite) NSUInteger minutesBeforeSwitchToMain;
 @property (strong, nonatomic, readwrite) NSArray * backupServerIps;
 @property (assign, nonatomic, readwrite) BOOL enableReport;
+@property (strong, nonatomic, readwrite) NSArray* preResolvedDomains;
 @end
 
 @implementation MSDKDnsParamsManager
@@ -141,6 +142,12 @@ static MSDKDnsParamsManager * _sharedInstance = nil;
     });
 }
 
+- (void)msdkDnsSetPreResolvedDomains: (NSArray *)domains {
+    dispatch_async([MSDKDnsInfoTool msdkdns_queue], ^{
+        self.preResolvedDomains = [domains copy];
+    });
+}
+
 #pragma mark - getter
 
 - (BOOL)msdkDnsGetHttpOnly {
@@ -204,6 +211,10 @@ static MSDKDnsParamsManager * _sharedInstance = nil;
 
 - (BOOL)msdkDnsGetEnableReport {
     return _enableReport;
+}
+
+- (NSArray *)msdkDnsGetPreResolvedDomains {
+    return _preResolvedDomains;
 }
 
 @end
