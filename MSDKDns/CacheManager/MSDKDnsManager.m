@@ -65,7 +65,7 @@ static MSDKDnsManager * _sharedInstance = nil;
 
 - (NSArray *) getHostByName:(NSString *)domain {
     // 获取当前ipv4/ipv6/双栈网络环境
-    msdkdns::MSDKDNS_TLocalIPStack netStack = msdkdns::msdkdns_detect_local_ip_stack();
+    msdkdns::MSDKDNS_TLocalIPStack netStack = [self detectAddressType];
     __block float timeOut = 2.0;
     __block NSDictionary * cacheDomainDict = nil;
     dispatch_sync([MSDKDnsInfoTool msdkdns_queue], ^{
@@ -117,7 +117,7 @@ static MSDKDnsManager * _sharedInstance = nil;
 
 - (NSDictionary *)getHostsByNames:(NSArray *)domains {
     // 获取当前ipv4/ipv6/双栈网络环境
-    msdkdns::MSDKDNS_TLocalIPStack netStack = msdkdns::msdkdns_detect_local_ip_stack();
+    msdkdns::MSDKDNS_TLocalIPStack netStack = [self detectAddressType];
     __block float timeOut = 2.0;
     __block NSDictionary * cacheDomainDict = nil;
     dispatch_sync([MSDKDnsInfoTool msdkdns_queue], ^{
@@ -142,7 +142,7 @@ static MSDKDnsManager * _sharedInstance = nil;
     }
     // 全部有缓存时，直接返回
     if([toCheckDomains count] == 0) {
-        NSDictionary * result = [self resultDictionary:domains fromChache:cacheDomainDict];
+        NSDictionary * result = [self resultDictionary:domains fromCache:cacheDomainDict];
         return result;
     }
     NSString *toCheckDomainStr = [toCheckDomains componentsJoinedByString:@","];
@@ -174,13 +174,13 @@ static MSDKDnsManager * _sharedInstance = nil;
             cacheDomainDict = [[NSDictionary alloc] initWithDictionary:_domainDict];
         }
     });
-    NSDictionary * result = [self resultDictionary:domains fromChache:cacheDomainDict];
+    NSDictionary * result = [self resultDictionary:domains fromCache:cacheDomainDict];
     return result;
 }
 
 - (NSDictionary *)getAllHostsByNames:(NSArray *)domains {
     // 获取当前ipv4/ipv6/双栈网络环境
-    msdkdns::MSDKDNS_TLocalIPStack netStack = msdkdns::msdkdns_detect_local_ip_stack();
+    msdkdns::MSDKDNS_TLocalIPStack netStack = [self detectAddressType];
     __block float timeOut = 2.0;
     __block NSDictionary * cacheDomainDict = nil;
     dispatch_sync([MSDKDnsInfoTool msdkdns_queue], ^{
@@ -205,7 +205,7 @@ static MSDKDnsManager * _sharedInstance = nil;
     }
     // 全部有缓存时，直接返回
     if([toCheckDomains count] == 0) {
-        NSDictionary * result = [self fullResultDictionary:domains fromChache:cacheDomainDict];
+        NSDictionary * result = [self fullResultDictionary:domains fromCache:cacheDomainDict];
         return result;
     }
     NSString *toCheckDomainStr = [toCheckDomains componentsJoinedByString:@","];
@@ -237,7 +237,7 @@ static MSDKDnsManager * _sharedInstance = nil;
             cacheDomainDict = [[NSDictionary alloc] initWithDictionary:_domainDict];
         }
     });
-    NSDictionary * result = [self fullResultDictionary:domains fromChache:cacheDomainDict];
+    NSDictionary * result = [self fullResultDictionary:domains fromCache:cacheDomainDict];
     return result;
 }
 
@@ -245,7 +245,7 @@ static MSDKDnsManager * _sharedInstance = nil;
 
 - (void) getHostByName:(NSString *)domain returnIps:(void (^)(NSArray *))handler {
     // 获取当前ipv4/ipv6/双栈网络环境
-    msdkdns::MSDKDNS_TLocalIPStack netStack = msdkdns::msdkdns_detect_local_ip_stack();
+    msdkdns::MSDKDNS_TLocalIPStack netStack = [self detectAddressType];
     __block float timeOut = 2.0;
     __block NSDictionary * cacheDomainDict = nil;
     dispatch_sync([MSDKDnsInfoTool msdkdns_queue], ^{
@@ -293,7 +293,7 @@ static MSDKDnsManager * _sharedInstance = nil;
 
 - (void)getHostsByNames:(NSArray *)domains returnIps:(void (^)(NSDictionary * ipsDict))handler {
     // 获取当前ipv4/ipv6/双栈网络环境
-    msdkdns::MSDKDNS_TLocalIPStack netStack = msdkdns::msdkdns_detect_local_ip_stack();
+    msdkdns::MSDKDNS_TLocalIPStack netStack = [self detectAddressType];
     __block float timeOut = 2.0;
     __block NSDictionary * cacheDomainDict = nil;
     dispatch_sync([MSDKDnsInfoTool msdkdns_queue], ^{
@@ -318,7 +318,7 @@ static MSDKDnsManager * _sharedInstance = nil;
     }
     // 全部有缓存时，直接返回
     if([toCheckDomains count] == 0) {
-        NSDictionary * result = [self resultDictionary:domains fromChache:cacheDomainDict];
+        NSDictionary * result = [self resultDictionary:domains fromCache:cacheDomainDict];
         if (handler) {
             handler(result);
         }
@@ -341,7 +341,7 @@ static MSDKDnsManager * _sharedInstance = nil;
             if (strongSelf) {
                 [strongSelf uploadReport:NO Domain:toCheckDomainStr NetStack:netStack];
                 [strongSelf dnsHasDone:dnsService];
-                NSDictionary * result = [strongSelf resultDictionary:domains fromChache:_domainDict];
+                NSDictionary * result = [strongSelf resultDictionary:domains fromCache:_domainDict];
                 if (handler) {
                     handler(result);
                 }
@@ -353,7 +353,7 @@ static MSDKDnsManager * _sharedInstance = nil;
 
 - (void)getAllHostsByNames:(NSArray *)domains returnIps:(void (^)(NSDictionary *))handler {
     // 获取当前ipv4/ipv6/双栈网络环境
-    msdkdns::MSDKDNS_TLocalIPStack netStack = msdkdns::msdkdns_detect_local_ip_stack();
+    msdkdns::MSDKDNS_TLocalIPStack netStack = [self detectAddressType];
     __block float timeOut = 2.0;
     __block NSDictionary * cacheDomainDict = nil;
     dispatch_sync([MSDKDnsInfoTool msdkdns_queue], ^{
@@ -378,7 +378,7 @@ static MSDKDnsManager * _sharedInstance = nil;
     }
     // 全部有缓存时，直接返回
     if([toCheckDomains count] == 0) {
-        NSDictionary * result = [self fullResultDictionary:domains fromChache:cacheDomainDict];
+        NSDictionary * result = [self fullResultDictionary:domains fromCache:cacheDomainDict];
         if (handler) {
             handler(result);
         }
@@ -401,7 +401,7 @@ static MSDKDnsManager * _sharedInstance = nil;
             if (strongSelf) {
                 [strongSelf uploadReport:NO Domain:toCheckDomainStr NetStack:netStack];
                 [strongSelf dnsHasDone:dnsService];
-                NSDictionary * result = [strongSelf fullResultDictionary:domains fromChache:_domainDict];
+                NSDictionary * result = [strongSelf fullResultDictionary:domains fromCache:_domainDict];
                 if (handler) {
                     handler(result);
                 }
@@ -411,8 +411,11 @@ static MSDKDnsManager * _sharedInstance = nil;
 }
 
 - (void)preResolveDomains {
-    NSArray *domains = [[MSDKDnsParamsManager shareInstance] msdkDnsGetPreResolvedDomains];
-    if (domains && domains.count > 0) {
+    __block NSArray * domains = nil;
+    dispatch_sync([MSDKDnsInfoTool msdkdns_queue], ^{
+       domains = [[MSDKDnsParamsManager shareInstance] msdkDnsGetPreResolvedDomains];
+    });
+    if (domains && [domains count] > 0) {
         MSDKDNSLOG(@"preResolve domains: %@", [domains componentsJoinedByString:@","] );
         [self getHostsByNames:domains returnIps:^(NSDictionary *ipsDict) {
             if (ipsDict) {
@@ -474,7 +477,7 @@ static MSDKDnsManager * _sharedInstance = nil;
     return ipResult;
 }
 
-- (NSDictionary *)resultDictionary: (NSArray *)domains fromChache:(NSDictionary *)domainDict {
+- (NSDictionary *)resultDictionary: (NSArray *)domains fromCache:(NSDictionary *)domainDict {
     NSMutableDictionary *resultDict = [NSMutableDictionary dictionary];
     for (int i = 0; i < [domains count]; i++) {
         NSString *domain = [domains objectAtIndex:i];
@@ -484,7 +487,7 @@ static MSDKDnsManager * _sharedInstance = nil;
     return resultDict;
 }
 
-- (NSDictionary *)fullResultDictionary: (NSArray *)domains fromChache:(NSDictionary *)domainDict {
+- (NSDictionary *)fullResultDictionary: (NSArray *)domains fromCache:(NSDictionary *)domainDict {
     NSMutableDictionary *resultDict = [NSMutableDictionary dictionary];
     for (int i = 0; i < [domains count]; i++) {
         NSString *domain = [domains objectAtIndex:i];
@@ -853,6 +856,26 @@ static MSDKDnsManager * _sharedInstance = nil;
     }
     return NO;
 }
+# pragma mark - detect address type
+- (msdkdns::MSDKDNS_TLocalIPStack)detectAddressType {
+    msdkdns::MSDKDNS_TLocalIPStack netStack = msdkdns::MSDKDNS_ELocalIPStack_None;
+    switch ([[MSDKDnsParamsManager shareInstance] msdkDnsGetAddressType]) {
+        case HttpDnsAddressTypeIPv4:
+            netStack = msdkdns::MSDKDNS_ELocalIPStack_IPv4;
+            break;
+        case HttpDnsAddressTypeIPv6:
+            netStack = msdkdns::MSDKDNS_ELocalIPStack_IPv6;
+            break;
+        case HttpDnsAddressTypeDual:
+            netStack = msdkdns::MSDKDNS_ELocalIPStack_Dual;
+            break;
+        default:
+            netStack = msdkdns::msdkdns_detect_local_ip_stack();
+            break;
+    }
+    return netStack;
+}
+
 
 # pragma mark - servers
 - (NSString *)currentDnsServer {

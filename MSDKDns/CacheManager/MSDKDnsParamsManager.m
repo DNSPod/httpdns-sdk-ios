@@ -31,6 +31,7 @@
 @property (strong, nonatomic, readwrite) NSArray * backupServerIps;
 @property (assign, nonatomic, readwrite) BOOL enableReport;
 @property (strong, nonatomic, readwrite) NSArray* preResolvedDomains;
+@property (assign, nonatomic, readwrite) HttpDnsAddressType msdkAddressType;
 @end
 
 @implementation MSDKDnsParamsManager
@@ -52,6 +53,7 @@ static MSDKDnsParamsManager * _sharedInstance = nil;
         _retryTimesBeforeSwitchServer = 3;
         _minutesBeforeSwitchToMain = 10;
         _enableReport = NO;
+        _msdkAddressType = HttpDnsAddressTypeAuto;
     }
     return self;
 }
@@ -148,6 +150,12 @@ static MSDKDnsParamsManager * _sharedInstance = nil;
     });
 }
 
+- (void)msdkDnsSetAddressType: (HttpDnsAddressType)addressType {
+    dispatch_async([MSDKDnsInfoTool msdkdns_queue], ^{
+        self.msdkAddressType = addressType;
+    });
+}
+
 #pragma mark - getter
 
 - (BOOL)msdkDnsGetHttpOnly {
@@ -215,6 +223,10 @@ static MSDKDnsParamsManager * _sharedInstance = nil;
 
 - (NSArray *)msdkDnsGetPreResolvedDomains {
     return _preResolvedDomains;
+}
+
+- (HttpDnsAddressType)msdkDnsGetAddressType {
+    return _msdkAddressType;
 }
 
 @end

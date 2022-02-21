@@ -10,6 +10,11 @@
 #import "MSDKDnsInfoTool.h"
 #import "MSDKDnsParamsManager.h"
 
+@interface MSDKDns ()
+
+@property (assign, nonatomic) BOOL msdkDnsReady;
+
+@end
 
 @implementation MSDKDns
 
@@ -26,6 +31,7 @@ static MSDKDns * _sharedInstance = nil;
 
 - (instancetype) init {
     if (self = [super init]) {
+        _msdkDnsReady = NO;
         //开启网络切换，及前后台切换的监听
         [MSDKDnsNetworkManager start];
     }
@@ -36,6 +42,7 @@ static MSDKDns * _sharedInstance = nil;
     [[MSDKDnsLog sharedInstance] setEnableLog:config->debug];
     [[MSDKDnsParamsManager shareInstance] msdkDnsSetMAppId:config->appId MTimeOut:config->timeout MEncryptType:config->encryptType];
     [[MSDKDnsParamsManager shareInstance] msdkDnsSetMDnsId:config->dnsId MDnsKey:config->dnsKey MToken:config->token];
+    [[MSDKDnsParamsManager shareInstance] msdkDnsSetAddressType:config->addressType];
     [[MSDKDnsParamsManager shareInstance] msdkDnsSetMDnsIp:config->dnsIp];
     [[MSDKDnsParamsManager shareInstance] msdkDnsSetRouteIp: config->routeIp];
     [[MSDKDnsParamsManager shareInstance] msdkDnsSetHttpOnly: config->httpOnly];
@@ -47,6 +54,7 @@ static MSDKDns * _sharedInstance = nil;
     }
     [[MSDKDnsParamsManager shareInstance] msdkDnsSetEnableReport:config->enableReport];
     [[MSDKDnsManager shareInstance] switchToMainServer];
+    self.msdkDnsReady = YES;
     MSDKDNSLOG(@"MSDKDns init success.");
     return YES;
 }
@@ -66,6 +74,7 @@ static MSDKDns * _sharedInstance = nil;
     conf->retryTimesBeforeSwitchServer = [[config objectForKey:@"retryTimesBeforeSwitchServer"] intValue];
     conf->minutesBeforeSwitchToMain = [[config objectForKey:@"minutesBeforeSwitchToMain"] intValue];
     conf->enableReport = [[config objectForKey:@"enableReport"] boolValue];
+    conf->addressType = (HttpDnsAddressType)[[config objectForKey:@"addressType"] intValue];
    return [self initConfig:conf];
 }
 

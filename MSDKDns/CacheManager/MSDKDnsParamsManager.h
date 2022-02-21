@@ -26,6 +26,7 @@
 - (void)msdkDnsSetBackupServerIps: (NSArray *)ips;
 - (void)msdkDnsSetEnableReport: (BOOL)enableReport;
 - (void)msdkDnsSetPreResolvedDomains: (NSArray *)domains;
+- (void)msdkDnsSetAddressType: (HttpDnsAddressType)addressType;
 
 - (NSString *) msdkDnsGetMDnsIp;
 - (NSString *) msdkDnsGetMOpenId;
@@ -42,4 +43,5 @@
 - (NSUInteger)msdkDnsGetMinutesBeforeSwitchToMain;
 - (BOOL)msdkDnsGetEnableReport;
 - (NSArray *)msdkDnsGetPreResolvedDomains;
+- (HttpDnsAddressType)msdkDnsGetAddressType;
 @end
