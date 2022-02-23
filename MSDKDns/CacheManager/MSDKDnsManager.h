@@ -24,8 +24,6 @@
 
 + (instancetype)shareInstance;
 
-- (void)getHostByName:(NSString *)domain returnIps:(void (^)(NSArray * ipsArray))handler;
-- (NSArray *)getHostByName:(NSString *)domain;
 - (void)getHostsByNames:(NSArray *)domains verbose:(BOOL)verbose returnIps:(void (^)(NSDictionary * ipsDict))handler;
 - (NSDictionary *)getHostsByNames:(NSArray *)domains verbose:(BOOL)verbose;
 - (void)preResolveDomains;

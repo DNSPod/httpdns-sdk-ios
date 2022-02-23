@@ -128,7 +128,8 @@ static MSDKDns * _sharedInstance = nil;
         //进行httpdns请求
         NSDate * date = [NSDate date];
         //进行httpdns请求
-        dnsResult = [[MSDKDnsManager shareInstance] getHostByName:domain];
+        NSDictionary *res = [[MSDKDnsManager shareInstance] getHostsByNames:@[domain] verbose:NO];
+        dnsResult = [res objectForKey:domain];
         NSTimeInterval time_consume = [[NSDate date] timeIntervalSinceDate:date] * 1000;
         MSDKDNSLOG(@"MSDKDns WGGetHostByName Total Time Consume is %.1fms", time_consume);
         NSMutableString * ipsStr = [NSMutableString stringWithString:@""];
@@ -215,11 +216,11 @@ static MSDKDns * _sharedInstance = nil;
         // 转换成小写
         domain = [domain lowercaseString];
         NSDate * date = [NSDate date];
-        [[MSDKDnsManager shareInstance] getHostByName:domain returnIps:^(NSArray *ipsArray) {
+        [[MSDKDnsManager shareInstance] getHostsByNames:@[domain] verbose:NO returnIps:^(NSDictionary *ipsDict) {
             NSTimeInterval time_consume = [[NSDate date] timeIntervalSinceDate:date] * 1000;
             MSDKDNSLOG(@"MSDKDns WGGetHostByNameAsync Total Time Consume is %.1fms", time_consume);
-            if (ipsArray) {
-                NSArray * dnsResult = [[NSArray alloc] initWithArray:ipsArray];
+            if (ipsDict) {
+                NSArray * dnsResult = [ipsDict objectForKey:domain];
                 NSMutableString * ipsStr = [NSMutableString stringWithString:@""];
                 for (int i = 0; i < dnsResult.count; i++) {
                     NSString * ip = dnsResult[i];
