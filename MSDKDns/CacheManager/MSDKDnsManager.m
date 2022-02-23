@@ -115,7 +115,7 @@ static MSDKDnsManager * _sharedInstance = nil;
     return result;
 }
 
-- (NSDictionary *)getHostsByNames:(NSArray *)domains {
+- (NSDictionary *)getHostsByNames:(NSArray *)domains verbose:(BOOL)verbose {
     // 获取当前ipv4/ipv6/双栈网络环境
     msdkdns::MSDKDNS_TLocalIPStack netStack = [self detectAddressType];
     __block float timeOut = 2.0;
@@ -142,7 +142,9 @@ static MSDKDnsManager * _sharedInstance = nil;
     }
     // 全部有缓存时，直接返回
     if([toCheckDomains count] == 0) {
-        NSDictionary * result = [self resultDictionary:domains fromCache:cacheDomainDict];
+        NSDictionary * result = verbose ?
+            [self fullResultDictionary:domains fromCache:cacheDomainDict] :
+            [self resultDictionary:domains fromCache:cacheDomainDict];
         return result;
     }
     NSString *toCheckDomainStr = [toCheckDomains componentsJoinedByString:@","];
@@ -174,70 +176,9 @@ static MSDKDnsManager * _sharedInstance = nil;
             cacheDomainDict = [[NSDictionary alloc] initWithDictionary:_domainDict];
         }
     });
-    NSDictionary * result = [self resultDictionary:domains fromCache:cacheDomainDict];
-    return result;
-}
-
-- (NSDictionary *)getAllHostsByNames:(NSArray *)domains {
-    // 获取当前ipv4/ipv6/双栈网络环境
-    msdkdns::MSDKDNS_TLocalIPStack netStack = [self detectAddressType];
-    __block float timeOut = 2.0;
-    __block NSDictionary * cacheDomainDict = nil;
-    dispatch_sync([MSDKDnsInfoTool msdkdns_queue], ^{
-        if (domains && [domains count] > 0 && _domainDict) {
-            cacheDomainDict = [[NSDictionary alloc] initWithDictionary:_domainDict];
-        }
-        timeOut = [[MSDKDnsParamsManager shareInstance] msdkDnsGetMTimeOut];
-    });
-    // 待查询数组
-    NSMutableArray *toCheckDomains = [NSMutableArray array];
-    // 查找缓存，缓存中有HttpDns数据且ttl未超时则直接返回结果,不存在或者ttl超时则放入待查询数组
-    for (int i = 0; i < [domains count]; i++) {
-        NSString *domain = [domains objectAtIndex:i];
-        if (![self domianCache:cacheDomainDict hit:domain]) {
-            [toCheckDomains addObject:domain];
-        } else {
-            MSDKDNSLOG(@"%@ TTL has not expiried,return result from cache directly!", domain);
-            dispatch_async([MSDKDnsInfoTool msdkdns_queue], ^{
-                [self uploadReport:YES Domain:domain NetStack:netStack];
-            });
-        }
-    }
-    // 全部有缓存时，直接返回
-    if([toCheckDomains count] == 0) {
-        NSDictionary * result = [self fullResultDictionary:domains fromCache:cacheDomainDict];
-        return result;
-    }
-    NSString *toCheckDomainStr = [toCheckDomains componentsJoinedByString:@","];
-    dispatch_semaphore_t sema = dispatch_semaphore_create(0);
-    dispatch_async([MSDKDnsInfoTool msdkdns_queue], ^{
-        if (!_serviceArray) {
-            self.serviceArray = [[NSMutableArray alloc] init];
-        }
-        int dnsId = [[MSDKDnsParamsManager shareInstance] msdkDnsGetMDnsId];
-        NSString * dnsKey = [[MSDKDnsParamsManager shareInstance] msdkDnsGetMDnsKey];
-        HttpDnsEncryptType encryptType = [[MSDKDnsParamsManager shareInstance] msdkDnsGetEncryptType];
-        //进行httpdns请求
-        MSDKDnsService * dnsService = [[MSDKDnsService alloc] init];
-        [self.serviceArray addObject:dnsService];
-        __weak __typeof__(self) weakSelf = self;
-        [dnsService getHostsByNames:toCheckDomains TimeOut:timeOut DnsId:dnsId DnsKey:dnsKey NetStack:netStack encryptType:encryptType returnIps:^() {
-            __strong __typeof(self) strongSelf = weakSelf;
-            if (strongSelf) {
-                [strongSelf uploadReport:NO Domain:toCheckDomainStr NetStack:netStack];
-                [strongSelf dnsHasDone:dnsService];
-            }
-            dispatch_semaphore_signal(sema);
-        }];
-    });
-    dispatch_semaphore_wait(sema, dispatch_time(DISPATCH_TIME_NOW, timeOut * NSEC_PER_SEC));
-    cacheDomainDict = nil;
-    dispatch_sync([MSDKDnsInfoTool msdkdns_queue], ^{
-        if (domains && [domains count] > 0 && _domainDict) {
-            cacheDomainDict = [[NSDictionary alloc] initWithDictionary:_domainDict];
-        }
-    });
-    NSDictionary * result = [self fullResultDictionary:domains fromCache:cacheDomainDict];
+    NSDictionary * result = verbose?
+        [self fullResultDictionary:domains fromCache:cacheDomainDict] :
+        [self resultDictionary:domains fromCache:cacheDomainDict];
     return result;
 }
 
@@ -291,7 +232,9 @@ static MSDKDnsManager * _sharedInstance = nil;
     });
 }
 
-- (void)getHostsByNames:(NSArray *)domains returnIps:(void (^)(NSDictionary * ipsDict))handler {
+- (void)getHostsByNames:(NSArray *)domains
+                verbose:(BOOL)verbose
+              returnIps:(void (^)(NSDictionary * ipsDict))handler {
     // 获取当前ipv4/ipv6/双栈网络环境
     msdkdns::MSDKDNS_TLocalIPStack netStack = [self detectAddressType];
     __block float timeOut = 2.0;
@@ -318,7 +261,9 @@ static MSDKDnsManager * _sharedInstance = nil;
     }
     // 全部有缓存时，直接返回
     if([toCheckDomains count] == 0) {
-        NSDictionary * result = [self resultDictionary:domains fromCache:cacheDomainDict];
+        NSDictionary * result = verbose ?
+            [self fullResultDictionary:domains fromCache:cacheDomainDict] :
+            [self resultDictionary:domains fromCache:cacheDomainDict];
         if (handler) {
             handler(result);
         }
@@ -341,67 +286,9 @@ static MSDKDnsManager * _sharedInstance = nil;
             if (strongSelf) {
                 [strongSelf uploadReport:NO Domain:toCheckDomainStr NetStack:netStack];
                 [strongSelf dnsHasDone:dnsService];
-                NSDictionary * result = [strongSelf resultDictionary:domains fromCache:_domainDict];
-                if (handler) {
-                    handler(result);
-                }
-            }
-        }];
-    });
-}
-
-
-- (void)getAllHostsByNames:(NSArray *)domains returnIps:(void (^)(NSDictionary *))handler {
-    // 获取当前ipv4/ipv6/双栈网络环境
-    msdkdns::MSDKDNS_TLocalIPStack netStack = [self detectAddressType];
-    __block float timeOut = 2.0;
-    __block NSDictionary * cacheDomainDict = nil;
-    dispatch_sync([MSDKDnsInfoTool msdkdns_queue], ^{
-        if (domains && [domains count] > 0 && _domainDict) {
-            cacheDomainDict = [[NSDictionary alloc] initWithDictionary:_domainDict];
-        }
-        timeOut = [[MSDKDnsParamsManager shareInstance] msdkDnsGetMTimeOut];
-    });
-    // 待查询数组
-    NSMutableArray *toCheckDomains = [NSMutableArray array];
-    // 查找缓存，缓存中有HttpDns数据且ttl未超时则直接返回结果,不存在或者ttl超时则放入待查询数组
-    for (int i = 0; i < [domains count]; i++) {
-        NSString *domain = [domains objectAtIndex:i];
-        if (![self domianCache:cacheDomainDict hit:domain]) {
-            [toCheckDomains addObject:domain];
-        } else {
-            MSDKDNSLOG(@"%@ TTL has not expiried,return result from cache directly!", domain);
-            dispatch_async([MSDKDnsInfoTool msdkdns_queue], ^{
-                [self uploadReport:YES Domain:domain NetStack:netStack];
-            });
-        }
-    }
-    // 全部有缓存时，直接返回
-    if([toCheckDomains count] == 0) {
-        NSDictionary * result = [self fullResultDictionary:domains fromCache:cacheDomainDict];
-        if (handler) {
-            handler(result);
-        }
-        return;
-    }
-    NSString *toCheckDomainStr = [toCheckDomains componentsJoinedByString:@","];
-    dispatch_async([MSDKDnsInfoTool msdkdns_queue], ^{
-        if (!_serviceArray) {
-            self.serviceArray = [[NSMutableArray alloc] init];
-        }
-        int dnsId = [[MSDKDnsParamsManager shareInstance] msdkDnsGetMDnsId];
-        NSString * dnsKey = [[MSDKDnsParamsManager shareInstance] msdkDnsGetMDnsKey];
-        //进行httpdns请求
-        MSDKDnsService * dnsService = [[MSDKDnsService alloc] init];
-        [self.serviceArray addObject:dnsService];
-        __weak __typeof__(self) weakSelf = self;
-        HttpDnsEncryptType encryptType = [[MSDKDnsParamsManager shareInstance] msdkDnsGetEncryptType];
-        [dnsService getHostsByNames:toCheckDomains TimeOut:timeOut DnsId:dnsId DnsKey:dnsKey NetStack:netStack encryptType:encryptType returnIps:^() {
-            __strong __typeof(self) strongSelf = weakSelf;
-            if (strongSelf) {
-                [strongSelf uploadReport:NO Domain:toCheckDomainStr NetStack:netStack];
-                [strongSelf dnsHasDone:dnsService];
-                NSDictionary * result = [strongSelf fullResultDictionary:domains fromCache:_domainDict];
+                NSDictionary * result = verbose ?
+                    [strongSelf fullResultDictionary:domains fromCache:_domainDict] :
+                    [strongSelf resultDictionary:domains fromCache:_domainDict];
                 if (handler) {
                     handler(result);
                 }
@@ -417,7 +304,7 @@ static MSDKDnsManager * _sharedInstance = nil;
     });
     if (domains && [domains count] > 0) {
         MSDKDNSLOG(@"preResolve domains: %@", [domains componentsJoinedByString:@","] );
-        [self getHostsByNames:domains returnIps:^(NSDictionary *ipsDict) {
+        [self getHostsByNames:domains verbose:NO returnIps:^(NSDictionary *ipsDict) {
             if (ipsDict) {
                 MSDKDNSLOG(@"preResolve domains success.");
             } else {

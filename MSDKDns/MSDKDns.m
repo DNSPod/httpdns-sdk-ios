@@ -162,7 +162,7 @@ static MSDKDns * _sharedInstance = nil;
         //进行httpdns请求
         NSDate * date = [NSDate date];
         //进行httpdns请求
-        dnsResult = [[MSDKDnsManager shareInstance] getHostsByNames:domains];
+        dnsResult = [[MSDKDnsManager shareInstance] getHostsByNames:domains verbose:NO];
         NSTimeInterval time_consume = [[NSDate date] timeIntervalSinceDate:date] * 1000;
         MSDKDNSLOG(@"%@, MSDKDns Result is:%@",domains, dnsResult);
         MSDKDNSLOG(@"MSDKDns WGGetHostByName Total Time Consume is %.1fms", time_consume);
@@ -191,7 +191,7 @@ static MSDKDns * _sharedInstance = nil;
         //进行httpdns请求
         NSDate * date = [NSDate date];
         //进行httpdns请求
-        dnsResult = [[MSDKDnsManager shareInstance] getAllHostsByNames:domains];
+        dnsResult = [[MSDKDnsManager shareInstance] getHostsByNames:domains verbose:YES];
         NSTimeInterval time_consume = [[NSDate date] timeIntervalSinceDate:date] * 1000;
         MSDKDNSLOG(@"%@, MSDKDns Result is:%@",domains, dnsResult);
         MSDKDNSLOG(@"MSDKDns WGGetHostByName Total Time Consume is %.1fms", time_consume);
@@ -262,7 +262,7 @@ static MSDKDns * _sharedInstance = nil;
         }
         domains = lowerCaseArray;
         NSDate * date = [NSDate date];
-        [[MSDKDnsManager shareInstance] getHostsByNames:domains returnIps:^(NSDictionary *ipsDict) {
+        [[MSDKDnsManager shareInstance] getHostsByNames:domains verbose:NO returnIps:^(NSDictionary *ipsDict) {
             NSTimeInterval time_consume = [[NSDate date] timeIntervalSinceDate:date] * 1000;
             MSDKDNSLOG(@"MSDKDns WGGetHostByNameAsync Total Time Consume is %.1fms", time_consume);
             if (ipsDict) {
@@ -304,7 +304,7 @@ static MSDKDns * _sharedInstance = nil;
         }
         domains = lowerCaseArray;
         NSDate * date = [NSDate date];
-        [[MSDKDnsManager shareInstance] getAllHostsByNames:domains returnIps:^(NSDictionary *ipsDict) {
+        [[MSDKDnsManager shareInstance] getHostsByNames:domains verbose:YES returnIps:^(NSDictionary *ipsDict) {
             NSTimeInterval time_consume = [[NSDate date] timeIntervalSinceDate:date] * 1000;
             MSDKDNSLOG(@"MSDKDns WGGetHostByNameAsync Total Time Consume is %.1fms", time_consume);
             if (ipsDict) {
