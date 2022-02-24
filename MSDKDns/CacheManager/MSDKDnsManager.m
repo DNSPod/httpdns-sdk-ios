@@ -95,7 +95,6 @@ static MSDKDnsManager * _sharedInstance = nil;
             [self resultDictionary:domains fromCache:cacheDomainDict];
         return result;
     }
-    NSString *toCheckDomainStr = [toCheckDomains componentsJoinedByString:@","];
     dispatch_semaphore_t sema = dispatch_semaphore_create(0);
     dispatch_async([MSDKDnsInfoTool msdkdns_queue], ^{
         if (!_serviceArray) {
@@ -111,7 +110,9 @@ static MSDKDnsManager * _sharedInstance = nil;
         [dnsService getHostsByNames:toCheckDomains TimeOut:timeOut DnsId:dnsId DnsKey:dnsKey NetStack:netStack encryptType:encryptType returnIps:^() {
             __strong __typeof(self) strongSelf = weakSelf;
             if (strongSelf) {
-                [strongSelf uploadReport:NO Domain:toCheckDomainStr NetStack:netStack];
+                [toCheckDomains enumerateObjectsUsingBlock:^(id _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
+                    [strongSelf uploadReport:NO Domain:obj NetStack:netStack];
+                }];
                 [strongSelf dnsHasDone:dnsService];
             }
             dispatch_semaphore_signal(sema);
@@ -169,7 +170,6 @@ static MSDKDnsManager * _sharedInstance = nil;
         }
         return;
     }
-    NSString *toCheckDomainStr = [toCheckDomains componentsJoinedByString:@","];
     dispatch_async([MSDKDnsInfoTool msdkdns_queue], ^{
         if (!_serviceArray) {
             self.serviceArray = [[NSMutableArray alloc] init];
@@ -184,7 +184,9 @@ static MSDKDnsManager * _sharedInstance = nil;
         [dnsService getHostsByNames:toCheckDomains TimeOut:timeOut DnsId:dnsId DnsKey:dnsKey NetStack:netStack encryptType:encryptType returnIps:^() {
             __strong __typeof(self) strongSelf = weakSelf;
             if (strongSelf) {
-                [strongSelf uploadReport:NO Domain:toCheckDomainStr NetStack:netStack];
+                [toCheckDomains enumerateObjectsUsingBlock:^(id _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
+                    [strongSelf uploadReport:NO Domain:obj NetStack:netStack];
+                }];
                 [strongSelf dnsHasDone:dnsService];
                 NSDictionary * result = verbose ?
                     [strongSelf fullResultDictionary:domains fromCache:_domainDict] :

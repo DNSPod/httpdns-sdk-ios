@@ -98,8 +98,10 @@
         });
     }
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, timeOut * NSEC_PER_SEC), [MSDKDnsInfoTool msdkdns_queue], ^{
-        MSDKDNSLOG(@"DnsService TimeOut!");
-        [self callNotify];
+        if(!self.isCallBack) {
+            MSDKDNSLOG(@"DnsService TimeOut!");
+            [self callNotify];
+        }
     });
 }
 
