@@ -16,10 +16,10 @@ typedef enum {
 } HttpDnsEncryptType;
 
 typedef enum {
-    HttpDnsAddressTypeAuto = 0,
-    HttpDnsAddressTypeIPv4 = 1,
-    HttpDnsAddressTypeIPv6 = 2,
-    HttpDnsAddressTypeDual = 3,
+    HttpDnsAddressTypeAuto = 0, // sdk自动检测
+    HttpDnsAddressTypeIPv4 = 1, // 只支持ipv4
+    HttpDnsAddressTypeIPv6 = 2, // 只支持ipv6
+    HttpDnsAddressTypeDual = 3, // 支持双协议栈
 } HttpDnsAddressType;
 
 typedef struct DnsConfigStruct {
@@ -31,7 +31,7 @@ typedef struct DnsConfigStruct {
     BOOL debug; // 是否开启Debug日志，YES：开启，NO：关闭。建议联调阶段开启，正式上线前关闭
     int timeout; // 可选，超时时间，单位ms，如设置0，则设置为默认值2000ms
     HttpDnsEncryptType encryptType; // 控制加密方式
-    HttpDnsAddressType addressType; // 指定ip地址类型
+    HttpDnsAddressType addressType; // 指定返回的ip地址类型，默认为 HttpDnsAddressTypeAuto sdk自动检测
     NSString* routeIp; // 可选，DNS 请求的 ECS（EDNS-Client-Subnet）值，默认情况下 HTTPDNS 服务器会查询客户端出口 IP 为 DNS 线路查询 IP，可以指定线路 IP 地址。支持 IPv4/IPv6 地址传入
     BOOL httpOnly;// 可选，是否仅返回 httpDns 解析结果。默认 false，即当 httpDns 解析失败时会返回 localDns 解析结果，设置为 true 时，仅返回 httpDns 的解析结果
     NSUInteger retryTimesBeforeSwitchServer; // 可选，切换ip之前重试次数, 默认3次
