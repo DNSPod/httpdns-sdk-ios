@@ -3,7 +3,6 @@
  */
 
 #import "MSDKDns.h"
-#import "MSDKDnsService.h"
 #import "MSDKDnsLog.h"
 #import "MSDKDnsManager.h"
 #import "MSDKDnsNetworkManager.h"

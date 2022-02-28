@@ -7,8 +7,18 @@
 
 @interface MSDKDnsService : NSObject
 
-- (void)getHostByName:(NSString *)domain TimeOut:(float)timeOut DnsId:(int)dnsId DnsKey:(NSString *)dnsKey NetStack:(msdkdns::MSDKDNS_TLocalIPStack)netStack encryptType:(NSInteger)encryptType returnIps:(void (^)())handler;
-
-- (void)getHostsByNames:(NSArray *)domains TimeOut:(float)timeOut DnsId:(int)dnsId DnsKey:(NSString *)dnsKey NetStack:(msdkdns::MSDKDNS_TLocalIPStack)netStack encryptType:(NSInteger)encryptType returnIps:(void (^)())handler;
+- (void)getHostsByNames:(NSArray *)domains
+                TimeOut:(float)timeOut
+                  DnsId:(int)dnsId
+              DnsServer:(NSString *)dnsServer
+              DnsRouter:(NSString *)dnsRouter
+                 DnsKey:(NSString *)dnsKey
+               DnsToken:(NSString *)dnsToken
+               NetStack:(msdkdns::MSDKDNS_TLocalIPStack)netStack
+            encryptType:(NSInteger)encryptType
+               httpOnly:(BOOL)httpOnly
+           enableReport:(BOOL)enableReport
+             retryCount:(NSUInteger)retryCount
+              returnIps:(void (^)())handler;
 
 @end

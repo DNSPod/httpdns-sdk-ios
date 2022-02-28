@@ -9,8 +9,6 @@
 
 @interface HttpsDnsResolver : MSDKDnsResolver
 
-- (void)startWithDomains:(NSArray *)domains TimeOut:(float)timeOut DnsId:(int)dnsId DnsKey:(NSString *)dnsKey NetStack:(msdkdns::MSDKDNS_TLocalIPStack)netStack encryptType:(NSInteger)encryptType;
-
 @end
 
 #endif /* HttpsResolver_h */

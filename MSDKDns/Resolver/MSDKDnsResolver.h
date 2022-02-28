@@ -24,8 +24,17 @@
 @property (strong, nonatomic) NSString * errorInfo;
 @property (strong, nonatomic) NSDate * startDate;
 @property (weak, nonatomic) id <MSDKDnsResolverDelegate> delegate;
+@property (strong, nonatomic) NSString* cacheKey;
 
-- (void)startWithDomains:(NSArray *)domains TimeOut:(float)timeOut DnsId:(int)dnsId DnsKey:(NSString *)dnsKey NetStack:(msdkdns::MSDKDNS_TLocalIPStack)netStack;
+- (void)startWithDomains:(NSArray *)domains
+                 TimeOut:(float)timeOut
+                   DnsId:(int)dnsId
+               DnsServer:(NSString *)dnsServer
+               DnsRouter:(NSString *)dnsRouter
+                  DnsKey:(NSString *)dnsKey
+                DnsToken:(NSString *)dnsToken
+                NetStack:(msdkdns::MSDKDNS_TLocalIPStack)netStack
+             encryptType:(NSInteger)encryptType;
 - (BOOL)isIPLegal:(NSArray *)ipsArray Use4A:(BOOL)use4A;
 - (int)dnsTimeConsuming;
 

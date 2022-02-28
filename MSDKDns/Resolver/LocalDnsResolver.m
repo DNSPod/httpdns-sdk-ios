@@ -18,8 +18,24 @@
 
 @implementation LocalDnsResolver
 
-- (void)startWithDomains:(NSArray *)domains TimeOut:(float)timeOut DnsId:(int)dnsId DnsKey:(NSString *)dnsKey NetStack:(msdkdns::MSDKDNS_TLocalIPStack)netStack {
-    [super startWithDomains:domains TimeOut:timeOut DnsId:dnsId DnsKey:dnsKey NetStack:netStack];
+- (void)startWithDomains:(NSArray *)domains
+                 TimeOut:(float)timeOut
+                   DnsId:(int)dnsId
+               DnsServer:(NSString *)dnsServer
+               DnsRouter:(NSString *)dnsRouter
+                  DnsKey:(NSString *)dnsKey
+                DnsToken:(NSString *)dnsToken
+                NetStack:(msdkdns::MSDKDNS_TLocalIPStack)netStack
+             encryptType:(NSInteger)encryptType {
+    [super startWithDomains:domains
+                    TimeOut:timeOut
+                      DnsId:dnsId
+                  DnsServer:dnsServer
+                  DnsRouter:dnsRouter
+                     DnsKey:dnsKey
+                   DnsToken:dnsToken
+                   NetStack:netStack
+                encryptType:encryptType];
     MSDKDNSLOG(@"LocalDns TimeOut is %f", timeOut);
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, timeOut * NSEC_PER_SEC), [MSDKDnsInfoTool msdkdns_local_queue], ^{
         [self localDnsTimeout];
@@ -28,6 +44,7 @@
     self.isFinished = NO;
     self.isSucceed = NO;
     self.hasDelegated = NO;
+    self.cacheKey = kMSDKLocalDnsCache;
     [self getLocalDnsWithDomains:domains NetStack:netStack];
 }
 

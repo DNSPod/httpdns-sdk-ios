@@ -4,8 +4,6 @@
 
 #import "MSDKDnsInfoTool.h"
 #import "MSDKDnsLog.h"
-#import "MSDKDnsManager.h"
-#import "MSDKDnsParamsManager.h"
 #import <SystemConfiguration/CaptiveNetwork.h>
 #import <CommonCrypto/CommonDigest.h>
 #import <CommonCrypto/CommonCrypto.h>
@@ -388,12 +386,14 @@ char MSDKDnsHexCharToChar(char high, char low) {
     return newData;
 }
 
-+ (NSURL *) httpsUrlWithDomain:(NSString *)domain DnsId:(int)dnsId DnsKey:(NSString *)dnsKey Use4A:(BOOL)use4A
-{
-    return [self httpsUrlWithDomain:domain DnsId:dnsId DnsKey:dnsKey Use4A:use4A encryptType:HttpDnsEncryptTypeDES];
-}
-
-+ (NSURL *) httpsUrlWithDomain:(NSString *)domain DnsId:(int)dnsId DnsKey:(NSString *)dnsKey Use4A:(BOOL)use4A encryptType:(NSInteger)encryptType
++ (NSURL *) httpsUrlWithDomain:(NSString *)domain
+                         DnsId:(int)dnsId
+                      serverIp:(NSString*)serverIp
+                       routeIp:(NSString*)routeIp
+                        DnsKey:(NSString *)dnsKey
+                      DnsToken:(NSString*)token
+                         Use4A:(BOOL)use4A
+                   encryptType:(NSInteger)encryptType
 {
     if (!domain || domain.length == 0) {
         MSDKDNSLOG(@"HttpDns Domain cannot be empty!");
@@ -404,8 +404,12 @@ char MSDKDnsHexCharToChar(char high, char low) {
         MSDKDNSLOG(@"DnsId cannot be empty! Please check your dns config params.");
         return nil;
     }
-        
-    NSString *token =  [[MSDKDnsParamsManager shareInstance] msdkDnsGetMToken];
+    
+    if (!serverIp) {
+        MSDKDNSLOG(@"Dns server ip cannot be empty! Please check your dns config params.");
+        return nil;
+    }
+
     if (encryptType != HttpDnsEncryptTypeHTTPS && (!dnsKey || dnsKey.length == 0)) {
         MSDKDNSLOG(@"DnsKey cannot be empty! Please check your dns config params");
         return nil;
@@ -425,14 +429,11 @@ char MSDKDnsHexCharToChar(char high, char low) {
         domainEncrypStr = [domain copy];
         protocol = @"https";
     }
-
-    NSString *serviceIp = [[MSDKDnsManager shareInstance] currentDnsServer];
-    NSString *routeIp = [[MSDKDnsParamsManager shareInstance] msdkDnsGetRouteIp];
-    
+        
     if (domainEncrypStr && domainEncrypStr.length > 0) {
-        NSString * httpServer = [self getIPv6:[serviceIp UTF8String]];
+        NSString * httpServer = [self getIPv6:[serverIp UTF8String]];
         if (!httpServer || httpServer.length == 0) {
-            httpServer = serviceIp;
+            httpServer = serverIp;
         }
         NSString * urlStr = [NSString stringWithFormat:@"%@://%@/d?dn=%@&clientip=1&ttl=1&query=1&id=%d", protocol, httpServer, domainEncrypStr, dnsId];
         if (use4A) {

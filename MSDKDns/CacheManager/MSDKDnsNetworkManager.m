@@ -5,7 +5,6 @@
 #import "MSDKDnsNetworkManager.h"
 #import "MSDKDnsLog.h"
 #import "MSDKDnsManager.h"
-#import "MSDKDnsParamsManager.h"
 #import <UIKit/UIKit.h>
 #import <CoreTelephony/CTTelephonyNetworkInfo.h>
 #import <CoreTelephony/CTCarrier.h>

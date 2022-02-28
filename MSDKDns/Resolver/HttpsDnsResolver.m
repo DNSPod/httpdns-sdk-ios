@@ -4,7 +4,6 @@
 
 #import <Foundation/Foundation.h>
 #import "HttpsDnsResolver.h"
-#import "MSDKDnsService.h"
 #import "MSDKDnsLog.h"
 #import "MSDKDnsInfoTool.h"
 
@@ -28,9 +27,25 @@
     [self setConnection:nil];
 }
 
-- (void)startWithDomains:(NSArray *)domains TimeOut:(float)timeOut DnsId:(int)dnsId DnsKey:(NSString *)dnsKey NetStack:(msdkdns::MSDKDNS_TLocalIPStack)netStack encryptType:(NSInteger)encryptType
+- (void)startWithDomains:(NSArray *)domains
+                 TimeOut:(float)timeOut
+                   DnsId:(int)dnsId
+               DnsServer:(NSString *)dnsServer
+               DnsRouter:(NSString *)dnsRouter
+                  DnsKey:(NSString *)dnsKey
+                DnsToken:(NSString *)dnsToken
+                NetStack:(msdkdns::MSDKDNS_TLocalIPStack)netStack
+             encryptType:(NSInteger)encryptType
 {
-    [super startWithDomains:domains TimeOut:timeOut DnsId:dnsId DnsKey:dnsKey NetStack:netStack];
+    [super startWithDomains:domains
+                    TimeOut:timeOut
+                      DnsId:dnsId
+                  DnsServer:dnsServer
+                  DnsRouter:dnsRouter
+                     DnsKey:dnsKey
+                   DnsToken:dnsToken
+                   NetStack:netStack
+                encryptType:encryptType];
     NSString *domainStr = [domains componentsJoinedByString:@","];
     if (!domainStr || domainStr.length == 0) {
         MSDKDNSLOG(@"HttpDns Domain is must needed!");
@@ -51,10 +66,19 @@
     self.encryptType = encryptType;
     MSDKDNSLOG(@"HttpDns startWithDomain: %@!", domains);
     self.use4A = NO;
+    self.cacheKey = kMSDKHttpDnsCache_A;
     if (netStack == msdkdns::MSDKDNS_ELocalIPStack_IPv6) {
         self.use4A = YES;
+        self.cacheKey = kMSDKHttpDnsCache_4A;
     }
-    NSURL * httpDnsUrl = [MSDKDnsInfoTool httpsUrlWithDomain:domainStr DnsId:dnsId DnsKey:_dnsKey Use4A:_use4A encryptType:_encryptType];
+    NSURL * httpDnsUrl = [MSDKDnsInfoTool httpsUrlWithDomain:domainStr
+                                                       DnsId:dnsId
+                                                    serverIp:dnsServer
+                                                     routeIp:dnsRouter
+                                                      DnsKey:_dnsKey
+                                                    DnsToken:dnsToken
+                                                       Use4A:_use4A
+                                                 encryptType:_encryptType];
     if (httpDnsUrl) {
         MSDKDNSLOG(@"HttpDns TimeOut is %f", timeOut);
         NSURLRequest * request = [NSURLRequest requestWithURL:httpDnsUrl cachePolicy:NSURLRequestReloadIgnoringCacheData timeoutInterval:timeOut];

@@ -16,7 +16,16 @@
     [self setDelegate:nil];
 }
 
-- (void)startWithDomains:(NSArray *)domains TimeOut:(float)timeOut DnsId:(int)dnsId DnsKey:(NSString *)dnsKey NetStack:(msdkdns::MSDKDNS_TLocalIPStack)netStack {
+- (void)startWithDomains:(NSArray *)domains
+                 TimeOut:(float)timeOut
+                   DnsId:(int)dnsId
+               DnsServer:(NSString *)dnsServer
+               DnsRouter:(NSString *)dnsRouter
+                  DnsKey:(NSString *)dnsKey
+                DnsToken:(NSString *)dnsToken
+                NetStack:(msdkdns::MSDKDNS_TLocalIPStack)netStack
+             encryptType:(NSInteger)encryptType
+{
     self.startDate = [NSDate date];
 }
 
