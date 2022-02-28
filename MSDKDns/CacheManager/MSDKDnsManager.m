@@ -62,82 +62,7 @@ static MSDKDnsManager * _sharedInstance = nil;
 
 #pragma mark - getHostByDomain
 
-#pragma mark sync
-
-- (NSDictionary *)getHostsByNames:(NSArray *)domains verbose:(BOOL)verbose {
-    // 获取当前ipv4/ipv6/双栈网络环境
-    msdkdns::MSDKDNS_TLocalIPStack netStack = [self detectAddressType];
-    float timeOut = [[MSDKDnsParamsManager shareInstance] msdkDnsGetMTimeOut];
-    NSDictionary * cacheDomainDict = [self getDomainCacheSync];
-    // 待查询数组
-    NSMutableArray *toCheckDomains = [NSMutableArray array];
-    // 查找缓存，缓存中有HttpDns数据且ttl未超时则直接返回结果,不存在或者ttl超时则放入待查询数组
-    [domains enumerateObjectsUsingBlock:^(id _Nonnull domain, NSUInteger idx, BOOL * _Nonnull stop) {
-        if (![self domianCache:cacheDomainDict hit:domain]) {
-            [toCheckDomains addObject:domain];
-        } else {
-            MSDKDNSLOG(@"%@ TTL has not expiried,return result from cache directly!", domain);
-            dispatch_async([MSDKDnsInfoTool msdkdns_queue], ^{
-                [self uploadReport:YES Domain:domain NetStack:netStack];
-            });
-        }
-    }];
-    // 全部有缓存时，直接返回
-    if([toCheckDomains count] == 0) {
-        NSDictionary * result = verbose ?
-            [self fullResultDictionary:domains fromCache:cacheDomainDict] :
-            [self resultDictionary:domains fromCache:cacheDomainDict];
-        return result;
-    }
-    dispatch_semaphore_t sema = dispatch_semaphore_create(0);
-    dispatch_async([MSDKDnsInfoTool msdkdns_queue], ^{
-        int dnsId = [[MSDKDnsParamsManager shareInstance] msdkDnsGetMDnsId];
-        NSString *dnsServer = [self currentDnsServer];
-        NSString *dnsRouter = [[MSDKDnsParamsManager shareInstance] msdkDnsGetRouteIp];
-        NSString *dnsKey = [[MSDKDnsParamsManager shareInstance] msdkDnsGetMDnsKey];
-        NSString *dnsToken = [[MSDKDnsParamsManager shareInstance] msdkDnsGetMToken];
-        BOOL httpOnly = [[MSDKDnsParamsManager shareInstance] msdkDnsGetHttpOnly];
-        BOOL enableReport = [[MSDKDnsParamsManager shareInstance] msdkDnsGetEnableReport];
-        NSUInteger retryCount = [[MSDKDnsParamsManager shareInstance] msdkDnsGetRetryTimesBeforeSwitchServer];
-        HttpDnsEncryptType encryptType = [[MSDKDnsParamsManager shareInstance] msdkDnsGetEncryptType];
-        //进行httpdns请求
-        MSDKDnsService * dnsService = [[MSDKDnsService alloc] init];
-        [self.serviceArray addObject:dnsService];
-        __weak __typeof__(self) weakSelf = self;
-        [dnsService getHostsByNames:toCheckDomains
-                            TimeOut:timeOut
-                              DnsId:dnsId
-                          DnsServer:dnsServer
-                          DnsRouter:dnsRouter
-                             DnsKey:dnsKey
-                           DnsToken:dnsToken
-                           NetStack:netStack
-                        encryptType:encryptType
-                           httpOnly:httpOnly
-                       enableReport:enableReport
-                         retryCount:retryCount
-                          returnIps:^() {
-            __strong __typeof(self) strongSelf = weakSelf;
-            if (strongSelf) {
-                [toCheckDomains enumerateObjectsUsingBlock:^(id _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
-                    [strongSelf uploadReport:NO Domain:obj NetStack:netStack];
-                }];
-                [strongSelf dnsHasDone:dnsService];
-            }
-            dispatch_semaphore_signal(sema);
-        }];
-    });
-    dispatch_semaphore_wait(sema, dispatch_time(DISPATCH_TIME_NOW, timeOut * NSEC_PER_SEC));
-    cacheDomainDict = [self getDomainCacheSync];
-    NSDictionary * result = verbose?
-        [self fullResultDictionary:domains fromCache:cacheDomainDict] :
-        [self resultDictionary:domains fromCache:cacheDomainDict];
-    return result;
-}
-
-#pragma mark async
-
-- (void)getHostsByNames:(NSArray *)domains
+- (NSDictionary *)getHostsByNames:(NSArray *)domains
                 verbose:(BOOL)verbose
               returnIps:(void (^)(NSDictionary * ipsDict))handler {
     // 获取当前ipv4/ipv6/双栈网络环境
@@ -165,7 +90,11 @@ static MSDKDnsManager * _sharedInstance = nil;
         if (handler) {
             handler(result);
         }
-        return;
+        return result;
+    }
+    dispatch_semaphore_t sema;
+    if (!handler) {
+        sema = dispatch_semaphore_create(0);
     }
     dispatch_async([MSDKDnsInfoTool msdkdns_queue], ^{
         int dnsId = [[MSDKDnsParamsManager shareInstance] msdkDnsGetMDnsId];
@@ -200,15 +129,27 @@ static MSDKDnsManager * _sharedInstance = nil;
                     [strongSelf uploadReport:NO Domain:obj NetStack:netStack];
                 }];
                 [strongSelf dnsHasDone:dnsService];
-                NSDictionary * result = verbose ?
+                if (handler) {
+                    NSDictionary * result = verbose ?
                     [strongSelf fullResultDictionary:domains fromCache:_domainDict] :
                     [strongSelf resultDictionary:domains fromCache:_domainDict];
-                if (handler) {
                     handler(result);
+                } else {
+                    dispatch_semaphore_signal(sema);
                 }
             }
         }];
     });
+    if (!handler) {
+        dispatch_semaphore_wait(sema, dispatch_time(DISPATCH_TIME_NOW, timeOut * NSEC_PER_SEC));
+        cacheDomainDict = [self getDomainCacheSync];
+        NSDictionary * result = verbose?
+            [self fullResultDictionary:domains fromCache:cacheDomainDict] :
+            [self resultDictionary:domains fromCache:cacheDomainDict];
+        return result;
+    } else {
+        return nil;
+    }
 }
 
 - (void)preResolveDomains {

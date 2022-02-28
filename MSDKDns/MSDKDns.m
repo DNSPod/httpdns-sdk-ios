@@ -127,7 +127,7 @@ static MSDKDns * _sharedInstance = nil;
         //进行httpdns请求
         NSDate * date = [NSDate date];
         //进行httpdns请求
-        NSDictionary *res = [[MSDKDnsManager shareInstance] getHostsByNames:@[domain] verbose:NO];
+        NSDictionary *res = [[MSDKDnsManager shareInstance] getHostsByNames:@[domain] verbose:NO returnIps:nil];
         dnsResult = [res objectForKey:domain];
         NSTimeInterval time_consume = [[NSDate date] timeIntervalSinceDate:date] * 1000;
         MSDKDNSLOG(@"MSDKDns WGGetHostByName Total Time Consume is %.1fms", time_consume);
@@ -162,7 +162,7 @@ static MSDKDns * _sharedInstance = nil;
         //进行httpdns请求
         NSDate * date = [NSDate date];
         //进行httpdns请求
-        dnsResult = [[MSDKDnsManager shareInstance] getHostsByNames:domains verbose:NO];
+        dnsResult = [[MSDKDnsManager shareInstance] getHostsByNames:domains verbose:NO returnIps:nil];
         NSTimeInterval time_consume = [[NSDate date] timeIntervalSinceDate:date] * 1000;
         MSDKDNSLOG(@"%@, MSDKDns Result is:%@",domains, dnsResult);
         MSDKDNSLOG(@"MSDKDns WGGetHostByName Total Time Consume is %.1fms", time_consume);
@@ -191,7 +191,7 @@ static MSDKDns * _sharedInstance = nil;
         //进行httpdns请求
         NSDate * date = [NSDate date];
         //进行httpdns请求
-        dnsResult = [[MSDKDnsManager shareInstance] getHostsByNames:domains verbose:YES];
+        dnsResult = [[MSDKDnsManager shareInstance] getHostsByNames:domains verbose:YES returnIps:nil];
         NSTimeInterval time_consume = [[NSDate date] timeIntervalSinceDate:date] * 1000;
         MSDKDNSLOG(@"%@, MSDKDns Result is:%@",domains, dnsResult);
         MSDKDNSLOG(@"MSDKDns WGGetHostByName Total Time Consume is %.1fms", time_consume);

@@ -24,8 +24,9 @@
 
 + (instancetype)shareInstance;
 
-- (void)getHostsByNames:(NSArray *)domains verbose:(BOOL)verbose returnIps:(void (^)(NSDictionary * ipsDict))handler;
-- (NSDictionary *)getHostsByNames:(NSArray *)domains verbose:(BOOL)verbose;
+- (NSDictionary *)getHostsByNames:(NSArray *)domains
+                          verbose:(BOOL)verbose
+                        returnIps:(void (^)(NSDictionary * ipsDict))handler;
 - (void)preResolveDomains;
 - (void)dnsHasDone:(MSDKDnsService *)service;
 - (void)cacheDomainInfo:(NSDictionary *)domainInfo Domain:(NSString *)domain;
