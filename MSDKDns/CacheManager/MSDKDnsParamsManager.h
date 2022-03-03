@@ -12,7 +12,6 @@
 
 + (instancetype)shareInstance;
 
-- (void)msdkDnsSetMDnsIp:(NSString *) mdnsIp;
 - (void)msdkDnsSetMOpenId:(NSString *) mdnsOpenId;
 - (void)msdkDnsSetMAppId:(NSString *) mdnsAppId MTimeOut:(int)mdnsTimeOut MEncryptType:(HttpDnsEncryptType)mdnsEncryptType;
 - (void)msdkDnsSetMDnsId:(int) mdnsId MDnsKey:(NSString *)mdnsKey MToken:(NSString* )mdnsToken;
@@ -22,13 +21,10 @@
 - (void)msdkDnsSetRetryTimesBeforeSwitchServer:(NSUInteger)times;
 // 设置切回主ip间隔时长
 - (void)msdkDnsSetMinutesBeforeSwitchToMain:(NSUInteger)minutes;
-// 设置备份ip
-- (void)msdkDnsSetBackupServerIps: (NSArray *)ips;
 - (void)msdkDnsSetEnableReport: (BOOL)enableReport;
 - (void)msdkDnsSetPreResolvedDomains: (NSArray *)domains;
 - (void)msdkDnsSetAddressType: (HttpDnsAddressType)addressType;
 
-- (NSString *) msdkDnsGetMDnsIp;
 - (NSString *) msdkDnsGetMOpenId;
 - (NSString *) msdkDnsGetMAppId;
 - (int) msdkDnsGetMDnsId;
@@ -38,7 +34,6 @@
 - (NSString *)msdkDnsGetMToken;
 - (NSString *)msdkDnsGetRouteIp;
 - (BOOL)msdkDnsGetHttpOnly;
-- (NSArray *)msdkDnsGetServerIps;
 - (NSUInteger)msdkDnsGetRetryTimesBeforeSwitchServer;
 - (NSUInteger)msdkDnsGetMinutesBeforeSwitchToMain;
 - (BOOL)msdkDnsGetEnableReport;

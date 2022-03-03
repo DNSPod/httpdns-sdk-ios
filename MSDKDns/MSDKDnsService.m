@@ -254,7 +254,7 @@
     self.httpdnsFailCount += 1;
     if (self.httpdnsFailCount < _retryCount) {
         if (resolver == self.httpDnsResolver_A) {
-            dispatch_async([MSDKDnsInfoTool msdkdns_retry_queue], ^{
+            dispatch_async([MSDKDnsInfoTool msdkdns_resolver_queue], ^{
                 [self startHttpDns:_timeOut
                                 DnsId:_dnsId
                             DnsServer:_dnsServer
@@ -264,7 +264,7 @@
                           encryptType:_encryptType];
             });
         } else if (resolver == self.httpDnsResolver_4A) {
-            dispatch_async([MSDKDnsInfoTool msdkdns_retry_queue], ^{
+            dispatch_async([MSDKDnsInfoTool msdkdns_resolver_queue], ^{
                 [self startHttpDns_4A:_timeOut
                                 DnsId:_dnsId
                             DnsServer:_dnsServer

@@ -18,9 +18,16 @@
 
 @class MSDKDnsService;
 
+typedef enum {
+    net_undetected = 0,
+    net_detecting = 1,
+    net_detected = 2,
+} HttpDnsSdkStatus;
+
 @interface MSDKDnsManager : NSObject
 
 @property (strong, nonatomic, readonly) NSMutableDictionary * domainDict;
+@property (assign, nonatomic, readonly) HttpDnsSdkStatus sdkStatus;
 
 + (instancetype)shareInstance;
 
@@ -38,4 +45,5 @@
 - (NSString *)currentDnsServer;
 - (void)switchDnsServer;
 - (void)switchToMainServer;
+- (void)detectHttpDnsServers;
 @end

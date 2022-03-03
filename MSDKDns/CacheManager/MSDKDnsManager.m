@@ -18,11 +18,13 @@
 
 @interface MSDKDnsManager ()
 
-@property (strong, nonatomic, readwrite) NSMutableArray * serviceArray;
-@property (strong, nonatomic, readwrite) NSMutableDictionary * domainDict;
+@property (nonatomic, strong, readwrite) NSMutableArray * serviceArray;
+@property (nonatomic, strong, readwrite) NSMutableDictionary * domainDict;
 @property (nonatomic, assign, readwrite) int serverIndex;
 @property (nonatomic, strong, readwrite) NSDate *firstFailTime; // 记录首次失败的时间
 @property (nonatomic, assign, readwrite) BOOL waitToSwitch; // 防止连续多次切换
+@property (nonatomic, assign, readwrite) HttpDnsSdkStatus sdkStatus;
+@property (nonatomic, strong, readwrite) NSArray * dnsServers;
 
 @end
 
@@ -56,6 +58,8 @@ static MSDKDnsManager * _sharedInstance = nil;
         _firstFailTime = nil;
         _waitToSwitch = NO;
         _serviceArray = [[NSMutableArray alloc] init];
+        _sdkStatus = net_undetected;
+        _dnsServers = [self defaultServers];
     }
     return self;
 }
@@ -63,8 +67,8 @@ static MSDKDnsManager * _sharedInstance = nil;
 #pragma mark - getHostByDomain
 
 - (NSDictionary *)getHostsByNames:(NSArray *)domains
-                verbose:(BOOL)verbose
-              returnIps:(void (^)(NSDictionary * ipsDict))handler {
+                          verbose:(BOOL)verbose
+                        returnIps:(void (^)(NSDictionary * ipsDict))handler {
     // 获取当前ipv4/ipv6/双栈网络环境
     msdkdns::MSDKDNS_TLocalIPStack netStack = [self detectAddressType];
     float timeOut = [[MSDKDnsParamsManager shareInstance] msdkDnsGetMTimeOut];
@@ -625,13 +629,67 @@ static MSDKDnsManager * _sharedInstance = nil;
     return netStack;
 }
 
-
 # pragma mark - servers
-- (NSString *)currentDnsServer {
-    if (self.serverIndex < [[[MSDKDnsParamsManager shareInstance] msdkDnsGetServerIps] count]) {
-        return  [[[MSDKDnsParamsManager shareInstance] msdkDnsGetServerIps] objectAtIndex:self.serverIndex];
+
+- (void)detectHttpDnsServers {
+    // https 协议下不进行三网探测
+    if ([[MSDKDnsParamsManager shareInstance] msdkDnsGetEncryptType] == HttpDnsEncryptTypeHTTPS) {
+        return;
     }
-    return  [[MSDKDnsParamsManager shareInstance] msdkDnsGetMDnsIp];
+    // 先重置为兜底ip
+    [self resetDnsServers:nil];
+    dispatch_async([MSDKDnsInfoTool msdkdns_queue], ^{
+        NSArray *domains = @[MSDKDnsServerDomain];
+        msdkdns::MSDKDNS_TLocalIPStack netStack = [self detectAddressType];
+        int dnsId = MSDKDnsId;
+        NSString *dnsKey = MSDKDnsKey;
+        NSString *dnsServer = [self currentDnsServer];
+        BOOL httpOnly = true;
+        BOOL enableReport = true;
+        NSUInteger retryCount = 3;
+        HttpDnsEncryptType encryptType = HttpDnsEncryptTypeDES;
+        MSDKDnsService * dnsService = [[MSDKDnsService alloc] init];
+        __weak __typeof__(self) weakSelf = self;
+        _sdkStatus = net_detecting;
+        [dnsService getHostsByNames:domains
+                            TimeOut:2000
+                              DnsId:dnsId
+                          DnsServer:dnsServer
+                          DnsRouter:nil
+                             DnsKey:dnsKey
+                           DnsToken:nil
+                           NetStack:netStack
+                        encryptType:encryptType
+                           httpOnly:httpOnly
+                       enableReport:enableReport
+                         retryCount:retryCount
+                          returnIps:^() {
+            __strong __typeof(self) strongSelf = weakSelf;
+            if (strongSelf) {
+                [strongSelf uploadReport:NO Domain:MSDKDnsServerDomain NetStack:netStack];
+                NSDictionary * result = [strongSelf fullResultDictionary:domains fromCache:_domainDict];
+                NSDictionary *ips = [result objectForKey:MSDKDnsServerDomain];
+                NSArray *ipv4s = [ips objectForKey:@"ipv4"];
+                NSArray *ipv6s = [ips objectForKey:@"ipv6"];
+                if (ipv4s && [ipv4s count] > 0) {
+                    [self resetDnsServers:ipv4s];
+                    _sdkStatus = net_detected;
+                } else if (ipv6s && [ipv6s count] > 0) {
+                    [self resetDnsServers:ipv6s];
+                    _sdkStatus = net_detected;
+                } else {
+                    _sdkStatus = net_undetected;
+                }
+            }
+        }];
+    });
+}
+
+- (NSString *)currentDnsServer {
+    if (self.serverIndex < [self.dnsServers count]) {
+        return  [self.dnsServers objectAtIndex:self.serverIndex];
+    }
+    return  [[self defaultServers] firstObject];
 }
 
 - (void)switchDnsServer {
@@ -640,14 +698,15 @@ static MSDKDnsManager * _sharedInstance = nil;
     }
     self.waitToSwitch = YES;
     dispatch_async([MSDKDnsInfoTool msdkdns_queue], ^{
-        if (self.serverIndex < [[[MSDKDnsParamsManager shareInstance] msdkDnsGetServerIps] count]) {
+        if (self.serverIndex < [self.dnsServers count]) {
             self.serverIndex += 1;
             if (!self.firstFailTime) {
                 self.firstFailTime = [NSDate date];
                 // 一定时间后自动切回主ip
                 __weak __typeof__(self) weakSelf = self;
-                dispatch_after(dispatch_time(DISPATCH_TIME_NOW,[[MSDKDnsParamsManager shareInstance] msdkDnsGetMinutesBeforeSwitchToMain] * 60 * NSEC_PER_SEC), [MSDKDnsInfoTool msdkdns_queue], ^{
-                    if (weakSelf.firstFailTime && [[NSDate date] timeIntervalSinceDate:weakSelf.firstFailTime] >= [[MSDKDnsParamsManager shareInstance] msdkDnsGetMinutesBeforeSwitchToMain] * 60) {
+                NSUInteger minutes = [[MSDKDnsParamsManager shareInstance] msdkDnsGetMinutesBeforeSwitchToMain];
+                dispatch_after(dispatch_time(DISPATCH_TIME_NOW, minutes * 60 * NSEC_PER_SEC), [MSDKDnsInfoTool msdkdns_queue], ^{
+                    if (weakSelf.firstFailTime && [[NSDate date] timeIntervalSinceDate:weakSelf.firstFailTime] >= minutes * 60) {
                         MSDKDNSLOG(@"auto reset server index, use main ip now.");
                         weakSelf.serverIndex = 0;
                         weakSelf.firstFailTime = nil;
@@ -673,6 +732,22 @@ static MSDKDnsManager * _sharedInstance = nil;
         self.firstFailTime = nil;
         self.waitToSwitch = NO;
     });
+}
+
+- (void)resetDnsServers:(NSArray *)servers {
+    dispatch_async([MSDKDnsInfoTool msdkdns_queue], ^{
+        NSMutableArray *array = [[NSMutableArray alloc] init];
+        if (servers && [servers count] > 0) {
+            [array addObjectsFromArray: servers];
+        }
+        [array addObjectsFromArray:[self defaultServers]];
+        self.serverIndex = 0;
+        self.dnsServers = array;
+    });
+}
+
+- (NSArray *)defaultServers {
+    return  [[MSDKDnsParamsManager shareInstance] msdkDnsGetEncryptType] == HttpDnsEncryptTypeHTTPS ? MSDKDnsHttpsServerIps : MSDKDnsHttpServerIps;
 }
 
 @end

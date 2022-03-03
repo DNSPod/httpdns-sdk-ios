@@ -27,7 +27,6 @@ typedef struct DnsConfigStruct {
     int dnsId; // 授权ID，腾讯云控制台申请后，通过邮件发送，用于域名解析鉴权
     NSString* dnsKey; // 加密密钥，加密方式为AES、DES时必传。腾讯云控制台申请后，通过邮件发送，用于域名解析鉴权
     NSString* token; // 加密token，加密方式为 HTTPS 时必传
-    NSString* dnsIp; // HTTPDNS 服务器 IP
     BOOL debug; // 是否开启Debug日志，YES：开启，NO：关闭。建议联调阶段开启，正式上线前关闭
     int timeout; // 可选，超时时间，单位ms，如设置0，则设置为默认值2000ms
     HttpDnsEncryptType encryptType; // 控制加密方式
@@ -68,11 +67,6 @@ typedef struct DnsConfigStruct {
  * @return YES：成功 NO：失败
  */
 - (BOOL) WGSetDnsOpenId:(NSString *)openId;
-
-/**
- * 设置 httpdns 备份服务器ip（无需手动设置，sdk 会自动设置）
- */
-- (void) WGSetDnsBackupServerIps:(NSArray *)ips;
 
 /**
  * 设置预解析的域名，设置的域名会在sdk初始化完成后自动进行解析

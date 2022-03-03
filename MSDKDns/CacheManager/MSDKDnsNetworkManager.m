@@ -72,6 +72,8 @@ static MSDKDnsNetworkManager *manager = nil;
                  [[MSDKDnsManager shareInstance] clearAllCache];
                  //重置ip指针
                  [[MSDKDnsManager shareInstance] switchToMainServer];
+                 // 探测dnsIp
+                 [[MSDKDnsManager shareInstance] detectHttpDnsServers];
              }];
             
             [NSNotificationCenter.defaultCenter addObserverForName:UIApplicationDidEnterBackgroundNotification
@@ -92,6 +94,7 @@ static MSDKDnsNetworkManager *manager = nil;
              {
                  //进入前台时，开启网络监测
                  [self.reachability startNotifier];
+                 [[MSDKDnsManager shareInstance] detectHttpDnsServers];
              }];
             
             _reachability = [MSDKDnsReachability reachabilityForInternetConnection];

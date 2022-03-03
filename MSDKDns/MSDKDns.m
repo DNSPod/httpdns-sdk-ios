@@ -11,8 +11,6 @@
 
 @interface MSDKDns ()
 
-@property (assign, nonatomic) BOOL msdkDnsReady;
-
 @end
 
 @implementation MSDKDns
@@ -30,7 +28,6 @@ static MSDKDns * _sharedInstance = nil;
 
 - (instancetype) init {
     if (self = [super init]) {
-        _msdkDnsReady = NO;
         //开启网络切换，及前后台切换的监听
         [MSDKDnsNetworkManager start];
     }
@@ -42,7 +39,6 @@ static MSDKDns * _sharedInstance = nil;
     [[MSDKDnsParamsManager shareInstance] msdkDnsSetMAppId:config->appId MTimeOut:config->timeout MEncryptType:config->encryptType];
     [[MSDKDnsParamsManager shareInstance] msdkDnsSetMDnsId:config->dnsId MDnsKey:config->dnsKey MToken:config->token];
     [[MSDKDnsParamsManager shareInstance] msdkDnsSetAddressType:config->addressType];
-    [[MSDKDnsParamsManager shareInstance] msdkDnsSetMDnsIp:config->dnsIp];
     [[MSDKDnsParamsManager shareInstance] msdkDnsSetRouteIp: config->routeIp];
     [[MSDKDnsParamsManager shareInstance] msdkDnsSetHttpOnly: config->httpOnly];
     if (config->retryTimesBeforeSwitchServer) {
@@ -52,8 +48,8 @@ static MSDKDns * _sharedInstance = nil;
         [[MSDKDnsParamsManager shareInstance] msdkDnsSetMinutesBeforeSwitchToMain:config->minutesBeforeSwitchToMain];
     }
     [[MSDKDnsParamsManager shareInstance] msdkDnsSetEnableReport:config->enableReport];
-    [[MSDKDnsManager shareInstance] switchToMainServer];
-    self.msdkDnsReady = YES;
+    
+    [[MSDKDnsManager shareInstance] detectHttpDnsServers];
     MSDKDNSLOG(@"MSDKDns init success.");
     return YES;
 }
@@ -63,7 +59,6 @@ static MSDKDns * _sharedInstance = nil;
     conf->appId = [config objectForKey:@"appId"];
     conf->debug = [[config objectForKey:@"debug"] boolValue];
     conf->dnsId = [[config objectForKey:@"dnsId"] intValue];
-    conf->dnsIp = [config objectForKey:@"dnsIp"];
     conf->dnsKey = [config objectForKey:@"dnsKey"];
     conf->token = [config objectForKey:@"token"];
     conf->encryptType =(HttpDnsEncryptType)[[config objectForKey:@"encryptType"] intValue];
@@ -87,11 +82,6 @@ static MSDKDns * _sharedInstance = nil;
     // 保存openid
     [[MSDKDnsParamsManager shareInstance] msdkDnsSetMOpenId:openId];
     return YES;
-}
-
-- (void) WGSetDnsBackupServerIps:(NSArray *)ips {
-    [[MSDKDnsParamsManager shareInstance] msdkDnsSetBackupServerIps:ips];
-    [[MSDKDnsManager shareInstance] switchToMainServer];
 }
 
 - (void) WGSetPreResolvedDomains:(NSArray *)domains {
