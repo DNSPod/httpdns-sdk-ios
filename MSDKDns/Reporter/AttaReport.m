@@ -103,11 +103,7 @@ static AttaReport * _sharedInstance = nil;
     NSString *postData = [self formatReportParams:params];
     request.HTTPBody = [postData dataUsingEncoding:NSUTF8StringEncoding];
     MSDKDNSLOG(@"ATTAReport data: %@", postData);
-    NSURLSessionDataTask *dataTask = [self.session dataTaskWithRequest:request completionHandler:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
-            NSDictionary *json = [NSJSONSerialization JSONObjectWithData:data options:0 error:nil];
-            MSDKDNSLOG(@"ATTAReport response: %@",json);
-        }];
-
+    NSURLSessionDataTask *dataTask = [self.session dataTaskWithRequest:request];
     [dataTask resume];
 }
 
