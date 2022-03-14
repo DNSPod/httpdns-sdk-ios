@@ -668,8 +668,9 @@ static MSDKDnsManager * _sharedInstance = nil;
 
 # pragma mark - servers
 - (NSString *)currentDnsServer {
-    if (self.serverIndex < [[[MSDKDnsParamsManager shareInstance] msdkDnsGetServerIps] count]) {
-        return  [[[MSDKDnsParamsManager shareInstance] msdkDnsGetServerIps] objectAtIndex:self.serverIndex];
+    int index = self.serverIndex;
+    if (index < [[[MSDKDnsParamsManager shareInstance] msdkDnsGetServerIps] count]) {
+        return  [[[MSDKDnsParamsManager shareInstance] msdkDnsGetServerIps] objectAtIndex:index];
     }
     return  [[MSDKDnsParamsManager shareInstance] msdkDnsGetMDnsIp];
 }
@@ -680,7 +681,7 @@ static MSDKDnsManager * _sharedInstance = nil;
     }
     self.waitToSwitch = YES;
     dispatch_async([MSDKDnsInfoTool msdkdns_queue], ^{
-        if (self.serverIndex < [[[MSDKDnsParamsManager shareInstance] msdkDnsGetServerIps] count]) {
+        if (self.serverIndex < [[[MSDKDnsParamsManager shareInstance] msdkDnsGetServerIps] count] - 1) {
             self.serverIndex += 1;
             if (!self.firstFailTime) {
                 self.firstFailTime = [NSDate date];
