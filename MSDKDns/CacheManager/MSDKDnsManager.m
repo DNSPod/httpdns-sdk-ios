@@ -686,8 +686,9 @@ static MSDKDnsManager * _sharedInstance = nil;
 }
 
 - (NSString *)currentDnsServer {
-    if (self.serverIndex < [self.dnsServers count]) {
-        return  [self.dnsServers objectAtIndex:self.serverIndex];
+    int index = self.serverIndex;
+    if (index < [self.dnsServers count]) {
+        return  [self.dnsServers objectAtIndex:index];
     }
     return  [[self defaultServers] firstObject];
 }
@@ -698,7 +699,7 @@ static MSDKDnsManager * _sharedInstance = nil;
     }
     self.waitToSwitch = YES;
     dispatch_async([MSDKDnsInfoTool msdkdns_queue], ^{
-        if (self.serverIndex < [self.dnsServers count]) {
+        if (self.serverIndex < [self.dnsServers count] - 1) {
             self.serverIndex += 1;
             if (!self.firstFailTime) {
                 self.firstFailTime = [NSDate date];
