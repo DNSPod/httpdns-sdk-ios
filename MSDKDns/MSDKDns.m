@@ -52,6 +52,9 @@ static MSDKDns * _sharedInstance = nil;
     if (config->minutesBeforeSwitchToMain) {
         [[MSDKDnsParamsManager shareInstance] msdkDnsSetMinutesBeforeSwitchToMain:config->minutesBeforeSwitchToMain];
     }
+    if (config->keepAliveDomains) {
+        [[MSDKDnsParamsManager shareInstance] msdkDnsSetKeepAliveDomains:config->keepAliveDomains];
+    }
     [[MSDKDnsParamsManager shareInstance] msdkDnsSetEnableReport:config->enableReport];
     [[MSDKDnsManager shareInstance] switchToMainServer];
     self.msdkDnsReady = YES;

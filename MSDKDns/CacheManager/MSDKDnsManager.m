@@ -197,6 +197,23 @@ static MSDKDnsManager * _sharedInstance = nil;
             }
         }];
     });
+    
+}
+
+#pragma mark 发送解析请求刷新缓存
+
+- (void)refreshCacheDelay:(NSArray *)domains callback:(void (^)())handle {
+    // 获取当前ipv4/ipv6/双栈网络环境
+    msdkdns::MSDKDNS_TLocalIPStack netStack = [self detectAddressType];
+    __block float timeOut = 2.0;
+    timeOut = [[MSDKDnsParamsManager shareInstance] msdkDnsGetMTimeOut];
+    //进行httpdns请求
+    int dnsId = [[MSDKDnsParamsManager shareInstance] msdkDnsGetMDnsId];
+    NSString * dnsKey = [[MSDKDnsParamsManager shareInstance] msdkDnsGetMDnsKey];
+    HttpDnsEncryptType encryptType = [[MSDKDnsParamsManager shareInstance] msdkDnsGetEncryptType];
+    
+    MSDKDnsService * dnsService = [[MSDKDnsService alloc] init];
+    [dnsService getHostsByNames:domains TimeOut:timeOut DnsId:dnsId DnsKey:dnsKey NetStack:netStack encryptType:encryptType returnIps:handle];
 }
 
 - (void)preResolveDomains {
