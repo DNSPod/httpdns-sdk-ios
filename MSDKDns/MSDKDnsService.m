@@ -134,46 +134,49 @@
 #pragma mark - MSDKDnsResolverDelegate
 
 - (void)resolver:(MSDKDnsResolver *)resolver didGetDomainInfo:(NSDictionary *)domainInfo {
-    static NSMutableDictionary *domainISOpenDelayDispatch = [[NSMutableDictionary alloc] init];
     MSDKDNSLOG(@"%@ %@ domainInfo = %@", self.toCheckDomains, [resolver class], domainInfo);
     // 结果存缓存
     dispatch_async([MSDKDnsInfoTool msdkdns_queue], ^{
         [self cacheDomainInfo:resolver];
         NSDictionary * info = @{kDnsErrCode:MSDKDns_Success, kDnsErrMsg:@"", kDnsRetry:@"0"};
         [self callBack:resolver Info:info];
-        if(resolver == self.httpDnsResolver_A || resolver == self.httpDnsResolver_4A) {
-            NSLog(@"3333");
+        if (resolver == self.httpDnsResolver_A || resolver == self.httpDnsResolver_4A) {
             NSArray *keepAliveDomains = [[MSDKDnsParamsManager shareInstance] msdkDnsGetKeepAliveDomains];
-            for(id domain in domainInfo){
+            // 获取延迟记录字典
+            NSMutableDictionary *domainISOpenDelayDispatch = [[MSDKDnsParamsManager shareInstance] msdkDnsGetDomainISOpenDelayDispatch];
+            [domainInfo enumerateKeysAndObjectsUsingBlock:^(id  _Nonnull domain, id  _Nonnull obj, BOOL * _Nonnull stop) {
+                // NSLog(@"domain = %@", domain);
+                // NSLog(@"domainInfo = %@", domainInfo);
+                
                 // 判断此次请求的域名中有多少属于保活域名，是则开启延时解析请求，自动刷新缓存
-                if([keepAliveDomains containsObject:domain]){
+                if (keepAliveDomains && domain && [keepAliveDomains containsObject:domain]) {
                     NSString *afterTime = domainInfo[domain][kTTL];
-//                    NSLog(@"4444444延时更新请求等待，预计在%f秒后开始!请求域名为%@",afterTime.floatValue,domain);
-                    @synchronized(self) {
-                        if(domainISOpenDelayDispatch[domain] == nil){
-                            // 使用静态字典来记录该域名是否开启了一个延迟解析请求，如果已经开启则忽略，没有则立马开启一个
-                            [domainISOpenDelayDispatch setValue:@YES forKey:domain];
-                            MSDKDNSLOG(@"开启延时执行任务，预计在%f秒后开始请求域名为:%@", afterTime.floatValue, domain);
-                            dispatch_after(dispatch_time(DISPATCH_TIME_NOW,10* NSEC_PER_SEC), [MSDKDnsInfoTool msdkdns_queue], ^{
-//                                NSLog(@"延时更新请求开始!请求域名为%@",domain);
-                                MSDKDNSLOG(@"延时更新请求开始!请求域名为%@",domain);
-                                [[MSDKDnsManager shareInstance] refreshCacheDelay:@[domain] callback:^{
-//                                    NSLog(@"请求结束，清除标志.请求域名为%@",domain);
-                                    MSDKDNSLOG(@"请求结束，清除标志.请求域名为%@",domain);
-                                    // 当请求结束了需要将该域名开启的标志清除，方便下次继续开启延迟解析请求
-                                    [domainISOpenDelayDispatch removeObjectForKey:domain];
-                                }];
+                    
+                    //  NSLog(@"4444444延时更新请求等待，预计在%f秒后开始!请求域名为%@",afterTime.floatValue,domain);
+                    if (!domainISOpenDelayDispatch[domain]) {
+                        // 使用静态字典来记录该域名是否开启了一个延迟解析请求，如果已经开启则忽略，没有则立马开启一个
+                        [[MSDKDnsParamsManager shareInstance] msdkDnsAddDomainOpenDelayDispatch:domain];
+                        MSDKDNSLOG(@"Start the delayed execution task, it is expected to start requesting the domain name %@ after %f seconds", domain, afterTime.floatValue);
+                        dispatch_after(dispatch_time(DISPATCH_TIME_NOW,afterTime.floatValue* NSEC_PER_SEC), [MSDKDnsInfoTool msdkdns_queue], ^{
+                            //  NSLog(@"延时更新请求开始!请求域名为%@",domain);
+                            MSDKDNSLOG(@"The delayed update request starts! domain:%@",domain);
+                            [[MSDKDnsManager shareInstance] refreshCacheDelay:@[domain] callback:^{
+                                //  NSLog(@"请求结束，清除标志.请求域名为%@",domain);
+                                MSDKDNSLOG(@"The request is over, clear the flag. domain:%@",domain);
+                                // 当请求结束了需要将该域名开启的标志清除，方便下次继续开启延迟解析请求
+                                [[MSDKDnsParamsManager shareInstance] msdkDnsClearDomainOpenDelayDispatch:domain];
                                 
-                            });
-                        }
+                            }];
+                            
+                        });
                     }
+                    
                 }
-            }
-            
+            }];
         }
     });
     // 正常解析结果上报，上报解析耗时
-    if(resolver == self.httpDnsResolver_A || resolver == self.httpDnsResolver_4A) {
+    if (resolver == self.httpDnsResolver_A || resolver == self.httpDnsResolver_4A) {
         if ([[MSDKDnsParamsManager shareInstance] msdkDnsGetEnableReport] && [[AttaReport sharedInstance] shoulReportDnsSpend]) {
             NSDictionary *domainDic = [domainInfo objectForKey:[self.toCheckDomains firstObject]];
             NSString* routeip = [[MSDKDnsParamsManager shareInstance] msdkDnsGetRouteIp];

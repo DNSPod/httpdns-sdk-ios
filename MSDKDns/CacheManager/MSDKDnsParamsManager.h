@@ -28,6 +28,9 @@
 - (void)msdkDnsSetPreResolvedDomains: (NSArray *)domains;
 - (void)msdkDnsSetAddressType: (HttpDnsAddressType)addressType;
 - (void)msdkDnsSetKeepAliveDomains: (NSArray *)domains;
+// 添加domain进入延迟记录字典里面
+- (void)msdkDnsAddDomainOpenDelayDispatch: (NSString *)domain;
+- (void)msdkDnsClearDomainOpenDelayDispatch:(NSString *)domain;
 
 - (NSString *) msdkDnsGetMDnsIp;
 - (NSString *) msdkDnsGetMOpenId;
@@ -46,4 +49,5 @@
 - (NSArray *)msdkDnsGetPreResolvedDomains;
 - (HttpDnsAddressType)msdkDnsGetAddressType;
 - (NSArray *)msdkDnsGetKeepAliveDomains;
+- (NSMutableDictionary *)msdkDnsGetDomainISOpenDelayDispatch;
 @end

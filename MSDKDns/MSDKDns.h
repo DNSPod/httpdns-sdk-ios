@@ -37,7 +37,6 @@ typedef struct DnsConfigStruct {
     NSUInteger retryTimesBeforeSwitchServer; // 可选，切换ip之前重试次数, 默认3次
     NSUInteger minutesBeforeSwitchToMain; // 可选，设置切回主ip间隔时长，默认10分钟
     BOOL enableReport; // 是否开启解析异常上报，默认NO，不上报
-    NSArray* keepAliveDomains;
 } DnsConfig;
 
 @interface MSDKDns : NSObject
@@ -79,6 +78,11 @@ typedef struct DnsConfigStruct {
  * 设置预解析的域名，设置的域名会在sdk初始化完成后自动进行解析
  */
 - (void) WGSetPreResolvedDomains:(NSArray *)domains;
+
+/**
+ * 设置保活的域名，设置的域名会定时更新缓存，数量不能大于8个
+ */
+- (void) WGSetKeepAliveDomains:(NSArray *)domains;
 
 #pragma mark - 域名解析接口，按需调用
 /**

@@ -52,9 +52,6 @@ static MSDKDns * _sharedInstance = nil;
     if (config->minutesBeforeSwitchToMain) {
         [[MSDKDnsParamsManager shareInstance] msdkDnsSetMinutesBeforeSwitchToMain:config->minutesBeforeSwitchToMain];
     }
-    if (config->keepAliveDomains) {
-        [[MSDKDnsParamsManager shareInstance] msdkDnsSetKeepAliveDomains:config->keepAliveDomains];
-    }
     [[MSDKDnsParamsManager shareInstance] msdkDnsSetEnableReport:config->enableReport];
     [[MSDKDnsManager shareInstance] switchToMainServer];
     self.msdkDnsReady = YES;
@@ -101,6 +98,12 @@ static MSDKDns * _sharedInstance = nil;
 - (void) WGSetPreResolvedDomains:(NSArray *)domains {
     [[MSDKDnsParamsManager shareInstance] msdkDnsSetPreResolvedDomains:domains];
     [[MSDKDnsManager shareInstance] preResolveDomains];
+}
+
+- (void) WGSetKeepAliveDomains:(NSArray *)domains {
+    if (domains) {
+        [[MSDKDnsParamsManager shareInstance] msdkDnsSetKeepAliveDomains:domains];
+    }
 }
 
 - (void) WGSetHijackDomainArray:(NSArray *)hijackDomainArray {
