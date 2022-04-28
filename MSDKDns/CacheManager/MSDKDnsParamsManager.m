@@ -33,8 +33,7 @@
 @property (strong, nonatomic, readwrite) NSArray* preResolvedDomains;
 @property (assign, nonatomic, readwrite) HttpDnsAddressType msdkAddressType;
 @property (strong, nonatomic, readwrite) NSArray* keepAliveDomains;
-// 延迟记录字典，记录哪些域名已经开启了延迟解析请求
-@property (strong, nonatomic, readwrite) NSMutableDictionary* domainISOpenDelayDispatch;
+
 @end
 
 @implementation MSDKDnsParamsManager
@@ -165,26 +164,6 @@ static MSDKDnsParamsManager * _sharedInstance = nil;
     });
 }
 
-- (void)msdkDnsAddDomainOpenDelayDispatch: (NSString *)domain {
-    dispatch_async([MSDKDnsInfoTool msdkdns_queue], ^{
-        if (domain && domain.length > 0) {
-            MSDKDNSLOG(@"domainISOpenDelayDispatch add domain:%@", domain);
-            if (!self.domainISOpenDelayDispatch) {
-                self.domainISOpenDelayDispatch = [[NSMutableDictionary alloc] init];
-            }
-            [self.domainISOpenDelayDispatch setObject:@YES forKey:domain];
-        }
-    });
-}
-
-- (void)msdkDnsClearDomainOpenDelayDispatch:(NSString *)domain {
-    if (domain && domain.length > 0) {
-        MSDKDNSLOG(@"domainISOpenDelayDispatch remove domain:%@",domain);
-        if (self.domainISOpenDelayDispatch) {
-            [self.domainISOpenDelayDispatch removeObjectForKey:domain];
-        }
-    }
-}
 
 
 #pragma mark - getter
@@ -264,8 +243,6 @@ static MSDKDnsParamsManager * _sharedInstance = nil;
     return _keepAliveDomains;
 }
 
-- (NSMutableDictionary *)msdkDnsGetDomainISOpenDelayDispatch {
-    return _domainISOpenDelayDispatch;
-}
+
 
 @end

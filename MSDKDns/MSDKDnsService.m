@@ -143,7 +143,7 @@
         if (resolver == self.httpDnsResolver_A || resolver == self.httpDnsResolver_4A) {
             NSArray *keepAliveDomains = [[MSDKDnsParamsManager shareInstance] msdkDnsGetKeepAliveDomains];
             // 获取延迟记录字典
-            NSMutableDictionary *domainISOpenDelayDispatch = [[MSDKDnsParamsManager shareInstance] msdkDnsGetDomainISOpenDelayDispatch];
+            NSMutableDictionary *domainISOpenDelayDispatch = [[MSDKDnsManager shareInstance] msdkDnsGetDomainISOpenDelayDispatch];
             [domainInfo enumerateKeysAndObjectsUsingBlock:^(id  _Nonnull domain, id  _Nonnull obj, BOOL * _Nonnull stop) {
                 // NSLog(@"domain = %@", domain);
                 // NSLog(@"domainInfo = %@", domainInfo);
@@ -155,19 +155,12 @@
                     //  NSLog(@"4444444延时更新请求等待，预计在%f秒后开始!请求域名为%@",afterTime.floatValue,domain);
                     if (!domainISOpenDelayDispatch[domain]) {
                         // 使用静态字典来记录该域名是否开启了一个延迟解析请求，如果已经开启则忽略，没有则立马开启一个
-                        [[MSDKDnsParamsManager shareInstance] msdkDnsAddDomainOpenDelayDispatch:domain];
+                        [[MSDKDnsManager shareInstance] msdkDnsAddDomainOpenDelayDispatch:domain];
                         MSDKDNSLOG(@"Start the delayed execution task, it is expected to start requesting the domain name %@ after %f seconds", domain, afterTime.floatValue);
                         dispatch_after(dispatch_time(DISPATCH_TIME_NOW,afterTime.floatValue* NSEC_PER_SEC), [MSDKDnsInfoTool msdkdns_queue], ^{
                             //  NSLog(@"延时更新请求开始!请求域名为%@",domain);
-                            MSDKDNSLOG(@"The delayed update request starts! domain:%@",domain);
-                            [[MSDKDnsManager shareInstance] refreshCacheDelay:@[domain] callback:^{
-                                //  NSLog(@"请求结束，清除标志.请求域名为%@",domain);
-                                MSDKDNSLOG(@"The request is over, clear the flag. domain:%@",domain);
-                                // 当请求结束了需要将该域名开启的标志清除，方便下次继续开启延迟解析请求
-                                [[MSDKDnsParamsManager shareInstance] msdkDnsClearDomainOpenDelayDispatch:domain];
-                                
-                            }];
-                            
+                            MSDKDNSLOG(@"The cache update request start! request domain:%@",domain);
+                            [[MSDKDnsManager shareInstance] refreshCacheDelay:@[domain] clearDispatchTag:YES];
                         });
                     }
                     

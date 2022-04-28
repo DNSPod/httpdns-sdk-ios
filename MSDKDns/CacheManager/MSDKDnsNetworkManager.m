@@ -73,14 +73,7 @@ static MSDKDnsNetworkManager *manager = nil;
                 //网络状态发生变化时清除缓存
                 [[MSDKDnsManager shareInstance] clearAllCache];
                 //对保活域名发送解析请求
-                dispatch_async([MSDKDnsInfoTool msdkdns_queue], ^{
-                    NSArray *keepAliveDomains = [[MSDKDnsParamsManager shareInstance] msdkDnsGetKeepAliveDomains];
-                    if (keepAliveDomains && keepAliveDomains.count > 0) {
-                        [[MSDKDnsManager shareInstance] refreshCacheDelay:keepAliveDomains callback:^{
-                            MSDKDNSLOG(@"Delay request is finished，domains:%@",keepAliveDomains);
-                        }];
-                    }
-                });
+                [self getHostsByKeepAliveDomains];
                 //重置ip指针
                 [[MSDKDnsManager shareInstance] switchToMainServer];
             }];
@@ -104,14 +97,7 @@ static MSDKDnsNetworkManager *manager = nil;
                 //进入前台时，开启网络监测
                 [self.reachability startNotifier];
                 //对保活域名发送解析请求
-                dispatch_async([MSDKDnsInfoTool msdkdns_queue], ^{
-                    NSArray *keepAliveDomains = [[MSDKDnsParamsManager shareInstance] msdkDnsGetKeepAliveDomains];
-                    if (keepAliveDomains && keepAliveDomains.count > 0) {
-                        [[MSDKDnsManager shareInstance] refreshCacheDelay:keepAliveDomains callback:^{
-                            MSDKDNSLOG(@"Delay request is finished，domains:%@",keepAliveDomains);
-                        }];
-                    }
-                });
+                [self getHostsByKeepAliveDomains];
             }];
             
             _reachability = [MSDKDnsReachability reachabilityForInternetConnection];
@@ -292,6 +278,16 @@ static SCNetworkConnectionFlags ana_connectionFlags;
         freeifaddrs(addrs);
     }
     return waddr;
+}
+
+- (void)getHostsByKeepAliveDomains{
+    //对保活域名发送解析请求
+    dispatch_async([MSDKDnsInfoTool msdkdns_queue], ^{
+        NSArray *keepAliveDomains = [[MSDKDnsParamsManager shareInstance] msdkDnsGetKeepAliveDomains];
+        if (keepAliveDomains && keepAliveDomains.count > 0) {
+            [[MSDKDnsManager shareInstance] refreshCacheDelay:keepAliveDomains clearDispatchTag:NO];
+        }
+    });
 }
 
 @end
