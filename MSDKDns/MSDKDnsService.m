@@ -17,6 +17,7 @@
 @property (strong, nonatomic) NSArray * toCheckDomains;
 @property (strong, nonatomic) HttpsDnsResolver * httpDnsResolver_A;
 @property (strong, nonatomic) HttpsDnsResolver * httpDnsResolver_4A;
+@property (strong, nonatomic) HttpsDnsResolver * httpDnsResolver_BOTH;
 @property (strong, nonatomic) LocalDnsResolver * localDnsResolver;
 @property (nonatomic, strong) void (^ completionHandler)();
 @property (atomic, assign) BOOL isCallBack;
@@ -79,15 +80,21 @@
     self.dnsKey = dnsKey;
     self.encryptType = encryptType;
     
-    if (_netStack != msdkdns::MSDKDNS_ELocalIPStack_IPv4) {
+    if (_netStack == msdkdns::MSDKDNS_ELocalIPStack_IPv6) {
         dispatch_async([MSDKDnsInfoTool msdkdns_resolver_queue], ^{
             [self startHttpDns_4A:timeOut DnsId:dnsId DnsKey:dnsKey encryptType:encryptType];
         });
     }
     
-    if (_netStack != msdkdns::MSDKDNS_ELocalIPStack_IPv6) {
+    if (_netStack == msdkdns::MSDKDNS_ELocalIPStack_IPv4) {
         dispatch_async([MSDKDnsInfoTool msdkdns_resolver_queue], ^{
             [self startHttpDns:timeOut DnsId:dnsId DnsKey:dnsKey encryptType:encryptType];
+        });
+    }
+    
+    if (_netStack == msdkdns::MSDKDNS_ELocalIPStack_Dual) {
+        dispatch_async([MSDKDnsInfoTool msdkdns_resolver_queue], ^{
+            [self startHttpDnsBoth:timeOut DnsId:dnsId DnsKey:dnsKey encryptType:encryptType];
         });
     }
     
@@ -105,7 +112,16 @@
     });
 }
 
-//进行httpdns请求
+//进行httpdns ipv4和ipv6合并请求
+- (void)startHttpDnsBoth:(float)timeOut DnsId:(int)dnsId DnsKey:(NSString *)dnsKey encryptType:(NSInteger)encryptType
+{
+    MSDKDNSLOG(@"%@ StartHttpDns!", self.toCheckDomains);
+    self.httpDnsResolver_BOTH = [[HttpsDnsResolver alloc] init];
+    self.httpDnsResolver_BOTH.delegate = self;
+    [self.httpDnsResolver_BOTH startWithDomains:self.toCheckDomains TimeOut:timeOut DnsId:dnsId DnsKey:dnsKey NetStack:msdkdns::MSDKDNS_ELocalIPStack_Dual encryptType:encryptType];
+}
+
+//进行httpdns ipv4请求
 - (void)startHttpDns:(float)timeOut DnsId:(int)dnsId DnsKey:(NSString *)dnsKey encryptType:(NSInteger)encryptType
 {
     MSDKDNSLOG(@"%@ StartHttpDns!", self.toCheckDomains);
@@ -114,7 +130,7 @@
     [self.httpDnsResolver_A startWithDomains:self.toCheckDomains TimeOut:timeOut DnsId:dnsId DnsKey:dnsKey NetStack:msdkdns::MSDKDNS_ELocalIPStack_IPv4 encryptType:encryptType];
 }
 
-
+//进行httpdns ipv6请求
 - (void)startHttpDns_4A:(float)timeOut DnsId:(int)dnsId DnsKey:(NSString *)dnsKey encryptType:(NSInteger)encryptType
 {
     MSDKDNSLOG(@"%@ StartHttpDns!", self.toCheckDomains);
@@ -140,7 +156,7 @@
         [self cacheDomainInfo:resolver];
         NSDictionary * info = @{kDnsErrCode:MSDKDns_Success, kDnsErrMsg:@"", kDnsRetry:@"0"};
         [self callBack:resolver Info:info];
-        if (resolver == self.httpDnsResolver_A || resolver == self.httpDnsResolver_4A) {
+        if (resolver == self.httpDnsResolver_A || resolver == self.httpDnsResolver_4A || resolver == self.httpDnsResolver_BOTH) {
             NSArray *keepAliveDomains = [[MSDKDnsParamsManager shareInstance] msdkDnsGetKeepAliveDomains];
             // 获取延迟记录字典
             NSMutableDictionary *domainISOpenDelayDispatch = [[MSDKDnsManager shareInstance] msdkDnsGetDomainISOpenDelayDispatch];
@@ -169,7 +185,7 @@
         }
     });
     // 正常解析结果上报，上报解析耗时
-    if (resolver == self.httpDnsResolver_A || resolver == self.httpDnsResolver_4A) {
+    if (resolver == self.httpDnsResolver_A || resolver == self.httpDnsResolver_4A || resolver == self.httpDnsResolver_BOTH) {
         if ([[MSDKDnsParamsManager shareInstance] msdkDnsGetEnableReport] && [[AttaReport sharedInstance] shoulReportDnsSpend]) {
             NSDictionary *domainDic = [domainInfo objectForKey:[self.toCheckDomains firstObject]];
             NSString* routeip = [[MSDKDnsParamsManager shareInstance] msdkDnsGetRouteIp];
@@ -215,6 +231,10 @@
         } else if (resolver == self.httpDnsResolver_4A) {
             dispatch_async([MSDKDnsInfoTool msdkdns_retry_queue], ^{
                 [self startHttpDns_4A:self.timeOut DnsId:self.dnsId DnsKey:self.dnsKey encryptType:self.encryptType];
+            });
+        } else if (resolver == self.httpDnsResolver_BOTH) {
+            dispatch_async([MSDKDnsInfoTool msdkdns_retry_queue], ^{
+                [self startHttpDnsBoth:self.timeOut DnsId:self.dnsId DnsKey:self.dnsKey encryptType:self.encryptType];
             });
         }
     } else {
@@ -271,6 +291,10 @@
             
             [cacheDict setObject:info forKey:kMSDKHttpDnsInfo_4A];
             
+        } else if (resolver && (resolver == self.httpDnsResolver_BOTH)) {
+            
+            [cacheDict setObject:info forKey:kMSDKHttpDnsInfo_BOTH];
+            
         }
         
         if (cacheDict && domain) {
@@ -280,20 +304,21 @@
     
     MSDKDNSLOG(@"callBack! :%@", self.toCheckDomains);
     BOOL httpOnly = [[MSDKDnsParamsManager shareInstance] msdkDnsGetHttpOnly];
-    //LocalHttp 和 HttpDns均完成，则返回结果
-    if (httpOnly || self.localDnsResolver.isFinished) {
-        if (self.httpDnsResolver_A && self.httpDnsResolver_4A) {
-            if (self.httpDnsResolver_A.isFinished && self.httpDnsResolver_4A.isFinished) {
-                [self callNotify];
-            }
-        } else if (self.httpDnsResolver_A && !self.httpDnsResolver_4A) {
-            if (self.httpDnsResolver_A.isFinished) {
-                [self callNotify];
-            }
-        } else if (!self.httpDnsResolver_A && self.httpDnsResolver_4A) {
-            if (self.httpDnsResolver_4A.isFinished) {
-                [self callNotify];
-            }
+    if (self.httpDnsResolver_A && self.httpDnsResolver_4A) {
+        if (self.httpDnsResolver_A.isFinished && self.httpDnsResolver_4A.isFinished) {
+            [self callNotify];
+        }
+    } else if (self.httpDnsResolver_A && !self.httpDnsResolver_4A) {
+        if (self.httpDnsResolver_A.isFinished) {
+            [self callNotify];
+        }
+    } else if (!self.httpDnsResolver_A && self.httpDnsResolver_4A) {
+        if (self.httpDnsResolver_4A.isFinished) {
+            [self callNotify];
+        }
+    } else if (self.httpDnsResolver_BOTH) {
+        if (self.httpDnsResolver_BOTH.isFinished) {
+            [self callNotify];
         }
     }
 }
@@ -342,6 +367,18 @@
             NSDictionary *cacheValue = [self.localDnsResolver.domainInfo objectForKey:domain];
             if (cacheValue) {
                 [cacheDict setObject:cacheValue forKey:kMSDKLocalDnsCache];
+            }
+        } else if (resolver && (resolver == self.httpDnsResolver_BOTH) && self.httpDnsResolver_BOTH.domainInfo) {
+            NSDictionary *cacheValue = [self.httpDnsResolver_BOTH.domainInfo objectForKey:domain];
+            if (cacheValue) {
+                NSDictionary *ipv4CacheValue = [cacheValue objectForKey:@"ipv4"];
+                NSDictionary *ipv6CacheValue = [cacheValue objectForKey:@"ipv6"];
+                if (ipv4CacheValue) {
+                    [cacheDict setObject:ipv4CacheValue forKey:kMSDKHttpDnsCache_A];
+                }
+                if (ipv6CacheValue) {
+                    [cacheDict setObject:ipv6CacheValue forKey:kMSDKHttpDnsCache_4A];
+                }
             }
         }
         

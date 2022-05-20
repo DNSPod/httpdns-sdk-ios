@@ -529,10 +529,13 @@ static MSDKDnsManager * _sharedInstance = nil;
     NSString * httpDnsTTL_4A = @"";
     NSString * httpDnsErrCode_A = @"";
     NSString * httpDnsErrCode_4A = @"";
+    NSString * httpDnsErrCode_BOTH = @"";
     NSString * httpDnsErrMsg_A = @"";
     NSString * httpDnsErrMsg_4A = @"";
+    NSString * httpDnsErrMsg_BOTH = @"";
     NSString * httpDnsRetry_A = @"";
     NSString * httpDnsRetry_4A = @"";
+    NSString * httpDnsRetry_BOTH = @"";
     NSString * cache_A = @"";
     NSString * cache_4A = @"";
     NSString * dns_A = @"0";
@@ -606,6 +609,13 @@ static MSDKDnsManager * _sharedInstance = nil;
                 httpDnsErrMsg_4A = httpDnsInfo_A[kDnsErrMsg];
                 httpDnsRetry_4A = httpDnsInfo_A[kDnsRetry];
             }
+            
+            NSDictionary * httpDnsInfo_BOTH = cacheInfo[kMSDKHttpDnsInfo_BOTH];
+            if (httpDnsInfo_BOTH) {
+                httpDnsErrCode_BOTH = httpDnsInfo_BOTH[kDnsErrCode];
+                httpDnsErrMsg_BOTH = httpDnsInfo_BOTH[kDnsErrMsg];
+                httpDnsRetry_BOTH = httpDnsInfo_BOTH[kDnsRetry];
+            }
         }
     }
     
@@ -637,14 +647,17 @@ static MSDKDnsManager * _sharedInstance = nil;
     //ErrCode
     [params setValue:httpDnsErrCode_A forKey:kMSDKDns_A_ErrCode];
     [params setValue:httpDnsErrCode_4A forKey:kMSDKDns_4A_ErrCode];
+    [params setValue:httpDnsErrCode_BOTH forKey:kMSDKDns_BOTH_ErrCode];
     
     //ErrMsg
     [params setValue:httpDnsErrMsg_A forKey:kMSDKDns_A_ErrMsg];
     [params setValue:httpDnsErrMsg_4A forKey:kMSDKDns_4A_ErrMsg];
+    [params setValue:httpDnsErrMsg_BOTH forKey:kMSDKDns_BOTH_ErrMsg];
     
     //Retry
     [params setValue:httpDnsRetry_A forKey:kMSDKDns_A_Retry];
     [params setValue:httpDnsRetry_4A forKey:kMSDKDns_4A_Retry];
+    [params setValue:httpDnsRetry_BOTH forKey:kMSDKDns_BOTH_Retry];
     
     //dns
     [params setValue:dns_A forKey:kMSDKDns_DNS_A_IP];

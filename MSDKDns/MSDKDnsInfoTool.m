@@ -388,12 +388,12 @@ char MSDKDnsHexCharToChar(char high, char low) {
     return newData;
 }
 
-+ (NSURL *) httpsUrlWithDomain:(NSString *)domain DnsId:(int)dnsId DnsKey:(NSString *)dnsKey Use4A:(BOOL)use4A
++ (NSURL *) httpsUrlWithDomain:(NSString *)domain DnsId:(int)dnsId DnsKey:(NSString *)dnsKey IPType:(HttpDnsIPType)ipType
 {
-    return [self httpsUrlWithDomain:domain DnsId:dnsId DnsKey:dnsKey Use4A:use4A encryptType:HttpDnsEncryptTypeDES];
+    return [self httpsUrlWithDomain:domain DnsId:dnsId DnsKey:dnsKey IPType:ipType encryptType:HttpDnsEncryptTypeDES];
 }
 
-+ (NSURL *) httpsUrlWithDomain:(NSString *)domain DnsId:(int)dnsId DnsKey:(NSString *)dnsKey Use4A:(BOOL)use4A encryptType:(NSInteger)encryptType
++ (NSURL *) httpsUrlWithDomain:(NSString *)domain DnsId:(int)dnsId DnsKey:(NSString *)dnsKey IPType:(HttpDnsIPType)ipType encryptType:(NSInteger)encryptType
 {
     if (!domain || domain.length == 0) {
         MSDKDNSLOG(@"HttpDns Domain cannot be empty!");
@@ -435,8 +435,10 @@ char MSDKDnsHexCharToChar(char high, char low) {
             httpServer = serviceIp;
         }
         NSString * urlStr = [NSString stringWithFormat:@"%@://%@/d?dn=%@&clientip=1&ttl=1&query=1&id=%d", protocol, httpServer, domainEncrypStr, dnsId];
-        if (use4A) {
+        if (ipType == HttpDnsTypeIPv6) {
             urlStr = [urlStr stringByAppendingString:@"&type=aaaa"];
+        }else if (ipType == HttpDnsTypeDual) {
+            urlStr = [urlStr stringByAppendingString:@"&type=addrs"];
         }
         if (encryptType == HttpDnsEncryptTypeAES) {
             urlStr = [urlStr stringByAppendingFormat:@"&alg=aes"];
