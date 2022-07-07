@@ -33,6 +33,7 @@
 @property (strong, nonatomic, readwrite) NSArray* preResolvedDomains;
 @property (assign, nonatomic, readwrite) HttpDnsAddressType msdkAddressType;
 @property (strong, nonatomic, readwrite) NSArray* keepAliveDomains;
+@property (assign, nonatomic, readwrite) BOOL openCacheRefresh;
 
 @end
 
@@ -56,6 +57,7 @@ static MSDKDnsParamsManager * _sharedInstance = nil;
         _minutesBeforeSwitchToMain = 10;
         _enableReport = NO;
         _msdkAddressType = HttpDnsAddressTypeAuto;
+        _openCacheRefresh = YES;
     }
     return self;
 }
@@ -164,6 +166,11 @@ static MSDKDnsParamsManager * _sharedInstance = nil;
     });
 }
 
+- (void)msdkDnsSetOpenCacheRefresh: (BOOL)openCacheRefresh {
+    dispatch_async([MSDKDnsInfoTool msdkdns_queue], ^{
+        self.openCacheRefresh = openCacheRefresh;
+    });
+}
 
 
 #pragma mark - getter
@@ -243,6 +250,9 @@ static MSDKDnsParamsManager * _sharedInstance = nil;
     return _keepAliveDomains;
 }
 
+- (BOOL)msdkDnsGetOpenCacheRefresh {
+    return _openCacheRefresh;
+}
 
 
 @end

@@ -158,6 +158,7 @@
         [self callBack:resolver Info:info];
         if (resolver == self.httpDnsResolver_A || resolver == self.httpDnsResolver_4A || resolver == self.httpDnsResolver_BOTH) {
             NSArray *keepAliveDomains = [[MSDKDnsParamsManager shareInstance] msdkDnsGetKeepAliveDomains];
+            BOOL openCacheRefresh = [[MSDKDnsParamsManager shareInstance] msdkDnsGetOpenCacheRefresh];
             // 获取延迟记录字典
             NSMutableDictionary *domainISOpenDelayDispatch = [[MSDKDnsManager shareInstance] msdkDnsGetDomainISOpenDelayDispatch];
             [domainInfo enumerateKeysAndObjectsUsingBlock:^(id  _Nonnull domain, id  _Nonnull obj, BOOL * _Nonnull stop) {
@@ -165,7 +166,7 @@
                 // NSLog(@"domainInfo = %@", domainInfo);
                 
                 // 判断此次请求的域名中有多少属于保活域名，是则开启延时解析请求，自动刷新缓存
-                if (keepAliveDomains && domain && [keepAliveDomains containsObject:domain]) {
+                if (openCacheRefresh && keepAliveDomains && domain && [keepAliveDomains containsObject:domain]) {
                     NSString *afterTime = domainInfo[domain][kTTL];
                     
                     //  NSLog(@"4444444延时更新请求等待，预计在%f秒后开始!请求域名为%@",afterTime.floatValue,domain);

@@ -284,7 +284,8 @@ static SCNetworkConnectionFlags ana_connectionFlags;
     //对保活域名发送解析请求
     dispatch_async([MSDKDnsInfoTool msdkdns_queue], ^{
         NSArray *keepAliveDomains = [[MSDKDnsParamsManager shareInstance] msdkDnsGetKeepAliveDomains];
-        if (keepAliveDomains && keepAliveDomains.count > 0) {
+        BOOL openCacheRefresh = [[MSDKDnsParamsManager shareInstance] msdkDnsGetOpenCacheRefresh];
+        if (openCacheRefresh && keepAliveDomains && keepAliveDomains.count > 0) {
             [[MSDKDnsManager shareInstance] refreshCacheDelay:keepAliveDomains clearDispatchTag:NO];
         }
     });
