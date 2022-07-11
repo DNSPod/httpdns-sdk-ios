@@ -21,6 +21,7 @@ static NSString * const kMSDKHttpDnsCache_A = @"httpDnsCache_A";
 static NSString * const kMSDKHttpDnsCache_4A = @"httpDnsCache_4A";
 static NSString * const kMSDKHttpDnsInfo_A = @"httpDnsInfo_A";
 static NSString * const kMSDKHttpDnsInfo_4A = @"httpDnsInfo_4A";
+static NSString * const kMSDKHttpDnsInfo_BOTH = @"httpDnsInfo_BOTH";
 static NSString * const kMSDKLocalDnsCache = @"localDnsCache";
 
 //HttpDns解析结果数据上报相关
@@ -54,6 +55,9 @@ static NSString * const kMSDKDns_4A_TTL = @"hdns_4a_ttl";            // 域名�
 static NSString * const kMSDKDns_4A_ClientIP = @"hdns_4a_client_ip"; // 域名解析AAAA记录结果客户端IP
 static NSString * const kMSDKDns_4A_Time = @"hdns_4a_time_ms";       // 域名解析AAAA记录耗时(单位ms)
 static NSString * const kMSDKDns_4A_Retry = @"hdns_4a_retry";        // 域名解析AAAA记录重试次数
+static NSString * const kMSDKDns_BOTH_Retry = @"hdns_both_retry";        // 双栈域名解析重试次数
+static NSString * const kMSDKDns_BOTH_ErrCode = @"hdns_both_err_code";   // 双栈域名解析解析错误码
+static NSString * const kMSDKDns_BOTH_ErrMsg = @"hdns_both_err_msg";     // 双栈域名解析解析错误信息
 static NSString * const kMSDKDns_DNS_A_IP = @"dns_ips";              // 域名解析结果v4 IP，多个ip以“,”拼接
 static NSString * const kMSDKDns_DNS_4A_IP = @"dns_4a_ips";          // 域名解析结果v6 IP，多个ip以“,”拼接
 

@@ -26,6 +26,7 @@
 
 - (void)getHostsByNames:(NSArray *)domains verbose:(BOOL)verbose returnIps:(void (^)(NSDictionary * ipsDict))handler;
 - (NSDictionary *)getHostsByNames:(NSArray *)domains verbose:(BOOL)verbose;
+- (void)refreshCacheDelay:(NSArray *)domains clearDispatchTag:(BOOL)needClear;
 - (void)preResolveDomains;
 - (void)dnsHasDone:(MSDKDnsService *)service;
 - (void)cacheDomainInfo:(NSDictionary *)domainInfo Domain:(NSString *)domain;
@@ -37,4 +38,11 @@
 - (NSString *)currentDnsServer;
 - (void)switchDnsServer;
 - (void)switchToMainServer;
+
+// 添加domain进入延迟记录字典里面
+- (void)msdkDnsAddDomainOpenDelayDispatch: (NSString *)domain;
+- (void)msdkDnsClearDomainOpenDelayDispatch:(NSString *)domain;
+// 批量删除
+- (void)msdkDnsClearDomainsOpenDelayDispatch:(NSArray *)domains;
+- (NSMutableDictionary *)msdkDnsGetDomainISOpenDelayDispatch;
 @end

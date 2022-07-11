@@ -6,6 +6,12 @@
 #import "MSDKDnsPrivate.h"
 #import "msdkdns_local_ip_stack.h"
 
+typedef enum {
+    HttpDnsTypeIPv4 = 1, // 只支持ipv4
+    HttpDnsTypeIPv6 = 2, // 只支持ipv6
+    HttpDnsTypeDual = 3, // 支持双协议栈
+} HttpDnsIPType;
+
 @class MSDKDnsResolver;
 
 @protocol MSDKDnsResolverDelegate <NSObject>

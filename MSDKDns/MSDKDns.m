@@ -100,6 +100,12 @@ static MSDKDns * _sharedInstance = nil;
     [[MSDKDnsManager shareInstance] preResolveDomains];
 }
 
+- (void) WGSetKeepAliveDomains:(NSArray *)domains {
+    if (domains) {
+        [[MSDKDnsParamsManager shareInstance] msdkDnsSetKeepAliveDomains:domains];
+    }
+}
+
 - (void) WGSetHijackDomainArray:(NSArray *)hijackDomainArray {
     if (hijackDomainArray) {
         [[MSDKDnsParamsManager shareInstance] setHijackDomainArray:[hijackDomainArray copy]];

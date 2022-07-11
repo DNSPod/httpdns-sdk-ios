@@ -23,6 +23,8 @@
 @property (nonatomic, assign, readwrite) int serverIndex;
 @property (nonatomic, strong, readwrite) NSDate *firstFailTime; // 记录首次失败的时间
 @property (nonatomic, assign, readwrite) BOOL waitToSwitch; // 防止连续多次切换
+// 延迟记录字典，记录哪些域名已经开启了延迟解析请求
+@property (strong, nonatomic, readwrite) NSMutableDictionary* domainISOpenDelayDispatch;
 
 @end
 
@@ -90,6 +92,7 @@ static MSDKDnsManager * _sharedInstance = nil;
     }
     // 全部有缓存时，直接返回
     if([toCheckDomains count] == 0) {
+        // NSLog(@"有缓存");
         NSDictionary * result = verbose ?
             [self fullResultDictionary:domains fromCache:cacheDomainDict] :
             [self resultDictionary:domains fromCache:cacheDomainDict];
@@ -107,6 +110,7 @@ static MSDKDnsManager * _sharedInstance = nil;
         MSDKDnsService * dnsService = [[MSDKDnsService alloc] init];
         [self.serviceArray addObject:dnsService];
         __weak __typeof__(self) weakSelf = self;
+        // NSLog(@"%@, MSDKDns Result is toCheckDomains",toCheckDomains);
         [dnsService getHostsByNames:toCheckDomains TimeOut:timeOut DnsId:dnsId DnsKey:dnsKey NetStack:netStack encryptType:encryptType returnIps:^() {
             __strong __typeof(self) strongSelf = weakSelf;
             if (strongSelf) {
@@ -197,6 +201,29 @@ static MSDKDnsManager * _sharedInstance = nil;
             }
         }];
     });
+    
+}
+
+#pragma mark 发送解析请求刷新缓存
+
+- (void)refreshCacheDelay:(NSArray *)domains clearDispatchTag:(BOOL)needClear {
+    // 获取当前ipv4/ipv6/双栈网络环境
+    msdkdns::MSDKDNS_TLocalIPStack netStack = [self detectAddressType];
+    __block float timeOut = 2.0;
+    timeOut = [[MSDKDnsParamsManager shareInstance] msdkDnsGetMTimeOut];
+    //进行httpdns请求
+    int dnsId = [[MSDKDnsParamsManager shareInstance] msdkDnsGetMDnsId];
+    NSString * dnsKey = [[MSDKDnsParamsManager shareInstance] msdkDnsGetMDnsKey];
+    HttpDnsEncryptType encryptType = [[MSDKDnsParamsManager shareInstance] msdkDnsGetEncryptType];
+    
+    MSDKDnsService * dnsService = [[MSDKDnsService alloc] init];
+    [dnsService getHostsByNames:domains TimeOut:timeOut DnsId:dnsId DnsKey:dnsKey NetStack:netStack encryptType:encryptType returnIps:^{
+        if(needClear){
+            // 当请求结束了需要将该域名开启的标志清除，方便下次继续开启延迟解析请求
+            // NSLog(@"延时更新请求结束!请求域名为%@",domains);
+            [self msdkDnsClearDomainsOpenDelayDispatch:domains];
+        }
+    }];
 }
 
 - (void)preResolveDomains {
@@ -502,10 +529,13 @@ static MSDKDnsManager * _sharedInstance = nil;
     NSString * httpDnsTTL_4A = @"";
     NSString * httpDnsErrCode_A = @"";
     NSString * httpDnsErrCode_4A = @"";
+    NSString * httpDnsErrCode_BOTH = @"";
     NSString * httpDnsErrMsg_A = @"";
     NSString * httpDnsErrMsg_4A = @"";
+    NSString * httpDnsErrMsg_BOTH = @"";
     NSString * httpDnsRetry_A = @"";
     NSString * httpDnsRetry_4A = @"";
+    NSString * httpDnsRetry_BOTH = @"";
     NSString * cache_A = @"";
     NSString * cache_4A = @"";
     NSString * dns_A = @"0";
@@ -579,6 +609,13 @@ static MSDKDnsManager * _sharedInstance = nil;
                 httpDnsErrMsg_4A = httpDnsInfo_A[kDnsErrMsg];
                 httpDnsRetry_4A = httpDnsInfo_A[kDnsRetry];
             }
+            
+            NSDictionary * httpDnsInfo_BOTH = cacheInfo[kMSDKHttpDnsInfo_BOTH];
+            if (httpDnsInfo_BOTH) {
+                httpDnsErrCode_BOTH = httpDnsInfo_BOTH[kDnsErrCode];
+                httpDnsErrMsg_BOTH = httpDnsInfo_BOTH[kDnsErrMsg];
+                httpDnsRetry_BOTH = httpDnsInfo_BOTH[kDnsRetry];
+            }
         }
     }
     
@@ -610,14 +647,17 @@ static MSDKDnsManager * _sharedInstance = nil;
     //ErrCode
     [params setValue:httpDnsErrCode_A forKey:kMSDKDns_A_ErrCode];
     [params setValue:httpDnsErrCode_4A forKey:kMSDKDns_4A_ErrCode];
+    [params setValue:httpDnsErrCode_BOTH forKey:kMSDKDns_BOTH_ErrCode];
     
     //ErrMsg
     [params setValue:httpDnsErrMsg_A forKey:kMSDKDns_A_ErrMsg];
     [params setValue:httpDnsErrMsg_4A forKey:kMSDKDns_4A_ErrMsg];
+    [params setValue:httpDnsErrMsg_BOTH forKey:kMSDKDns_BOTH_ErrMsg];
     
     //Retry
     [params setValue:httpDnsRetry_A forKey:kMSDKDns_A_Retry];
     [params setValue:httpDnsRetry_4A forKey:kMSDKDns_4A_Retry];
+    [params setValue:httpDnsRetry_BOTH forKey:kMSDKDns_BOTH_Retry];
     
     //dns
     [params setValue:dns_A forKey:kMSDKDns_DNS_A_IP];
@@ -714,6 +754,42 @@ static MSDKDnsManager * _sharedInstance = nil;
         self.firstFailTime = nil;
         self.waitToSwitch = NO;
     });
+}
+
+# pragma mark - operate delay tag
+
+- (void)msdkDnsAddDomainOpenDelayDispatch: (NSString *)domain {
+    dispatch_async([MSDKDnsInfoTool msdkdns_queue], ^{
+        if (domain && domain.length > 0) {
+            MSDKDNSLOG(@"domainISOpenDelayDispatch add domain:%@", domain);
+            if (!self.domainISOpenDelayDispatch) {
+                self.domainISOpenDelayDispatch = [[NSMutableDictionary alloc] init];
+            }
+            [self.domainISOpenDelayDispatch setObject:@YES forKey:domain];
+        }
+    });
+}
+
+- (void)msdkDnsClearDomainOpenDelayDispatch:(NSString *)domain {
+    if (domain && domain.length > 0) {
+        //  NSLog(@"请求结束，清除标志.请求域名为%@",domain);
+        MSDKDNSLOG(@"The cache update request end! request domain:%@",domain);
+        MSDKDNSLOG(@"domainISOpenDelayDispatch remove domain:%@", domain);
+        if (self.domainISOpenDelayDispatch) {
+            [self.domainISOpenDelayDispatch removeObjectForKey:domain];
+        }
+    }
+}
+
+- (void)msdkDnsClearDomainsOpenDelayDispatch:(NSArray *)domains {
+    for(int i = 0; i < [domains count]; i++) {
+        NSString* domain = [domains objectAtIndex:i];
+        [self msdkDnsClearDomainOpenDelayDispatch:domain];
+    }
+}
+
+- (NSMutableDictionary *)msdkDnsGetDomainISOpenDelayDispatch {
+    return _domainISOpenDelayDispatch;
 }
 
 @end

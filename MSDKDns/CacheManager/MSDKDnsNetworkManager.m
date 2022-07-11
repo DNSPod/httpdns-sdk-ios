@@ -4,6 +4,7 @@
 
 #import "MSDKDnsNetworkManager.h"
 #import "MSDKDnsLog.h"
+#import "MSDKDnsInfoTool.h"
 #import "MSDKDnsManager.h"
 #import "MSDKDnsParamsManager.h"
 #import <UIKit/UIKit.h>
@@ -68,32 +69,36 @@ static MSDKDnsNetworkManager *manager = nil;
                                                              queue:nil
                                                         usingBlock:^(NSNotification *note)
              {
-                 MSDKDNSLOG(@"Network did changed,clear MSDKDns cache");
-                 //网络状态发生变化时清除缓存
-                 [[MSDKDnsManager shareInstance] clearAllCache];
-                 //重置ip指针
-                 [[MSDKDnsManager shareInstance] switchToMainServer];
-             }];
+                MSDKDNSLOG(@"Network did changed,clear MSDKDns cache");
+                //网络状态发生变化时清除缓存
+                [[MSDKDnsManager shareInstance] clearAllCache];
+                //对保活域名发送解析请求
+                [self getHostsByKeepAliveDomains];
+                //重置ip指针
+                [[MSDKDnsManager shareInstance] switchToMainServer];
+            }];
             
             [NSNotificationCenter.defaultCenter addObserverForName:UIApplicationDidEnterBackgroundNotification
                                                             object:nil
                                                              queue:nil
                                                         usingBlock:^(NSNotification *note)
              {
-                 MSDKDNSLOG(@"Application did enter background,clear MSDKDns cache");
-                 //进入后台时清除缓存，暂停网络监测
-                 [[MSDKDnsManager shareInstance] clearAllCache];
-                 [self.reachability stopNotifier];
-             }];
+                MSDKDNSLOG(@"Application did enter background,clear MSDKDns cache");
+                //进入后台时清除缓存，暂停网络监测
+                [[MSDKDnsManager shareInstance] clearAllCache];
+                [self.reachability stopNotifier];
+            }];
             
             [NSNotificationCenter.defaultCenter addObserverForName:UIApplicationWillEnterForegroundNotification
                                                             object:nil
                                                              queue:nil
                                                         usingBlock:^(NSNotification *note)
              {
-                 //进入前台时，开启网络监测
-                 [self.reachability startNotifier];
-             }];
+                //进入前台时，开启网络监测
+                [self.reachability startNotifier];
+                //对保活域名发送解析请求
+                [self getHostsByKeepAliveDomains];
+            }];
             
             _reachability = [MSDKDnsReachability reachabilityForInternetConnection];
             [_reachability startNotifier];
@@ -273,6 +278,16 @@ static SCNetworkConnectionFlags ana_connectionFlags;
         freeifaddrs(addrs);
     }
     return waddr;
+}
+
+- (void)getHostsByKeepAliveDomains{
+    //对保活域名发送解析请求
+    dispatch_async([MSDKDnsInfoTool msdkdns_queue], ^{
+        NSArray *keepAliveDomains = [[MSDKDnsParamsManager shareInstance] msdkDnsGetKeepAliveDomains];
+        if (keepAliveDomains && keepAliveDomains.count > 0) {
+            [[MSDKDnsManager shareInstance] refreshCacheDelay:keepAliveDomains clearDispatchTag:NO];
+        }
+    });
 }
 
 @end

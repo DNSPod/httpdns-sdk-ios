@@ -14,7 +14,7 @@
 @property (strong, nonatomic) NSURLConnection * connection;
 @property (nonatomic , assign) CFRunLoopRef rl;
 @property (copy, nonatomic) NSString * dnsKey;
-@property (nonatomic, assign) BOOL use4A;
+@property (nonatomic, assign) HttpDnsIPType ipType;
 @property (nonatomic, assign) NSInteger encryptType;  // 0 des  1 aes
 
 @end
@@ -50,11 +50,14 @@
     self.isSucceed = NO;
     self.encryptType = encryptType;
     MSDKDNSLOG(@"HttpDns startWithDomain: %@!", domains);
-    self.use4A = NO;
+    self.ipType = HttpDnsTypeIPv4;
     if (netStack == msdkdns::MSDKDNS_ELocalIPStack_IPv6) {
-        self.use4A = YES;
+        self.ipType = HttpDnsTypeIPv6;
+    }else if (netStack == msdkdns::MSDKDNS_ELocalIPStack_Dual) {
+        self.ipType = HttpDnsTypeDual;
     }
-    NSURL * httpDnsUrl = [MSDKDnsInfoTool httpsUrlWithDomain:domainStr DnsId:dnsId DnsKey:_dnsKey Use4A:_use4A encryptType:_encryptType];
+    
+    NSURL * httpDnsUrl = [MSDKDnsInfoTool httpsUrlWithDomain:domainStr DnsId:dnsId DnsKey:_dnsKey IPType:self.ipType encryptType:_encryptType];
     if (httpDnsUrl) {
         MSDKDNSLOG(@"HttpDns TimeOut is %f", timeOut);
         NSURLRequest * request = [NSURLRequest requestWithURL:httpDnsUrl cachePolicy:NSURLRequestReloadIgnoringCacheData timeoutInterval:timeOut];
@@ -90,7 +93,7 @@
     if (host == nil || [host length] == 0) {
         host = headerDict[@"host"];
     }
-
+    
     /*
      * 判断challenge的身份验证方法是否是NSURLAuthenticationMethodServerTrust（HTTPS模式下会进行该身份验证流程），
      * 在没有配置身份验证方法的情况下进行默认的网络请求流程。
@@ -228,7 +231,7 @@
     if (range.location != NSNotFound) {
         NSString* queryDomain = [self getQueryDomain:[string substringToIndex:range.location]];
         NSString* ipString = [string substringFromIndex:range.location + 1];
-        NSDictionary *domainInfo = [self parseIPString:ipString];
+        NSDictionary *domainInfo = [self parseAllIPString:ipString];
         if (queryDomain && domainInfo) {
             [resultDic setValue:domainInfo forKey:queryDomain];
         }
@@ -249,35 +252,69 @@
     return resultDic;
 }
 
-- (NSDictionary *)parseIPString:(NSString *)iPstring {
+- (NSDictionary *)parseAllIPString:(NSString *)iPstring {
     NSArray *array = [iPstring componentsSeparatedByString:@"|"];
     if (array && array.count == 2) {
-        NSString * ipsStr = nil;
-        NSString * ttl = nil;
         NSString * clientIP = array[1];
         NSString * tmp = array[0];
-        if (tmp) {
-            NSArray * tmpArr = [tmp componentsSeparatedByString:@","];
-            if (tmpArr && [tmpArr count] == 2) {
-                ipsStr = tmpArr[0];
-                ttl = tmpArr[1];
+        if(tmp){
+            if (self.ipType == HttpDnsTypeDual) {
+                NSString *ipv4 = nil;
+                NSString *ipv6 = nil;
+                NSMutableDictionary *bothIPDict = [NSMutableDictionary dictionary];
+                NSArray * tmpArr = [tmp componentsSeparatedByString:@"-"];
+                if (tmpArr && [tmpArr count] == 2) {
+                    ipv4 = tmpArr[0];
+                    ipv6 = tmpArr[1];
+                }
+                if (ipv4) {
+                    NSDictionary *result = [self parseIPString:ipv4 ClientIP:clientIP Use4A:false];
+                    if (result) {
+                        [bothIPDict setObject:result forKey:@"ipv4"];
+                    }
+                }
+                if (ipv6) {
+                    NSDictionary *result = [self parseIPString:ipv6 ClientIP:clientIP Use4A:true];
+                    if (result) {
+                        [bothIPDict setObject:result forKey:@"ipv6"];
+                    }
+                   
+                }
+                return bothIPDict;
+            } else {
+                BOOL use4A = false;
+                if (self.ipType == HttpDnsTypeIPv6) {
+                    use4A = true;
+                }
+                return [self parseIPString:tmp ClientIP:clientIP Use4A:use4A];
             }
         }
-        NSString * tempStr = ipsStr.length > 1 ? [ipsStr substringFromIndex:ipsStr.length - 1] : @"";
-        if ([tempStr isEqualToString:@";"]) {
-            ipsStr = [ipsStr substringToIndex:ipsStr.length - 1];
-        }
-        NSArray *ipsArray = [ipsStr componentsSeparatedByString:@";"];
-        //校验ip合法性
-        BOOL isIPLegal = [self isIPLegal:ipsArray Use4A:_use4A];
-        
-        if (isIPLegal) {
-            double timeInterval = [[NSDate date] timeIntervalSince1970];
-            NSString * ttlExpried = [NSString stringWithFormat:@"%0.0f", (timeInterval + ttl.floatValue * 0.75)];
-            NSString * timeConsuming = [NSString stringWithFormat:@"%d", [self dnsTimeConsuming]];
-            NSString * channel = @"http";
-            return @{kIP:ipsArray, kClientIP:clientIP, kTTL:ttl, kTTLExpired:ttlExpried, kDnsTimeConsuming:timeConsuming, kChannel:channel};
-        }
+    }
+    return nil;
+}
+
+-(NSDictionary *)parseIPString:(NSString *)iPstring ClientIP:(NSString *)clientIP Use4A:(BOOL)use4A {
+    NSString *ipsStr = nil;
+    NSString *ttl = nil;
+    NSArray * tmpArr = [iPstring componentsSeparatedByString:@","];
+    if (tmpArr && [tmpArr count] == 2) {
+        ipsStr = tmpArr[0];
+        ttl = tmpArr[1];
+    }
+    NSString * tempStr = ipsStr.length > 1 ? [ipsStr substringFromIndex:ipsStr.length - 1] : @"";
+    if ([tempStr isEqualToString:@";"]) {
+        ipsStr = [ipsStr substringToIndex:ipsStr.length - 1];
+    }
+    NSArray *ipsArray = [ipsStr componentsSeparatedByString:@";"];
+    //校验ip合法性
+    BOOL isIPLegal = [self isIPLegal:ipsArray Use4A:use4A];
+    
+    if (isIPLegal) {
+        double timeInterval = [[NSDate date] timeIntervalSince1970];
+        NSString * ttlExpried = [NSString stringWithFormat:@"%0.0f", (timeInterval + ttl.floatValue * 0.75)];
+        NSString * timeConsuming = [NSString stringWithFormat:@"%d", [self dnsTimeConsuming]];
+        NSString * channel = @"http";
+        return @{kIP:ipsArray, kClientIP:clientIP, kTTL:ttl, kTTLExpired:ttlExpried, kDnsTimeConsuming:timeConsuming, kChannel:channel};
     }
     return nil;
 }

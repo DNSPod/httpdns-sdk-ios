@@ -32,6 +32,8 @@
 @property (assign, nonatomic, readwrite) BOOL enableReport;
 @property (strong, nonatomic, readwrite) NSArray* preResolvedDomains;
 @property (assign, nonatomic, readwrite) HttpDnsAddressType msdkAddressType;
+@property (strong, nonatomic, readwrite) NSArray* keepAliveDomains;
+
 @end
 
 @implementation MSDKDnsParamsManager
@@ -156,6 +158,14 @@ static MSDKDnsParamsManager * _sharedInstance = nil;
     });
 }
 
+- (void)msdkDnsSetKeepAliveDomains: (NSArray *)domains {
+    dispatch_async([MSDKDnsInfoTool msdkdns_queue], ^{
+        self.keepAliveDomains = [domains copy];
+    });
+}
+
+
+
 #pragma mark - getter
 
 - (BOOL)msdkDnsGetHttpOnly {
@@ -228,5 +238,11 @@ static MSDKDnsParamsManager * _sharedInstance = nil;
 - (HttpDnsAddressType)msdkDnsGetAddressType {
     return _msdkAddressType;
 }
+
+- (NSArray *)msdkDnsGetKeepAliveDomains {
+    return _keepAliveDomains;
+}
+
+
 
 @end
