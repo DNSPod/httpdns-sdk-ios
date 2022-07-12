@@ -167,10 +167,33 @@
                 
                 // 判断此次请求的域名中有多少属于保活域名，是则开启延时解析请求，自动刷新缓存
                 if (openCacheRefresh && keepAliveDomains && domain && [keepAliveDomains containsObject:domain]) {
-                    NSString *afterTime = domainInfo[domain][kTTL];
+
+                    NSMutableString * afterTime = [[NSMutableString alloc] init];
+                    
+                    if(resolver == self.httpDnsResolver_BOTH){
+                        NSDictionary *domainResult = domainInfo[domain];
+                        if (domainResult) {
+                            NSDictionary *ipv4Value = [domainResult objectForKey:@"ipv4"];
+                            NSDictionary *ipv6Value = [domainResult objectForKey:@"ipv6"];
+                            if (ipv6Value) {
+                                NSString *ttl = [ipv6Value objectForKey:kTTL];
+                                afterTime = [[NSMutableString alloc]initWithString:ttl];
+                            }
+                            if (ipv4Value) {
+                                NSString *ttl = [ipv4Value objectForKey:kTTL];
+                                afterTime = [[NSMutableString alloc]initWithString:ttl];
+                            }
+                        }
+                    }else{
+                        NSDictionary *domainResult = domainInfo[domain];
+                        if (domainResult) {
+                            NSString *ttl = [domainResult objectForKey:kTTL];
+                            afterTime = [[NSMutableString alloc]initWithString:ttl];
+                        }
+                    }
                     
                     //  NSLog(@"4444444延时更新请求等待，预计在%f秒后开始!请求域名为%@",afterTime.floatValue,domain);
-                    if (!domainISOpenDelayDispatch[domain]) {
+                    if (!domainISOpenDelayDispatch[domain] && afterTime) {
                         // 使用静态字典来记录该域名是否开启了一个延迟解析请求，如果已经开启则忽略，没有则立马开启一个
                         [[MSDKDnsManager shareInstance] msdkDnsAddDomainOpenDelayDispatch:domain];
                         MSDKDNSLOG(@"Start the delayed execution task, it is expected to start requesting the domain name %@ after %f seconds", domain, afterTime.floatValue);
