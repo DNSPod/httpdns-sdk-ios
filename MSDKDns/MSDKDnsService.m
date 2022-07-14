@@ -68,7 +68,7 @@
         [self callNotify];
         return;
     }
-
+    
     if (_netStack == msdkdns::MSDKDNS_ELocalIPStack_None) {
         MSDKDNSLOG(@"No network stack, please check your network setting!");
         [self callNotify];
@@ -167,7 +167,7 @@
                 
                 // 判断此次请求的域名中有多少属于保活域名，是则开启延时解析请求，自动刷新缓存
                 if (openCacheRefresh && keepAliveDomains && domain && [keepAliveDomains containsObject:domain]) {
-
+                    
                     NSMutableString * afterTime = [[NSMutableString alloc] init];
                     
                     if(resolver == self.httpDnsResolver_BOTH){
@@ -199,8 +199,11 @@
                         MSDKDNSLOG(@"Start the delayed execution task, it is expected to start requesting the domain name %@ after %f seconds", domain, afterTime.floatValue);
                         dispatch_after(dispatch_time(DISPATCH_TIME_NOW,afterTime.floatValue* NSEC_PER_SEC), [MSDKDnsInfoTool msdkdns_queue], ^{
                             //  NSLog(@"延时更新请求开始!请求域名为%@",domain);
-                            MSDKDNSLOG(@"The cache update request start! request domain:%@",domain);
-                            [[MSDKDnsManager shareInstance] refreshCacheDelay:@[domain] clearDispatchTag:YES];
+                            BOOL openCacheRefresh = [[MSDKDnsParamsManager shareInstance] msdkDnsGetOpenCacheRefresh];
+                            if (openCacheRefresh) {
+                                MSDKDNSLOG(@"The cache update request start! request domain:%@",domain);
+                                [[MSDKDnsManager shareInstance] refreshCacheDelay:@[domain] clearDispatchTag:YES];
+                            }
                         });
                     }
                     
