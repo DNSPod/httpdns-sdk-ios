@@ -106,8 +106,8 @@ static MSDKDns * _sharedInstance = nil;
     }
 }
 
-- (void) WGSetSetOpenCacheRefresh: (BOOL)openCacheRefresh {
-    [[MSDKDnsParamsManager shareInstance] msdkDnsSetOpenCacheRefresh:openCacheRefresh];   
+- (void) WGSetEnableKeepDomainsAlive: (BOOL)enableKeepDomainsAlive {
+    [[MSDKDnsParamsManager shareInstance] msdkDnsSetEnableKeepDomainsAlive:enableKeepDomainsAlive];
 }
 
 - (void) WGSetHijackDomainArray:(NSArray *)hijackDomainArray {

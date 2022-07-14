@@ -87,7 +87,7 @@ typedef struct DnsConfigStruct {
 /**
  * 设置开启和关闭缓存启停功能，默认开启
  */
-- (void) WGSetSetOpenCacheRefresh: (BOOL)openCacheRefresh;
+- (void) WGSetEnableKeepDomainsAlive: (BOOL)enableKeepDomainsAlive;
 
 #pragma mark - 域名解析接口，按需调用
 /**

@@ -28,7 +28,7 @@
 - (void)msdkDnsSetPreResolvedDomains: (NSArray *)domains;
 - (void)msdkDnsSetAddressType: (HttpDnsAddressType)addressType;
 - (void)msdkDnsSetKeepAliveDomains: (NSArray *)domains;
-- (void)msdkDnsSetOpenCacheRefresh: (BOOL)openCacheRefresh;
+- (void)msdkDnsSetEnableKeepDomainsAlive: (BOOL)enableKeepDomainsAlive;
 
 - (NSString *) msdkDnsGetMDnsIp;
 - (NSString *) msdkDnsGetMOpenId;
@@ -47,5 +47,5 @@
 - (NSArray *)msdkDnsGetPreResolvedDomains;
 - (HttpDnsAddressType)msdkDnsGetAddressType;
 - (NSArray *)msdkDnsGetKeepAliveDomains;
-- (BOOL)msdkDnsGetOpenCacheRefresh;
+- (BOOL)msdkDnsGetEnableKeepDomainsAlive;
 @end

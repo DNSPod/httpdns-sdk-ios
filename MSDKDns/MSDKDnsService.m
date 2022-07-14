@@ -158,7 +158,7 @@
         [self callBack:resolver Info:info];
         if (resolver == self.httpDnsResolver_A || resolver == self.httpDnsResolver_4A || resolver == self.httpDnsResolver_BOTH) {
             NSArray *keepAliveDomains = [[MSDKDnsParamsManager shareInstance] msdkDnsGetKeepAliveDomains];
-            BOOL openCacheRefresh = [[MSDKDnsParamsManager shareInstance] msdkDnsGetOpenCacheRefresh];
+            BOOL enableKeepDomainsAlive = [[MSDKDnsParamsManager shareInstance] msdkDnsGetEnableKeepDomainsAlive];
             // 获取延迟记录字典
             NSMutableDictionary *domainISOpenDelayDispatch = [[MSDKDnsManager shareInstance] msdkDnsGetDomainISOpenDelayDispatch];
             [domainInfo enumerateKeysAndObjectsUsingBlock:^(id  _Nonnull domain, id  _Nonnull obj, BOOL * _Nonnull stop) {
@@ -166,7 +166,7 @@
                 // NSLog(@"domainInfo = %@", domainInfo);
                 
                 // 判断此次请求的域名中有多少属于保活域名，是则开启延时解析请求，自动刷新缓存
-                if (openCacheRefresh && keepAliveDomains && domain && [keepAliveDomains containsObject:domain]) {
+                if (enableKeepDomainsAlive && keepAliveDomains && domain && [keepAliveDomains containsObject:domain]) {
                     
                     NSMutableString * afterTime = [[NSMutableString alloc] init];
                     
@@ -199,8 +199,8 @@
                         MSDKDNSLOG(@"Start the delayed execution task, it is expected to start requesting the domain name %@ after %f seconds", domain, afterTime.floatValue);
                         dispatch_after(dispatch_time(DISPATCH_TIME_NOW,afterTime.floatValue* NSEC_PER_SEC), [MSDKDnsInfoTool msdkdns_queue], ^{
                             //  NSLog(@"延时更新请求开始!请求域名为%@",domain);
-                            BOOL openCacheRefresh = [[MSDKDnsParamsManager shareInstance] msdkDnsGetOpenCacheRefresh];
-                            if (openCacheRefresh) {
+                            BOOL enableKeepDomainsAlive = [[MSDKDnsParamsManager shareInstance] msdkDnsGetEnableKeepDomainsAlive];
+                            if (enableKeepDomainsAlive) {
                                 MSDKDNSLOG(@"The cache update request start! request domain:%@",domain);
                                 [[MSDKDnsManager shareInstance] refreshCacheDelay:@[domain] clearDispatchTag:YES];
                             }
