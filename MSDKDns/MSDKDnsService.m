@@ -203,6 +203,9 @@
                             if (enableKeepDomainsAlive) {
                                 MSDKDNSLOG(@"The cache update request start! request domain:%@",domain);
                                 [[MSDKDnsManager shareInstance] refreshCacheDelay:@[domain] clearDispatchTag:YES];
+                            }else {
+                                [[MSDKDnsManager shareInstance] msdkDnsClearDomainsOpenDelayDispatch:@[domain]];
+                                
                             }
                         });
                     }
