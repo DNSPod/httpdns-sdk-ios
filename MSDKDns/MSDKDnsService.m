@@ -215,6 +215,7 @@
             if (!routeip) {
                 routeip = @"";
             }
+            HttpsDnsResolver *httpResolver = (HttpsDnsResolver *)resolver;
             [[AttaReport sharedInstance] reportEvent:@{
                 @"eventName": MSDKDnsEventHttpDnsSpend,
                 @"dnsIp": [[MSDKDnsManager shareInstance] currentDnsServer],
@@ -225,6 +226,7 @@
                 @"req_query": @1,
                 @"req_ip": routeip,
                 @"spend": [domainDic objectForKey:kDnsTimeConsuming],
+                @"statusCode": @(httpResolver.statusCode),
             }];
         }
     }
@@ -272,6 +274,7 @@
             if (!routeip) {
                 routeip = @"";
             }
+            HttpsDnsResolver *httpResolver = (HttpsDnsResolver *)resolver;
             [[AttaReport sharedInstance] reportEvent:@{
                 @"eventName": MSDKDnsEventHttpDnsfail,
                 @"dnsIp": [[MSDKDnsManager shareInstance] currentDnsServer],
@@ -281,6 +284,7 @@
                 @"req_ttl": @1,
                 @"req_query": @1,
                 @"req_ip": routeip,
+                @"statusCode": @(httpResolver.statusCode),
             }];
         }
         [[MSDKDnsManager shareInstance] switchDnsServer];
