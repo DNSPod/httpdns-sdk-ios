@@ -106,6 +106,10 @@ static MSDKDns * _sharedInstance = nil;
     }
 }
 
+- (void) WGSetEnableKeepDomainsAlive: (BOOL)enableKeepDomainsAlive {
+    [[MSDKDnsParamsManager shareInstance] msdkDnsSetEnableKeepDomainsAlive:enableKeepDomainsAlive];
+}
+
 - (void) WGSetHijackDomainArray:(NSArray *)hijackDomainArray {
     if (hijackDomainArray) {
         [[MSDKDnsParamsManager shareInstance] setHijackDomainArray:[hijackDomainArray copy]];

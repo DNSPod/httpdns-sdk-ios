@@ -84,6 +84,11 @@ typedef struct DnsConfigStruct {
  */
 - (void) WGSetKeepAliveDomains:(NSArray *)domains;
 
+/**
+ * 设置开启和关闭缓存启停功能，默认开启
+ */
+- (void) WGSetEnableKeepDomainsAlive: (BOOL)enableKeepDomainsAlive;
+
 #pragma mark - 域名解析接口，按需调用
 /**
  域名同步解析（通用接口）
