@@ -151,6 +151,8 @@
     MSDKDNSLOG(@"HttpDnsResolver didReceiveResponse!");
     self.responseData = nil;
     self.responseData = [NSMutableData new];
+    NSHTTPURLResponse *httpResponse = (NSHTTPURLResponse*)response;
+    self.statusCode = [httpResponse statusCode];
 }
 
 - (void)connection:(NSURLConnection *)connection didReceiveData:(NSData *)data {
