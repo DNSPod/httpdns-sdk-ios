@@ -38,6 +38,12 @@
 		54EA82232760890B005F68A9 /* AttaReport.m in Sources */ = {isa = PBXBuildFile; fileRef = 54EA82212760890B005F68A9 /* AttaReport.m */; };
 		54EA822427608A55005F68A9 /* AttaReport.h in Headers */ = {isa = PBXBuildFile; fileRef = 54EA82202760890B005F68A9 /* AttaReport.h */; };
 		54EA822527608A58005F68A9 /* AttaReport.m in Sources */ = {isa = PBXBuildFile; fileRef = 54EA82212760890B005F68A9 /* AttaReport.m */; };
+		5FE4BAB4289A4E4700C7A944 /* HttpdnsSpeedTester.h in Headers */ = {isa = PBXBuildFile; fileRef = 5FE4BAB1289A4E4700C7A944 /* HttpdnsSpeedTester.h */; };
+		5FE4BAB5289A4E4700C7A944 /* HttpdnsSpeedTester.h in Headers */ = {isa = PBXBuildFile; fileRef = 5FE4BAB1289A4E4700C7A944 /* HttpdnsSpeedTester.h */; };
+		5FE4BAB6289A4E4700C7A944 /* HttpdnsTCPSpeedTester.h in Headers */ = {isa = PBXBuildFile; fileRef = 5FE4BAB2289A4E4700C7A944 /* HttpdnsTCPSpeedTester.h */; };
+		5FE4BAB7289A4E4700C7A944 /* HttpdnsTCPSpeedTester.h in Headers */ = {isa = PBXBuildFile; fileRef = 5FE4BAB2289A4E4700C7A944 /* HttpdnsTCPSpeedTester.h */; };
+		5FE4BAB8289A4E4700C7A944 /* HttpdnsTCPSpeedTester.m in Sources */ = {isa = PBXBuildFile; fileRef = 5FE4BAB3289A4E4700C7A944 /* HttpdnsTCPSpeedTester.m */; };
+		5FE4BAB9289A4E4700C7A944 /* HttpdnsTCPSpeedTester.m in Sources */ = {isa = PBXBuildFile; fileRef = 5FE4BAB3289A4E4700C7A944 /* HttpdnsTCPSpeedTester.m */; };
 		C8EBE7D3256664C500BEFEEC /* aes.h in Headers */ = {isa = PBXBuildFile; fileRef = C8EBE7D1256664C400BEFEEC /* aes.h */; };
 		C8EBE7D4256664C500BEFEEC /* aes.mm in Sources */ = {isa = PBXBuildFile; fileRef = C8EBE7D2256664C500BEFEEC /* aes.mm */; };
 		C8EBE7F4256668A300BEFEEC /* libc++.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = C8EBE7DA2566675800BEFEEC /* libc++.tbd */; };
@@ -104,6 +110,9 @@
 		54EA81F1275478D1005F68A9 /* httpdnsIps.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = httpdnsIps.h; sourceTree = "<group>"; };
 		54EA82202760890B005F68A9 /* AttaReport.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AttaReport.h; sourceTree = "<group>"; };
 		54EA82212760890B005F68A9 /* AttaReport.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AttaReport.m; sourceTree = "<group>"; };
+		5FE4BAB1289A4E4700C7A944 /* HttpdnsSpeedTester.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HttpdnsSpeedTester.h; sourceTree = "<group>"; };
+		5FE4BAB2289A4E4700C7A944 /* HttpdnsTCPSpeedTester.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HttpdnsTCPSpeedTester.h; sourceTree = "<group>"; };
+		5FE4BAB3289A4E4700C7A944 /* HttpdnsTCPSpeedTester.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = HttpdnsTCPSpeedTester.m; sourceTree = "<group>"; };
 		C8EBE7D1256664C400BEFEEC /* aes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = aes.h; sourceTree = "<group>"; };
 		C8EBE7D2256664C500BEFEEC /* aes.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = aes.mm; sourceTree = "<group>"; };
 		C8EBE7DA2566675800BEFEEC /* libc++.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = "libc++.tbd"; path = "Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk/usr/lib/libc++.tbd"; sourceTree = DEVELOPER_DIR; };
@@ -165,6 +174,9 @@
 				4497F8BC1B46306200D51391 /* MSDKDnsPrivate.h */,
 				504F54381ECAF89F001BD7A9 /* MSDKDnsHttpMessageTools.h */,
 				504F54391ECAF89F001BD7A9 /* MSDKDnsHttpMessageTools.m */,
+				5FE4BAB1289A4E4700C7A944 /* HttpdnsSpeedTester.h */,
+				5FE4BAB2289A4E4700C7A944 /* HttpdnsTCPSpeedTester.h */,
+				5FE4BAB3289A4E4700C7A944 /* HttpdnsTCPSpeedTester.m */,
 				C8EBE7D1256664C400BEFEEC /* aes.h */,
 				C8EBE7D2256664C500BEFEEC /* aes.mm */,
 				54EA821F2760890B005F68A9 /* Reporter */,
@@ -260,6 +272,7 @@
 				C8EBE7D3256664C500BEFEEC /* aes.h in Headers */,
 				445B36631CBD095C00BD4345 /* MSDKDnsManager.h in Headers */,
 				4497F8B81B4628F000D51391 /* MSDKDnsLog.h in Headers */,
+				5FE4BAB4289A4E4700C7A944 /* HttpdnsSpeedTester.h in Headers */,
 				4455D15E1B3A5B90005BF126 /* MSDKDns.h in Headers */,
 				448EE4E61B329899004A2131 /* LocalDnsResolver.h in Headers */,
 				DD5935581DDC56B200BF9348 /* HttpsDnsResolver.h in Headers */,
@@ -270,6 +283,7 @@
 				4497F8BD1B46306200D51391 /* MSDKDnsPrivate.h in Headers */,
 				444044F91B3133A30010F5D5 /* MSDKDnsService.h in Headers */,
 				501001F0215E1F1D003288A5 /* msdkdns_local_ip_stack.h in Headers */,
+				5FE4BAB6289A4E4700C7A944 /* HttpdnsTCPSpeedTester.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -283,6 +297,7 @@
 				2FBE52E825E77AFE0012A0DF /* aes.h in Headers */,
 				DD43F4A9231CC36D0000A89F /* MSDKDnsManager.h in Headers */,
 				DD43F4AA231CC36D0000A89F /* MSDKDnsLog.h in Headers */,
+				5FE4BAB5289A4E4700C7A944 /* HttpdnsSpeedTester.h in Headers */,
 				DD43F4AB231CC36D0000A89F /* MSDKDns.h in Headers */,
 				DD43F4AC231CC36D0000A89F /* LocalDnsResolver.h in Headers */,
 				DD43F4AD231CC36D0000A89F /* HttpsDnsResolver.h in Headers */,
@@ -293,6 +308,7 @@
 				DD43F4B1231CC36D0000A89F /* MSDKDnsPrivate.h in Headers */,
 				DD43F4B2231CC36D0000A89F /* MSDKDnsService.h in Headers */,
 				DD43F4B3231CC36D0000A89F /* msdkdns_local_ip_stack.h in Headers */,
+				5FE4BAB7289A4E4700C7A944 /* HttpdnsTCPSpeedTester.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -484,6 +500,7 @@
 				445B36651CBD095C00BD4345 /* MSDKDnsManager.m in Sources */,
 				444044FA1B3133A30010F5D5 /* MSDKDnsService.m in Sources */,
 				501001EE215E1F1D003288A5 /* msdkdns_local_ip_stack.cpp in Sources */,
+				5FE4BAB8289A4E4700C7A944 /* HttpdnsTCPSpeedTester.m in Sources */,
 				44BFE24A1CA59D9800D7FE87 /* MSDKDnsReachability.m in Sources */,
 				C8EBE7D4256664C500BEFEEC /* aes.mm in Sources */,
 				445B366B1CBD1D4700BD4345 /* MSDKDnsNetworkManager.m in Sources */,
@@ -506,6 +523,7 @@
 				DD43F499231CC36D0000A89F /* MSDKDnsManager.m in Sources */,
 				DD43F49A231CC36D0000A89F /* MSDKDnsService.m in Sources */,
 				2FBE52E925E77B000012A0DF /* aes.mm in Sources */,
+				5FE4BAB9289A4E4700C7A944 /* HttpdnsTCPSpeedTester.m in Sources */,
 				DD43F49B231CC36D0000A89F /* msdkdns_local_ip_stack.cpp in Sources */,
 				DD43F49C231CC36D0000A89F /* MSDKDnsReachability.m in Sources */,
 				DD43F49D231CC36D0000A89F /* MSDKDnsNetworkManager.m in Sources */,
