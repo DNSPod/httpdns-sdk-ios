@@ -4,6 +4,7 @@
 
 #import "HttpdnsTCPSpeedTester.h"
 #import "MSDKDnsParamsManager.h"
+#import "MSDKDnsLog.h"
 #import <sys/socket.h>
 #import <netinet/in.h>
 #import <fcntl.h>
