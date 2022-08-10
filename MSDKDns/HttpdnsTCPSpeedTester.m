@@ -1,20 +1,5 @@
-/*
- * Licensed to the Apache Software Foundation (ASF) under one
- * or more contributor license agreements.  See the NOTICE file
- * distributed with this work for additional information
- * regarding copyright ownership.  The ASF licenses this file
- * to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance
- * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied.  See the License for the
- * specific language governing permissions and limitations
- * under the License.
+/**
+ * Copyright (c) Tencent. All rights reserved.
  */
 
 #import "HttpdnsTCPSpeedTester.h"
@@ -73,7 +58,7 @@ static NSString *const ipKey = @"ip";
     NSMutableArray<NSDictionary *> *IPSpeeds = [NSMutableArray arrayWithCapacity:IPs.count];
     for (NSString *ip in IPs) {
         float testSpeed =  [self testSpeedOf:ip port:port];
-        NSLog(@"%@:%hd speed is %f",ip,port,testSpeed);
+        MSDKDNSLOG(@"%@:%hd speed is %f",ip,port,testSpeed);
         if (testSpeed == 0) {
             testSpeed = HTTPDNS_SOCKET_CONNECT_TIMEOUT_RTT;
         }
@@ -124,7 +109,7 @@ static NSString *const ipKey = @"ip";
     saddr.sin_addr.s_addr = inet_addr([ip UTF8String]);
     //saddr.sin_addr.s_addr = inet_addr("1.1.1.123");
     if( (s=socket(AF_INET, SOCK_STREAM, 0)) < 0) {
-        NSLog(@"ERROR:%s:%d, create socket failed.",__FUNCTION__,__LINE__);
+        MSDKDNSLOG(@"ERROR:%s:%d, create socket failed.",__FUNCTION__,__LINE__);
         return 0;
     }
     NSDate *startTime = [NSDate date];
@@ -161,14 +146,14 @@ static NSString *const ipKey = @"ip";
     int j = select(maxfdp, NULL, &myset, NULL, &tv);
     
     if (j == 0) {
-        NSLog(@"INFO:%s:%d, test rtt of (%@) timeout.",__FUNCTION__,__LINE__, oldIp);
+        MSDKDNSLOG(@"INFO:%s:%d, test rtt of (%@) timeout.",__FUNCTION__,__LINE__, oldIp);
         rtt = HTTPDNS_SOCKET_CONNECT_TIMEOUT_RTT;
         close(s);
         return rtt;
     }
     
     if (j < 0) {
-        NSLog(@"ERROR:%s:%d, select function error.",__FUNCTION__,__LINE__);
+        MSDKDNSLOG(@"ERROR:%s:%d, select function error.",__FUNCTION__,__LINE__);
         rtt = 0;
         close(s);
         return rtt;
@@ -188,7 +173,7 @@ static NSString *const ipKey = @"ip";
     getsockopt(s, SOL_SOCKET, SO_ERROR, (void*)(&valopt), &lon);
     //如果有错误信息：
     if (valopt) {
-        NSLog(@"ERROR:%s:%d, select function error.",__FUNCTION__,__LINE__);
+        MSDKDNSLOG(@"ERROR:%s:%d, select function error.",__FUNCTION__,__LINE__);
         rtt = 0;
     } else {
         endTime = [NSDate date];
