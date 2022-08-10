@@ -252,7 +252,7 @@
     
     // 正常解析结果上报，上报解析耗时
     if (resolver == self.httpDnsResolver_A || resolver == self.httpDnsResolver_4A || resolver == self.httpDnsResolver_BOTH) {
-       if ([[MSDKDnsParamsManager shareInstance] msdkDnsGetEnableReport] && [[AttaReport sharedInstance] shoulReportDnsSpend]) {
+      if ([[MSDKDnsParamsManager shareInstance] msdkDnsGetEnableReport] && [[AttaReport sharedInstance] shoulReportDnsSpend]) {
             NSDictionary *domainDic = [domainInfo objectForKey:[self.toCheckDomains firstObject]];
             NSString* routeip = [[MSDKDnsParamsManager shareInstance] msdkDnsGetRouteIp];
             if (!routeip) {
@@ -274,11 +274,17 @@
                     timeConsuming = [domainDic objectForKey:kDnsTimeConsuming];
                 }
             }
+           NSString *req_type = @"a";
+           if (resolver == self.httpDnsResolver_4A) {
+               req_type = @"aaaa";
+           }else if (resolver == self.httpDnsResolver_BOTH) {
+               req_type = @"addrs";
+           }
             [[AttaReport sharedInstance] reportEvent:@{
                 @"eventName": MSDKDnsEventHttpDnsSpend,
                 @"dnsIp": [[MSDKDnsManager shareInstance] currentDnsServer],
                 @"req_dn": [self.toCheckDomains componentsJoinedByString:@","],
-                @"req_type": resolver == self.httpDnsResolver_4A ? @"aaaa" : @"a",
+                @"req_type": req_type,
                 @"req_timeout": @(self.timeOut * 1000),
                 @"req_ttl": @1,
                 @"req_query": @1,
@@ -287,7 +293,7 @@
                 @"statusCode": @(httpResolver.statusCode),
             }];
        }
-    }
+   }
 }
 
 - (void)aysncUpdateIPRankingWithResult:(NSArray *)IPStrings forHost:(NSString *)host {
@@ -384,11 +390,17 @@
                 routeip = @"";
             }
             HttpsDnsResolver *httpResolver = (HttpsDnsResolver *)resolver;
+            NSString *req_type = @"a";
+            if (resolver == self.httpDnsResolver_4A) {
+                req_type = @"aaaa";
+            }else if (resolver == self.httpDnsResolver_BOTH) {
+                req_type = @"addrs";
+            }
             [[AttaReport sharedInstance] reportEvent:@{
                 @"eventName": MSDKDnsEventHttpDnsfail,
                 @"dnsIp": [[MSDKDnsManager shareInstance] currentDnsServer],
                 @"req_dn": [self.toCheckDomains componentsJoinedByString:@","],
-                @"req_type": resolver == self.httpDnsResolver_4A ? @"aaaa" : @"a",
+                @"req_type": req_type,
                 @"req_timeout": @(self.timeOut * 1000),
                 @"req_ttl": @1,
                 @"req_query": @1,
