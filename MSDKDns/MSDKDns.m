@@ -128,6 +128,10 @@ static MSDKDns * _sharedInstance = nil;
     }
 }
 
+- (void) WGSetExpiredIPEnabled:(BOOL)enable {
+    [[MSDKDnsParamsManager shareInstance] msdkDnsSetExpiredIPEnabled:enable];
+}
+
 #pragma mark - get host by name
 
 - (NSArray *) WGGetHostByName:(NSString *)domain {

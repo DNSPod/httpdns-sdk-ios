@@ -94,6 +94,11 @@ typedef struct DnsConfigStruct {
  */
 - (void) WGSetEnableKeepDomainsAlive: (BOOL)enableKeepDomainsAlive;
 
+/**
+ * 设置允许返回TTL过期域名的IP，默认关闭
+ */
+- (void) WGSetExpiredIPEnabled:(BOOL)enable;
+
 #pragma mark - 域名解析接口，按需调用
 /**
  域名同步解析（通用接口）
