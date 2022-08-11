@@ -106,6 +106,12 @@ static MSDKDns * _sharedInstance = nil;
     }
 }
 
+- (void) WGSetIPRankData:(NSDictionary *)IPRankData {
+    if (IPRankData) {
+        [[MSDKDnsParamsManager shareInstance] msdkDnsSetIPRankData:IPRankData];
+    }
+}
+
 - (void) WGSetEnableKeepDomainsAlive: (BOOL)enableKeepDomainsAlive {
     [[MSDKDnsParamsManager shareInstance] msdkDnsSetEnableKeepDomainsAlive:enableKeepDomainsAlive];
 }

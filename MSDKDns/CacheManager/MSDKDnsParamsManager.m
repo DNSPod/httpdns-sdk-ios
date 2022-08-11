@@ -33,6 +33,7 @@
 @property (strong, nonatomic, readwrite) NSArray* preResolvedDomains;
 @property (assign, nonatomic, readwrite) HttpDnsAddressType msdkAddressType;
 @property (strong, nonatomic, readwrite) NSArray* keepAliveDomains;
+@property (strong, nonatomic, readwrite) NSDictionary* IPRankData;
 @property (assign, nonatomic, readwrite) BOOL enableKeepDomainsAlive;
 
 @end
@@ -166,6 +167,12 @@ static MSDKDnsParamsManager * _sharedInstance = nil;
     });
 }
 
+- (void)msdkDnsSetIPRankData: (NSDictionary *)IPRankData {
+    dispatch_async([MSDKDnsInfoTool msdkdns_queue], ^{
+        self.IPRankData = [IPRankData copy];
+    });
+}
+
 - (void)msdkDnsSetEnableKeepDomainsAlive: (BOOL)enableKeepDomainsAlive {
     dispatch_async([MSDKDnsInfoTool msdkdns_queue], ^{
         self.enableKeepDomainsAlive = enableKeepDomainsAlive;
@@ -248,6 +255,10 @@ static MSDKDnsParamsManager * _sharedInstance = nil;
 
 - (NSArray *)msdkDnsGetKeepAliveDomains {
     return _keepAliveDomains;
+}
+
+- (NSDictionary *)msdkDnsGetIPRankData {
+    return _IPRankData;
 }
 
 - (BOOL)msdkDnsGetEnableKeepDomainsAlive {

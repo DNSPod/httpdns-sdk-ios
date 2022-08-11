@@ -10,6 +10,7 @@
 #import "MSDKDnsManager.h"
 #import "MSDKDnsNetworkManager.h"
 #import "MSDKDnsParamsManager.h"
+#import "MSDKDnsTCPSpeedTester.h"
 #import "AttaReport.h"
 
 @interface MSDKDnsService () <MSDKDnsResolverDelegate>
@@ -213,30 +214,144 @@
                 }
             }];
         }
+        
+        if (resolver == self.httpDnsResolver_A || resolver == self.httpDnsResolver_BOTH) {
+            NSDictionary *IPRankData = [[MSDKDnsParamsManager shareInstance] msdkDnsGetIPRankData];
+            if (IPRankData) {
+                [domainInfo enumerateKeysAndObjectsUsingBlock:^(id  _Nonnull domain, id  _Nonnull obj, BOOL * _Nonnull stop) {
+                    if (!domain) {
+                        return;
+                    }
+                    NSArray *allHost = [IPRankData allKeys];
+                    
+                    if (!allHost || allHost.count == 0) {
+                        return;
+                    }
+                    if (![allHost containsObject:domain]) {
+                        return;
+                    }
+                    @try {
+                        if(resolver == self.httpDnsResolver_BOTH){
+                            NSDictionary *domainResult = domainInfo[domain];
+                            if (domainResult) {
+                                NSDictionary *ipv4Value = [domainResult objectForKey:@"ipv4"];
+                                if (ipv4Value) {
+                                    NSArray *ips = [ipv4Value objectForKey:kIP];
+                                    if(ips){
+                                        [self aysncUpdateIPRankingWithResult:ips forHost:domain];
+                                    }
+                                }
+                            }
+                        }else{
+                            NSDictionary *domainResult = domainInfo[domain];
+                            if (domainResult) {
+                                NSArray *ips = [domainResult objectForKey:kIP];
+                                if(ips){
+                                    [self aysncUpdateIPRankingWithResult:ips forHost:domain];
+                                }
+                            }
+                        }
+                    } @catch (NSException *exception) {}
+                }];
+            }
+        }
     });
+    
     // 正常解析结果上报，上报解析耗时
     if (resolver == self.httpDnsResolver_A || resolver == self.httpDnsResolver_4A || resolver == self.httpDnsResolver_BOTH) {
-        if ([[MSDKDnsParamsManager shareInstance] msdkDnsGetEnableReport] && [[AttaReport sharedInstance] shoulReportDnsSpend]) {
+      if ([[MSDKDnsParamsManager shareInstance] msdkDnsGetEnableReport] && [[AttaReport sharedInstance] shoulReportDnsSpend]) {
             NSDictionary *domainDic = [domainInfo objectForKey:[self.toCheckDomains firstObject]];
             NSString* routeip = [[MSDKDnsParamsManager shareInstance] msdkDnsGetRouteIp];
             if (!routeip) {
                 routeip = @"";
             }
             HttpsDnsResolver *httpResolver = (HttpsDnsResolver *)resolver;
+            NSString *timeConsuming = @"";
+            if (domainDic) {
+                if(resolver == self.httpDnsResolver_BOTH){
+                    NSDictionary *ipv4CacheValue = [domainDic objectForKey:@"ipv4"];
+                    NSDictionary *ipv6CacheValue = [domainDic objectForKey:@"ipv6"];
+                    if (ipv4CacheValue) {
+                        timeConsuming = [ipv4CacheValue objectForKey:kDnsTimeConsuming];
+                    }
+                    if (ipv6CacheValue) {
+                        timeConsuming = [ipv6CacheValue objectForKey:kDnsTimeConsuming];
+                    }
+                }else{
+                    timeConsuming = [domainDic objectForKey:kDnsTimeConsuming];
+                }
+            }
+           NSString *req_type = @"a";
+           if (resolver == self.httpDnsResolver_4A) {
+               req_type = @"aaaa";
+           }else if (resolver == self.httpDnsResolver_BOTH) {
+               req_type = @"addrs";
+           }
             [[AttaReport sharedInstance] reportEvent:@{
                 @"eventName": MSDKDnsEventHttpDnsSpend,
                 @"dnsIp": [[MSDKDnsManager shareInstance] currentDnsServer],
                 @"req_dn": [self.toCheckDomains componentsJoinedByString:@","],
-                @"req_type": resolver == self.httpDnsResolver_4A ? @"aaaa" : @"a",
+                @"req_type": req_type,
                 @"req_timeout": @(self.timeOut * 1000),
                 @"req_ttl": @1,
                 @"req_query": @1,
                 @"req_ip": routeip,
-                @"spend": [domainDic objectForKey:kDnsTimeConsuming],
+                @"spend": timeConsuming,
                 @"statusCode": @(httpResolver.statusCode),
             }];
-        }
+       }
+   }
+}
+
+- (void)aysncUpdateIPRankingWithResult:(NSArray *)IPStrings forHost:(NSString *)host {
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^(void) {
+        [self syncUpdateIPRankingWithResult:IPStrings forHost:host];
+    });
+}
+
+- (void)syncUpdateIPRankingWithResult:(NSArray *)IPStrings forHost:(NSString *)host {
+    NSArray *sortedIps = [[MSDKDnsTCPSpeedTester new] ipRankingWithIPs:IPStrings host:host];
+    [self updateHostManagerDictWithIPs:sortedIps host:host];
+}
+
+- (void)updateHostManagerDictWithIPs:(NSArray *)IPs host:(NSString *)host {
+    if(!IPs){
+        return;
     }
+    dispatch_async([MSDKDnsInfoTool msdkdns_queue], ^{
+        NSDictionary * tempDict = [[[MSDKDnsManager shareInstance] domainDict] objectForKey:host];
+        NSMutableDictionary *cacheDict;
+        
+                  
+        if (tempDict) {
+            cacheDict = [NSMutableDictionary dictionaryWithDictionary:tempDict];
+
+            if (self.httpDnsResolver_A && self.httpDnsResolver_A.domainInfo) {
+                
+                NSDictionary *cacheValue = [self.httpDnsResolver_A.domainInfo objectForKey:host];
+                if (cacheValue) {
+                    NSMutableDictionary *newCacheValue = [NSMutableDictionary dictionaryWithDictionary:cacheValue];
+                    [newCacheValue setValue:IPs forKey:kIP];
+                    [cacheDict setObject:newCacheValue forKey:kMSDKHttpDnsCache_A];
+                }
+                
+            } else if (self.httpDnsResolver_BOTH && self.httpDnsResolver_BOTH.domainInfo) {
+                NSDictionary *cacheValue = [self.httpDnsResolver_BOTH.domainInfo objectForKey:host];
+                if (cacheValue) {
+                    NSDictionary *ipv4CacheValue = [cacheValue objectForKey:@"ipv4"];
+                    if (ipv4CacheValue) {
+                        NSMutableDictionary *newCacheValue = [NSMutableDictionary dictionaryWithDictionary:ipv4CacheValue];
+                        [newCacheValue setValue:IPs forKey:kIP];
+                        [cacheDict setObject:newCacheValue forKey:kMSDKHttpDnsCache_A];
+                    }
+                }
+            }
+            
+            if (cacheDict && host) {
+                [[MSDKDnsManager shareInstance] cacheDomainInfo:cacheDict Domain:host];
+            }
+        }
+    });
 }
 
 - (void)resolver:(MSDKDnsResolver *)resolver getDomainError:(NSString *)error retry:(BOOL)retry {
@@ -282,11 +397,17 @@
                 routeip = @"";
             }
             HttpsDnsResolver *httpResolver = (HttpsDnsResolver *)resolver;
+            NSString *req_type = @"a";
+            if (resolver == self.httpDnsResolver_4A) {
+                req_type = @"aaaa";
+            }else if (resolver == self.httpDnsResolver_BOTH) {
+                req_type = @"addrs";
+            }
             [[AttaReport sharedInstance] reportEvent:@{
                 @"eventName": MSDKDnsEventHttpDnsfail,
                 @"dnsIp": [[MSDKDnsManager shareInstance] currentDnsServer],
                 @"req_dn": [self.toCheckDomains componentsJoinedByString:@","],
-                @"req_type": resolver == self.httpDnsResolver_4A ? @"aaaa" : @"a",
+                @"req_type": req_type,
                 @"req_timeout": @(self.timeOut * 1000),
                 @"req_ttl": @1,
                 @"req_query": @1,
