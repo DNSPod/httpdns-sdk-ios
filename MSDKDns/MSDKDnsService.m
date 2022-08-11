@@ -10,7 +10,7 @@
 #import "MSDKDnsManager.h"
 #import "MSDKDnsNetworkManager.h"
 #import "MSDKDnsParamsManager.h"
-#import "HttpdnsTCPSpeedTester.h"
+#import "MSDKDnsTCPSpeedTester.h"
 #import "AttaReport.h"
 
 @interface MSDKDnsService () <MSDKDnsResolverDelegate>
@@ -310,7 +310,7 @@
 }
 
 - (void)syncUpdateIPRankingWithResult:(NSArray *)IPStrings forHost:(NSString *)host {
-    NSArray *sortedIps = [[HttpdnsTCPSpeedTester new] ipRankingWithIPs:IPStrings host:host];
+    NSArray *sortedIps = [[MSDKDnsTCPSpeedTester new] ipRankingWithIPs:IPStrings host:host];
     [self updateHostManagerDictWithIPs:sortedIps host:host];
 }
 
@@ -318,7 +318,7 @@
     if(!IPs){
         return;
     }
-    @synchronized(self) {
+    dispatch_async([MSDKDnsInfoTool msdkdns_queue], ^{
         NSDictionary * tempDict = [[[MSDKDnsManager shareInstance] domainDict] objectForKey:host];
         NSMutableDictionary *cacheDict;
         
@@ -351,7 +351,7 @@
                 [[MSDKDnsManager shareInstance] cacheDomainInfo:cacheDict Domain:host];
             }
         }
-    }
+    });
 }
 
 - (void)resolver:(MSDKDnsResolver *)resolver getDomainError:(NSString *)error retry:(BOOL)retry {
