@@ -69,4 +69,9 @@ static NSString * const MSDKDns_Success = @"0"; // 成功
 static NSString * const MSDKDnsEventHttpDnsfail = @"HttpDnsfail";
 static NSString * const MSDKDnsEventHttpDnsSpend = @"HttpDnsSpend";
 
+//命中缓存的状态
+static NSString * const MSDKDnsDomainCacheHit = @"domainCacheHit";         //命中缓存
+static NSString * const MSDKDnsDomainCacheExpired = @"domainCacheExpired"; //缓存过期
+static NSString * const MSDKDnsDomainCacheEmpty = @"domainCacheEmpty";     //没有缓存
+
 #endif

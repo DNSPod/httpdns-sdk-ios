@@ -26,6 +26,7 @@
 
 - (void)getHostsByNames:(NSArray *)domains verbose:(BOOL)verbose returnIps:(void (^)(NSDictionary * ipsDict))handler;
 - (NSDictionary *)getHostsByNames:(NSArray *)domains verbose:(BOOL)verbose;
+- (NSDictionary *)getHostsByNamesEnableExpired:(NSArray *)domains verbose:(BOOL)verbose;
 - (void)refreshCacheDelay:(NSArray *)domains clearDispatchTag:(BOOL)needClear;
 - (void)preResolveDomains;
 - (void)dnsHasDone:(MSDKDnsService *)service;

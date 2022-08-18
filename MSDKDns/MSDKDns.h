@@ -151,6 +151,30 @@ typedef struct DnsConfigStruct {
  */
 - (void)WGGetAllHostsByNamesAsync:(NSArray *)domains returnIps:(void (^)(NSDictionary * ipsDictionary))handler;
 
+/**
+ 域名解析乐观DNS（通用接口）
+
+ @param domain  域名
+ @param handler 返回缓存中查询到的IP数组，若不存在会返回[0,0]并且进行异步域名解析更新缓存
+ */
+- (NSArray *) WGGetHostByNameEnableExpired:(NSString *)domain;
+
+/**
+ 域名解析乐观DNS（通用接口）
+
+ @param domains  域名数组
+ @param handler 返回缓存中查询到的IP数组，若不存在会返回[0,0]并且进行异步域名解析更新缓存
+ */
+- (NSDictionary *) WGGetHostsByNamesEnableExpired:(NSArray *)domains;
+
+/**
+ 域名解析乐观DNS（通用接口）
+
+ @param domains  域名数组
+ @param handler 返回缓存中查询到的IP数组，若不存在会返回[0,0]并且进行异步域名解析更新缓存
+ */
+- (NSDictionary *) WGGetAllHostsByNamesEnableExpired:(NSArray *)domains;
+
 #pragma mark - SNI场景，仅调用一次即可，请勿多次调用
 /**
  SNI场景下设置需要拦截的域名列表

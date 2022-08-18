@@ -69,9 +69,12 @@ static MSDKDnsNetworkManager *manager = nil;
                                                              queue:nil
                                                         usingBlock:^(NSNotification *note)
              {
-                MSDKDNSLOG(@"Network did changed,clear MSDKDns cache");
-                //网络状态发生变化时清除缓存
-                [[MSDKDnsManager shareInstance] clearAllCache];
+                BOOL expiredIPEnabled = [[MSDKDnsParamsManager shareInstance] msdkDnsGetExpiredIPEnabled];
+                if (!expiredIPEnabled) {
+                    MSDKDNSLOG(@"Network did changed,clear MSDKDns cache");
+                    //网络状态发生变化时清除缓存
+                    [[MSDKDnsManager shareInstance] clearAllCache];
+                }
                 //对保活域名发送解析请求
                 [self getHostsByKeepAliveDomains];
                 //重置ip指针
@@ -83,9 +86,12 @@ static MSDKDnsNetworkManager *manager = nil;
                                                              queue:nil
                                                         usingBlock:^(NSNotification *note)
              {
-                MSDKDNSLOG(@"Application did enter background,clear MSDKDns cache");
-                //进入后台时清除缓存，暂停网络监测
-                [[MSDKDnsManager shareInstance] clearAllCache];
+                BOOL expiredIPEnabled = [[MSDKDnsParamsManager shareInstance] msdkDnsGetExpiredIPEnabled];
+                if (!expiredIPEnabled) {
+                    MSDKDNSLOG(@"Application did enter background,clear MSDKDns cache");
+                    //进入后台时清除缓存，暂停网络监测
+                    [[MSDKDnsManager shareInstance] clearAllCache];
+                }
                 [self.reachability stopNotifier];
             }];
             
