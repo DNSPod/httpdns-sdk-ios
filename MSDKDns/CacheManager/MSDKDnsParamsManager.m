@@ -182,11 +182,8 @@ static MSDKDnsParamsManager * _sharedInstance = nil;
 }
 
 - (void)msdkDnsSetExpiredIPEnabled: (BOOL)enable {
-    if (_expiredIPEnabled == enable) {
-        return;
-    }
     dispatch_async([MSDKDnsInfoTool msdkdns_queue], ^{
-        self.expiredIPEnabled = enable;
+       self.expiredIPEnabled = enable;
     });
 }
 

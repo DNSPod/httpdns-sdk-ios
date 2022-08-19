@@ -353,7 +353,6 @@ static MSDKDns * _sharedInstance = nil;
             MSDKDNSLOG(@"MSDKDns Result is Empty!");
             return dnsResult;
         }
-        [[MSDKDnsParamsManager shareInstance] msdkDnsSetExpiredIPEnabled:YES];
         // 转换成小写
         domain = [domain lowercaseString];
         NSDate * date = [NSDate date];
@@ -381,7 +380,6 @@ static MSDKDns * _sharedInstance = nil;
             MSDKDNSLOG(@"MSDKDns Result is Empty!");
             return dnsResult;
         }
-        [[MSDKDnsParamsManager shareInstance] msdkDnsSetExpiredIPEnabled:YES];
         // 转换成小写
         NSMutableArray *lowerCaseArray = [NSMutableArray array];
         for(int i = 0; i < [domains count]; i++) {
@@ -410,7 +408,6 @@ static MSDKDns * _sharedInstance = nil;
             MSDKDNSLOG(@"MSDKDns Result is Empty!");
             return dnsResult;
         }
-        [[MSDKDnsParamsManager shareInstance] msdkDnsSetExpiredIPEnabled:YES];
         // 转换成小写
         NSMutableArray *lowerCaseArray = [NSMutableArray array];
         for(int i = 0; i < [domains count]; i++) {
