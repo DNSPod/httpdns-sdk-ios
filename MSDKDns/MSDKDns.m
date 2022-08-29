@@ -132,6 +132,11 @@ static MSDKDns * _sharedInstance = nil;
     [[MSDKDnsParamsManager shareInstance] msdkDnsSetExpiredIPEnabled:enable];
 }
 
+- (void) WGSetPersistCacheIPEnabled:(BOOL)enable {
+    [[MSDKDnsParamsManager shareInstance] msdkDnsSetPersistCacheIPEnabled:enable];
+    [[MSDKDnsManager shareInstance] loadIPsFromPersistCacheAsync];
+}
+
 #pragma mark - get host by name
 
 - (NSArray *) WGGetHostByName:(NSString *)domain {

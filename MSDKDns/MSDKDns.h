@@ -99,6 +99,11 @@ typedef struct DnsConfigStruct {
  */
 - (void) WGSetExpiredIPEnabled:(BOOL)enable;
 
+/**
+ * 设置持久化缓存功能，默认关闭
+ */
+- (void) WGSetPersistCacheIPEnabled:(BOOL)enable;
+
 #pragma mark - 域名解析接口，按需调用
 /**
  域名同步解析（通用接口）

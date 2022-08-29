@@ -1,0 +1,39 @@
+/**
+ * Copyright (c) Tencent. All rights reserved.
+ */
+
+#if __cplusplus >= 201103L
+
+    #import <WCDB/WCDB.h>
+    #import "HTTPDNSORM.h"
+    #import "HTTPDNSORM+WCTTableCoding.h"
+    
+
+    @implementation HTTPDNSORM
+
+    WCDB_IMPLEMENTATION(HTTPDNSORM)
+
+    WCDB_SYNTHESIZE(HTTPDNSORM, domain)
+
+    WCDB_SYNTHESIZE(HTTPDNSORM, httpDnsIPV4Channel)
+    WCDB_SYNTHESIZE(HTTPDNSORM, httpDnsIPV4ClientIP)
+    WCDB_SYNTHESIZE(HTTPDNSORM, httpDnsIPV4IPs)
+    WCDB_SYNTHESIZE(HTTPDNSORM, httpDnsIPV4TimeConsuming)
+    WCDB_SYNTHESIZE(HTTPDNSORM, httpDnsIPV4TTL)
+    WCDB_SYNTHESIZE(HTTPDNSORM, httpDnsIPV4TTLExpried)
+
+    WCDB_SYNTHESIZE(HTTPDNSORM, httpDnsIPV6Channel)
+    WCDB_SYNTHESIZE(HTTPDNSORM, httpDnsIPV6ClientIP)
+    WCDB_SYNTHESIZE(HTTPDNSORM, httpDnsIPV6IPs)
+    WCDB_SYNTHESIZE(HTTPDNSORM, httpDnsIPV6TimeConsuming)
+    WCDB_SYNTHESIZE(HTTPDNSORM, httpDnsIPV6TTL)
+    WCDB_SYNTHESIZE(HTTPDNSORM, httpDnsIPV6TTLExpried)
+
+    WCDB_PRIMARY(HTTPDNSORM, domain)
+
+    WCDB_INDEX(HTTPDNSORM, "_index", domain)
+
+    @end
+
+#endif
+

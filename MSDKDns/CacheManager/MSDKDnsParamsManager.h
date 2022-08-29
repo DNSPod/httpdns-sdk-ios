@@ -31,6 +31,7 @@
 - (void)msdkDnsSetIPRankData: (NSDictionary *)IPRankData;
 - (void)msdkDnsSetEnableKeepDomainsAlive: (BOOL)enableKeepDomainsAlive;
 - (void)msdkDnsSetExpiredIPEnabled: (BOOL)enable;
+- (void)msdkDnsSetPersistCacheIPEnabled: (BOOL)enable;
 
 - (NSString *) msdkDnsGetMDnsIp;
 - (NSString *) msdkDnsGetMOpenId;
@@ -52,4 +53,5 @@
 - (NSDictionary *)msdkDnsGetIPRankData;
 - (BOOL)msdkDnsGetEnableKeepDomainsAlive;
 - (BOOL)msdkDnsGetExpiredIPEnabled;
+
 @end

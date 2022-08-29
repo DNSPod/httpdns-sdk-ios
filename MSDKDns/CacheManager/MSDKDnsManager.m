@@ -6,6 +6,7 @@
 #import "MSDKDnsService.h"
 #import "MSDKDnsLog.h"
 #import "MSDKDns.h"
+#import "MSDKDnsDB.h"
 #import "MSDKDnsInfoTool.h"
 #import "MSDKDnsParamsManager.h"
 #import "MSDKDnsNetworkManager.h"
@@ -824,7 +825,6 @@ static MSDKDnsManager * _sharedInstance = nil;
     return NO;
 }
 
-# pragma mark - check caches
 // 检查缓存状态
 - (NSString *) domianCache:(NSDictionary *)cache check:(NSString *)domain {
     NSDictionary * domainInfo = cache[domain];
@@ -844,6 +844,17 @@ static MSDKDnsManager * _sharedInstance = nil;
         }
     }
     return MSDKDnsDomainCacheEmpty;
+}
+
+- (void)loadIPsFromPersistCacheAsync {
+    dispatch_async([MSDKDnsInfoTool msdkdns_queue], ^{
+        NSDictionary *result = [[MSDKDnsDB shareInstance] getDataFromDB];
+        NSLog(@"loadDB domainInfo = %@",result);
+        for (NSString *domain in result) {
+            NSDictionary *domainInfo = result[domain];
+            [self cacheDomainInfo:domainInfo Domain:domain];
+        }
+    });
 }
 
 # pragma mark - detect address type

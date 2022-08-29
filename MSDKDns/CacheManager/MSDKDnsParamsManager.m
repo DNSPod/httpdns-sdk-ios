@@ -36,6 +36,7 @@
 @property (strong, nonatomic, readwrite) NSDictionary* IPRankData;
 @property (assign, nonatomic, readwrite) BOOL enableKeepDomainsAlive;
 @property (assign, nonatomic, readwrite) BOOL expiredIPEnabled;
+@property (assign, nonatomic, readwrite) BOOL persistCacheIPEnabled;
 
 @end
 
@@ -187,6 +188,12 @@ static MSDKDnsParamsManager * _sharedInstance = nil;
     });
 }
 
+- (void)msdkDnsSetPersistCacheIPEnabled: (BOOL)enable {
+    dispatch_async([MSDKDnsInfoTool msdkdns_queue], ^{
+       self.persistCacheIPEnabled = enable;
+    });
+}
+
 #pragma mark - getter
 
 - (BOOL)msdkDnsGetHttpOnly {
@@ -276,4 +283,8 @@ static MSDKDnsParamsManager * _sharedInstance = nil;
     return _expiredIPEnabled;
 }
 
+- (BOOL)msdkDnsGetPersistCacheIPEnabled {
+    return _persistCacheIPEnabled;
+}
+ 
 @end

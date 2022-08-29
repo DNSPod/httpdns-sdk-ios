@@ -46,4 +46,5 @@
 // 批量删除
 - (void)msdkDnsClearDomainsOpenDelayDispatch:(NSArray *)domains;
 - (NSMutableDictionary *)msdkDnsGetDomainISOpenDelayDispatch;
+- (void)loadIPsFromPersistCacheAsync;
 @end

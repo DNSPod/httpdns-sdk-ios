@@ -8,6 +8,7 @@
 #import "MSDKDnsInfoTool.h"
 #import "MSDKDnsLog.h"
 #import "MSDKDnsManager.h"
+#import "MSDKDnsDB.h"
 #import "MSDKDnsNetworkManager.h"
 #import "MSDKDnsParamsManager.h"
 #import "MSDKDnsTCPSpeedTester.h"
@@ -538,7 +539,11 @@
         }
         
         if (cacheDict && domain) {
+            NSLog(@"cacheDict = %@", cacheDict);
             [[MSDKDnsManager shareInstance] cacheDomainInfo:cacheDict Domain:domain];
+            if (resolver && resolver != self.localDnsResolver){
+                [[MSDKDnsDB shareInstance] insertOrReplaceDomainInfo:cacheDict Domain:domain];
+            }
         }
     }
 }
