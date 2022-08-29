@@ -153,7 +153,13 @@ static MSDKDns * _sharedInstance = nil;
         //进行httpdns请求
         NSDate * date = [NSDate date];
         //进行httpdns请求
-        NSDictionary *res = [[MSDKDnsManager shareInstance] getHostsByNames:@[domain] verbose:NO];
+        NSDictionary * res = @{};
+        BOOL expiredIPEnabled = [[MSDKDnsParamsManager shareInstance] msdkDnsGetExpiredIPEnabled];
+        if (expiredIPEnabled) {
+            res = [[MSDKDnsManager shareInstance] getHostsByNamesEnableExpired:@[domain] verbose:NO];
+        } else {
+            res = [[MSDKDnsManager shareInstance] getHostsByNames:@[domain] verbose:NO];
+        }
         dnsResult = [res objectForKey:domain];
         NSTimeInterval time_consume = [[NSDate date] timeIntervalSinceDate:date] * 1000;
         MSDKDNSLOG(@"MSDKDns WGGetHostByName Total Time Consume is %.1fms", time_consume);
@@ -188,7 +194,12 @@ static MSDKDns * _sharedInstance = nil;
         //进行httpdns请求
         NSDate * date = [NSDate date];
         //进行httpdns请求
-        dnsResult = [[MSDKDnsManager shareInstance] getHostsByNames:domains verbose:NO];
+        BOOL expiredIPEnabled = [[MSDKDnsParamsManager shareInstance] msdkDnsGetExpiredIPEnabled];
+        if (expiredIPEnabled) {
+            dnsResult = [[MSDKDnsManager shareInstance] getHostsByNamesEnableExpired:domains verbose:NO];
+        } else {
+            dnsResult = [[MSDKDnsManager shareInstance] getHostsByNames:domains verbose:NO];
+        }
         NSTimeInterval time_consume = [[NSDate date] timeIntervalSinceDate:date] * 1000;
         MSDKDNSLOG(@"%@, MSDKDns Result is:%@",domains, dnsResult);
         MSDKDNSLOG(@"MSDKDns WGGetHostByName Total Time Consume is %.1fms", time_consume);
@@ -217,7 +228,12 @@ static MSDKDns * _sharedInstance = nil;
         //进行httpdns请求
         NSDate * date = [NSDate date];
         //进行httpdns请求
-        dnsResult = [[MSDKDnsManager shareInstance] getHostsByNames:domains verbose:YES];
+        BOOL expiredIPEnabled = [[MSDKDnsParamsManager shareInstance] msdkDnsGetExpiredIPEnabled];
+        if (expiredIPEnabled) {
+            dnsResult = [[MSDKDnsManager shareInstance] getHostsByNamesEnableExpired:domains verbose:YES];
+        } else {
+            dnsResult = [[MSDKDnsManager shareInstance] getHostsByNames:domains verbose:YES];
+        }
         NSTimeInterval time_consume = [[NSDate date] timeIntervalSinceDate:date] * 1000;
         MSDKDNSLOG(@"%@, MSDKDns Result is:%@",domains, dnsResult);
         MSDKDNSLOG(@"MSDKDns WGGetHostByName Total Time Consume is %.1fms", time_consume);
@@ -227,6 +243,14 @@ static MSDKDns * _sharedInstance = nil;
 
 - (void)WGGetHostByNameAsync:(NSString *)domain returnIps:(void (^)(NSArray *))handler {
     @synchronized(self) {
+        BOOL expiredIPEnabled = [[MSDKDnsParamsManager shareInstance] msdkDnsGetExpiredIPEnabled];
+        if (expiredIPEnabled) {
+            //开启了使用过期缓存功能，给出提示建议使用同步接口进行解析
+            @throw [NSException exceptionWithName:@"MSDKDns wrong use of api"
+                                               reason:@"WGGetHostByNameAsync cannot be used when useExpiredIpEnable is set to true, it is recommended to switch to the WGGetHostByName"
+                                             userInfo:nil];
+            return;
+        }
         MSDKDNSLOG(@"GetHostByNameAsync:%@",domain);
         if (!domain || domain.length == 0) {
             //请求域名为空，返回空
@@ -267,6 +291,14 @@ static MSDKDns * _sharedInstance = nil;
 
 - (void)WGGetHostsByNamesAsync:(NSArray *)domains returnIps:(void (^)(NSDictionary *))handler {
     @synchronized(self) {
+        BOOL expiredIPEnabled = [[MSDKDnsParamsManager shareInstance] msdkDnsGetExpiredIPEnabled];
+        if (expiredIPEnabled) {
+            //开启了使用过期缓存功能，给出提示建议使用同步接口进行解析
+            @throw [NSException exceptionWithName:@"MSDKDns wrong use of api"
+                                               reason:@"WGGetHostsByNamesAsync cannot be used when useExpiredIpEnable is set to true, it is recommended to switch to the WGGetHostsByNames"
+                                             userInfo:nil];
+            return;
+        }
         MSDKDNSLOG(@"GetHostByNameAsync:%@",domains);
         if (!domains || [domains count] == 0) {
             //请求域名为空，返回空
@@ -309,6 +341,14 @@ static MSDKDns * _sharedInstance = nil;
 
 - (void)WGGetAllHostsByNamesAsync:(NSArray *)domains returnIps:(void (^)(NSDictionary *))handler {
     @synchronized(self) {
+        BOOL expiredIPEnabled = [[MSDKDnsParamsManager shareInstance] msdkDnsGetExpiredIPEnabled];
+        if (expiredIPEnabled) {
+            //开启了使用过期缓存功能，给出提示建议使用同步接口进行解析
+            @throw [NSException exceptionWithName:@"MSDKDns wrong use of api"
+                                               reason:@"WGGetAllHostsByNamesAsync cannot be used when useExpiredIpEnable is set to true, it is recommended to switch to the WGGetAllHostsByNames"
+                                             userInfo:nil];
+            return;
+        }
         MSDKDNSLOG(@"GetHostByNameAsync:%@",domains);
         if (!domains || [domains count] == 0) {
             //请求域名为空，返回空
