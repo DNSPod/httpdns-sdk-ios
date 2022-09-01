@@ -5,7 +5,6 @@
 #import "MSDKDnsDB.h"
 #import "MSDKDnsLog.h"
 #import "MSDKDnsPrivate.h"
-#import <objc/message.h>
 
 #if __cplusplus >= 201103L
     #import <WCDB/WCDB.h>
@@ -46,14 +45,9 @@ static MSDKDnsDB * _sharedInstance = nil;
             MSDKDNSLOG(@"MSDKDns does not support persistent cache, we recommend using MSDKDns_C11");
         } else {
             @try {
-                NSTimeInterval time1 = [[NSDate date] timeIntervalSince1970];
                 NSArray *documentPaths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES);
-
                 NSString *baseDirectory = [documentPaths objectAtIndex:0];
-                
                 NSString *path = [baseDirectory stringByAppendingPathComponent:_tableName];
-                
-                NSLog(@"path =========== %@", path);
                 
                 _database = [[databaseClass alloc] initWithPath:path];
                 // 获取方法编号
@@ -67,8 +61,6 @@ static MSDKDnsDB * _sharedInstance = nil;
                         MSDKDNSLOG(@"database connection failed");
                     }
                 }
-                NSTimeInterval time2 = [[NSDate date] timeIntervalSince1970];
-                NSLog(@"===创建数据库==本次耗时=====：%fms", (time2 - time1) * 1000);
             } @catch (NSException *exception) {
                 MSDKDNSLOG(@"database connection failed");
             }
@@ -115,8 +107,6 @@ static MSDKDnsDB * _sharedInstance = nil;
     SEL insertOrReplaceObjectSEL = NSSelectorFromString(@"insertOrReplaceObject:into:");
     
     if (_database && [_database respondsToSelector:insertOrReplaceObjectSEL] ) {
-        NSTimeInterval time1 = [[NSDate date] timeIntervalSince1970];
-                    
         @try {
             IMP imp = [_database methodForSelector:insertOrReplaceObjectSEL];
             using insertData = BOOL (*)(id, SEL, id, NSString *);
@@ -127,10 +117,6 @@ static MSDKDnsDB * _sharedInstance = nil;
         } @catch (NSException *exception) {
             MSDKDNSLOG(@"Failed to insert data into database");
         }
-
-        NSTimeInterval time2 = [[NSDate date] timeIntervalSince1970];
-        NSLog(@"===插入数据库==本次耗时=====：%fms", (time2 - time1) * 1000);
-  
         NSDictionary *result = [self getDataFromDB];
         NSLog(@"loadDB domainInfo = %@",result);
     }
@@ -149,7 +135,6 @@ static MSDKDnsDB * _sharedInstance = nil;
     }
     
     if (_database && [_database respondsToSelector:getAllObjectsOfClassSEL]) {
-        NSTimeInterval time1 = [[NSDate date] timeIntervalSince1970];
         @try {
             IMP imp = [_database methodForSelector:getAllObjectsOfClassSEL];
             using GetAllData = NSArray* (*)(id, SEL, Class, NSString *);
@@ -185,9 +170,6 @@ static MSDKDnsDB * _sharedInstance = nil;
         } @catch (NSException *exception) {
             MSDKDNSLOG(@"Failed to insert data into database");
         }
-        
-        NSTimeInterval time2 = [[NSDate date] timeIntervalSince1970];
-        NSLog(@"===读取数据库==本次耗时=====：%fms", (time2 - time1) * 1000);
     }
     return newResult;
 }
@@ -203,55 +185,17 @@ static MSDKDnsDB * _sharedInstance = nil;
     }
     
     if (_database && [_database respondsToSelector:deleteObjectsFromTableSEL]) {
-        NSTimeInterval time1 = [[NSDate date] timeIntervalSince1970];
         @try {
             IMP imp = [_database methodForSelector:deleteObjectsFromTableSEL];
             using deleteData = BOOL (*)(id, SEL, NSString *, WCTExpr);
-            
-//            _database meth
-            
-//            //初始化HTTPDNSORM对象
-            id httpDnsData = [[HTTPDNSORM alloc] init];
-//
-//            // 获取HTTPDNSORM.domain
-//            SEL domainSEL = NSSelectorFromString(@"domain");
-//            IMP domainImp = [httpDnsData methodForSelector:domainSEL];
-//            using getDomainData = id (*)(id, SEL);
-//            id domainData = ((getDomainData) domainImp)(httpDnsData, domainSEL);
-//
-//            // 获取HTTPDNSORM.domain.in(domains)
-//            SEL inSEL = NSSelectorFromString(@"in:");
-//            IMP inImp = [domainData methodForSelector:inSEL];
-//            using inData = id (*)(id, SEL, NSArray *);
-//            id condition = ((inData) inImp)(domainData, inSEL, domains);
-            
-//            BOOL success = [_database deleteObjectsFromTable:_tableName where:HTTPDNSORM.domain.in(domains)];
-//            [HTTPDNSORM.domain in(domains)]
-            
-            
             // 删除表数据
-            
-//            BOOL success = ((deleteData) imp)(_database, deleteObjectsFromTableSEL, _tableName, [[HTTPDNSORMClass performSelector:@selector(@"domain")] performSelector:@selector(@"in:") withObject:domains]);
-//            NSLog(@"%@",objc_getClass("HTTPDNSORM"));
-            const WCTProperty & domainFunc = ((const WCTProperty &(*)(id, SEL))objc_msgSend)(objc_getClass("HTTPDNSORM"), NSSelectorFromString(@"domain"));
-            
-            WCTExpr condition = ((WCTExpr (*)(const WCTProperty &, SEL, id))objc_msgSend)(domainFunc, NSSelectorFromString(@"in"), domains);
-            
-            
-//            HTTPDNSORM.domain.in
-            
-//            objc_msgSend(objc_getClass("LGStudent"), sel_registerName("sayNB"))
            BOOL success = ((deleteData) imp)(_database, deleteObjectsFromTableSEL, _tableName, HTTPDNSORM.domain.in(domains));
-//             BOOL success = ((deleteData) imp)(_database, deleteObjectsFromTableSEL, _tableName, condition);
             if (!success) {
                 MSDKDNSLOG(@"Failed to delete data into database");
             }
         } @catch (NSException *exception) {
             MSDKDNSLOG(@"Failed to delete data into database");
         }
-        
-        NSTimeInterval time2 = [[NSDate date] timeIntervalSince1970];
-        NSLog(@"===删除数据库==本次耗时=====：%fms", (time2 - time1) * 1000);
     }
 }
 

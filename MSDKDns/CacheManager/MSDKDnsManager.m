@@ -849,7 +849,7 @@ static MSDKDnsManager * _sharedInstance = nil;
 - (void)loadIPsFromPersistCacheAsync {
     dispatch_async([MSDKDnsInfoTool msdkdns_queue], ^{
         NSDictionary *result = [[MSDKDnsDB shareInstance] getDataFromDB];
-        NSLog(@"loadDB domainInfo = %@",result);
+        MSDKDNSLOG(@"loadDB domainInfo = %@",result);
         NSMutableArray *expiredDomains = [[NSMutableArray alloc] init];
         for (NSString *domain in result) {
             NSDictionary *domainInfo = [result valueForKey:domain];
