@@ -850,11 +850,42 @@ static MSDKDnsManager * _sharedInstance = nil;
     dispatch_async([MSDKDnsInfoTool msdkdns_queue], ^{
         NSDictionary *result = [[MSDKDnsDB shareInstance] getDataFromDB];
         NSLog(@"loadDB domainInfo = %@",result);
+        NSMutableArray *expiredDomains = [[NSMutableArray alloc] init];
         for (NSString *domain in result) {
-            NSDictionary *domainInfo = result[domain];
+            NSDictionary *domainInfo = [result valueForKey:domain];
+            if ([self isDomainCacheExpired:domainInfo]) {
+                [expiredDomains addObject:domain];
+            }
             [self cacheDomainInfo:domainInfo Domain:domain];
         }
+        // 删除本地持久化缓存中过期缓存
+        if (expiredDomains && expiredDomains.count > 0){
+            [[MSDKDnsDB shareInstance] deleteDBData:expiredDomains];
+        }
     });
+}
+
+- (BOOL)isDomainCacheExpired: (NSDictionary *)domainInfo {
+    NSDictionary *httpDnsIPV4Info = [domainInfo valueForKey:kMSDKHttpDnsCache_A];
+    NSDictionary *httpDnsIPV6Info = [domainInfo valueForKey:kMSDKHttpDnsCache_4A];
+    NSMutableString *expiredTime = [[NSMutableString alloc] init];
+    double nowTime = [[NSDate date] timeIntervalSince1970];
+    if (httpDnsIPV4Info) {
+        NSString *ipv4ExpiredTime = [httpDnsIPV4Info valueForKey:kTTLExpired];
+        if (ipv4ExpiredTime) {
+            expiredTime = [[NSMutableString alloc]initWithString:ipv4ExpiredTime];
+        }
+    }
+    if (httpDnsIPV6Info) {
+        NSString *ipv6ExpiredTime = [httpDnsIPV6Info valueForKey:kTTLExpired];
+        if (ipv6ExpiredTime) {
+            expiredTime = [[NSMutableString alloc]initWithString:ipv6ExpiredTime];
+        }
+    }
+    if (expiredTime && nowTime <= expiredTime.doubleValue) {
+        return false;
+    }
+    return true;
 }
 
 # pragma mark - detect address type

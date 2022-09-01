@@ -5,6 +5,7 @@
 #import "MSDKDnsDB.h"
 #import "MSDKDnsLog.h"
 #import "MSDKDnsPrivate.h"
+#import <objc/message.h>
 
 #if __cplusplus >= 201103L
     #import <WCDB/WCDB.h>
@@ -46,7 +47,15 @@ static MSDKDnsDB * _sharedInstance = nil;
         } else {
             @try {
                 NSTimeInterval time1 = [[NSDate date] timeIntervalSince1970];
-                _database = [[databaseClass alloc] initWithPath:@"/Users/erichu/Library/HttpDNSTable"];
+                NSArray *documentPaths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES);
+
+                NSString *baseDirectory = [documentPaths objectAtIndex:0];
+                
+                NSString *path = [baseDirectory stringByAppendingPathComponent:_tableName];
+                
+                NSLog(@"path =========== %@", path);
+                
+                _database = [[databaseClass alloc] initWithPath:path];
                 // 获取方法编号
                 SEL createTableAndIndexesOfNameSEL = NSSelectorFromString(@"createTableAndIndexesOfName:withClass:");
                 // 调用WCTDatabase类的方法
@@ -136,9 +145,10 @@ static MSDKDnsDB * _sharedInstance = nil;
     
     if (HTTPDNSORMClass == 0x0) {
         MSDKDNSLOG(@"MSDKDns does not support persistent cache, we recommend using MSDKDns_C11");
+        return newResult;
     }
     
-    if (_database && [_database respondsToSelector:getAllObjectsOfClassSEL] && HTTPDNSORMClass != 0x0) {
+    if (_database && [_database respondsToSelector:getAllObjectsOfClassSEL]) {
         NSTimeInterval time1 = [[NSDate date] timeIntervalSince1970];
         @try {
             IMP imp = [_database methodForSelector:getAllObjectsOfClassSEL];
@@ -152,20 +162,21 @@ static MSDKDnsDB * _sharedInstance = nil;
                 NSMutableDictionary *httpDnsIPV4Info = [[NSMutableDictionary alloc] init];
                 NSMutableDictionary *httpDnsIPV6Info = [[NSMutableDictionary alloc] init];
      
-                [httpDnsIPV4Info setObject:[item valueForKey:@"httpDnsIPV4Channel"] forKey:kChannel];
-                [httpDnsIPV4Info setObject:[item valueForKey:@"httpDnsIPV4ClientIP"] forKey:kClientIP];
-                [httpDnsIPV4Info setObject:[item valueForKey:@"httpDnsIPV4IPs"] forKey:kIP];
-                [httpDnsIPV4Info setObject:[item valueForKey:@"httpDnsIPV4TimeConsuming"] forKey:kDnsTimeConsuming];
-                [httpDnsIPV4Info setObject:[item valueForKey:@"httpDnsIPV4TTL"] forKey:kTTL];
-                [httpDnsIPV4Info setObject:[item valueForKey:@"httpDnsIPV4TTLExpried"] forKey:kTTLExpired];
+                @try {
+                    [httpDnsIPV4Info setObject:[item valueForKey:@"httpDnsIPV4Channel"] forKey:kChannel];
+                    [httpDnsIPV4Info setObject:[item valueForKey:@"httpDnsIPV4ClientIP"] forKey:kClientIP];
+                    [httpDnsIPV4Info setObject:[item valueForKey:@"httpDnsIPV4IPs"] forKey:kIP];
+                    [httpDnsIPV4Info setObject:[item valueForKey:@"httpDnsIPV4TimeConsuming"] forKey:kDnsTimeConsuming];
+                    [httpDnsIPV4Info setObject:[item valueForKey:@"httpDnsIPV4TTL"] forKey:kTTL];
+                    [httpDnsIPV4Info setObject:[item valueForKey:@"httpDnsIPV4TTLExpried"] forKey:kTTLExpired];
 
-                [httpDnsIPV6Info setObject:[item valueForKey:@"httpDnsIPV6Channel"] forKey:kChannel];
-                [httpDnsIPV6Info setObject:[item valueForKey:@"httpDnsIPV6ClientIP"] forKey:kClientIP];
-                [httpDnsIPV6Info setObject:[item valueForKey:@"httpDnsIPV6IPs"] forKey:kIP];
-                [httpDnsIPV6Info setObject:[item valueForKey:@"httpDnsIPV6TimeConsuming"] forKey:kDnsTimeConsuming];
-                [httpDnsIPV6Info setObject:[item valueForKey:@"httpDnsIPV6TTL"] forKey:kTTL];
-                [httpDnsIPV6Info setObject:[item valueForKey:@"httpDnsIPV6TTLExpried"] forKey:kTTLExpired];
-                
+                    [httpDnsIPV6Info setObject:[item valueForKey:@"httpDnsIPV6Channel"] forKey:kChannel];
+                    [httpDnsIPV6Info setObject:[item valueForKey:@"httpDnsIPV6ClientIP"] forKey:kClientIP];
+                    [httpDnsIPV6Info setObject:[item valueForKey:@"httpDnsIPV6IPs"] forKey:kIP];
+                    [httpDnsIPV6Info setObject:[item valueForKey:@"httpDnsIPV6TimeConsuming"] forKey:kDnsTimeConsuming];
+                    [httpDnsIPV6Info setObject:[item valueForKey:@"httpDnsIPV6TTL"] forKey:kTTL];
+                    [httpDnsIPV6Info setObject:[item valueForKey:@"httpDnsIPV6TTLExpried"] forKey:kTTLExpired];
+                } @catch (NSException *exception) {}
                 [domainInfo setObject:httpDnsIPV4Info forKey:kMSDKHttpDnsCache_A];
                 [domainInfo setObject:httpDnsIPV6Info forKey:kMSDKHttpDnsCache_4A];
                 
@@ -179,6 +190,69 @@ static MSDKDnsDB * _sharedInstance = nil;
         NSLog(@"===读取数据库==本次耗时=====：%fms", (time2 - time1) * 1000);
     }
     return newResult;
+}
+
+- (void)deleteDBData: (NSArray *)domains {
+    // 获取HTTPDNSORM类
+    Class HTTPDNSORMClass = NSClassFromString(@"HTTPDNSORM");
+    SEL deleteObjectsFromTableSEL = NSSelectorFromString(@"deleteObjectsFromTable:where:");
+      
+    if (HTTPDNSORMClass == 0x0) {
+        MSDKDNSLOG(@"MSDKDns does not support persistent cache, we recommend using MSDKDns_C11");
+        return;
+    }
+    
+    if (_database && [_database respondsToSelector:deleteObjectsFromTableSEL]) {
+        NSTimeInterval time1 = [[NSDate date] timeIntervalSince1970];
+        @try {
+            IMP imp = [_database methodForSelector:deleteObjectsFromTableSEL];
+            using deleteData = BOOL (*)(id, SEL, NSString *, WCTExpr);
+            
+//            _database meth
+            
+//            //初始化HTTPDNSORM对象
+            id httpDnsData = [[HTTPDNSORM alloc] init];
+//
+//            // 获取HTTPDNSORM.domain
+//            SEL domainSEL = NSSelectorFromString(@"domain");
+//            IMP domainImp = [httpDnsData methodForSelector:domainSEL];
+//            using getDomainData = id (*)(id, SEL);
+//            id domainData = ((getDomainData) domainImp)(httpDnsData, domainSEL);
+//
+//            // 获取HTTPDNSORM.domain.in(domains)
+//            SEL inSEL = NSSelectorFromString(@"in:");
+//            IMP inImp = [domainData methodForSelector:inSEL];
+//            using inData = id (*)(id, SEL, NSArray *);
+//            id condition = ((inData) inImp)(domainData, inSEL, domains);
+            
+//            BOOL success = [_database deleteObjectsFromTable:_tableName where:HTTPDNSORM.domain.in(domains)];
+//            [HTTPDNSORM.domain in(domains)]
+            
+            
+            // 删除表数据
+            
+//            BOOL success = ((deleteData) imp)(_database, deleteObjectsFromTableSEL, _tableName, [[HTTPDNSORMClass performSelector:@selector(@"domain")] performSelector:@selector(@"in:") withObject:domains]);
+//            NSLog(@"%@",objc_getClass("HTTPDNSORM"));
+            const WCTProperty & domainFunc = ((const WCTProperty &(*)(id, SEL))objc_msgSend)(objc_getClass("HTTPDNSORM"), NSSelectorFromString(@"domain"));
+            
+            WCTExpr condition = ((WCTExpr (*)(const WCTProperty &, SEL, id))objc_msgSend)(domainFunc, NSSelectorFromString(@"in"), domains);
+            
+            
+//            HTTPDNSORM.domain.in
+            
+//            objc_msgSend(objc_getClass("LGStudent"), sel_registerName("sayNB"))
+           BOOL success = ((deleteData) imp)(_database, deleteObjectsFromTableSEL, _tableName, HTTPDNSORM.domain.in(domains));
+//             BOOL success = ((deleteData) imp)(_database, deleteObjectsFromTableSEL, _tableName, condition);
+            if (!success) {
+                MSDKDNSLOG(@"Failed to delete data into database");
+            }
+        } @catch (NSException *exception) {
+            MSDKDNSLOG(@"Failed to delete data into database");
+        }
+        
+        NSTimeInterval time2 = [[NSDate date] timeIntervalSince1970];
+        NSLog(@"===删除数据库==本次耗时=====：%fms", (time2 - time1) * 1000);
+    }
 }
 
 

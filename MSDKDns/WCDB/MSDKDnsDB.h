@@ -14,5 +14,7 @@
 
 - (NSDictionary *)getDataFromDB;
 
+- (void)deleteDBData: (NSArray *)domains;
+
 @end
 
