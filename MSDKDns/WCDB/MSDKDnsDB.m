@@ -186,6 +186,7 @@ static MSDKDnsDB * _sharedInstance = nil;
     
     if (_database && [_database respondsToSelector:deleteObjectsFromTableSEL]) {
         @try {
+#if __cplusplus >= 201103L
             IMP imp = [_database methodForSelector:deleteObjectsFromTableSEL];
             using deleteData = BOOL (*)(id, SEL, NSString *, WCTExpr);
             // 删除表数据
@@ -193,6 +194,7 @@ static MSDKDnsDB * _sharedInstance = nil;
             if (!success) {
                 MSDKDNSLOG(@"Failed to delete data into database");
             }
+#endif
         } @catch (NSException *exception) {
             MSDKDNSLOG(@"Failed to delete data into database");
         }
