@@ -117,8 +117,6 @@ static MSDKDnsDB * _sharedInstance = nil;
         } @catch (NSException *exception) {
             MSDKDNSLOG(@"Failed to insert data into database");
         }
-        NSDictionary *result = [self getDataFromDB];
-        NSLog(@"loadDB domainInfo = %@",result);
     }
 }
 

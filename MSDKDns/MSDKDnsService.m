@@ -539,9 +539,9 @@
         }
         
         if (cacheDict && domain) {
-            NSLog(@"cacheDict = %@", cacheDict);
             [[MSDKDnsManager shareInstance] cacheDomainInfo:cacheDict Domain:domain];
-            if (resolver && resolver != self.localDnsResolver){
+            BOOL persistCacheIPEnabled = [[MSDKDnsParamsManager shareInstance] msdkDnsGetPersistCacheIPEnabled];
+            if (resolver && resolver != self.localDnsResolver && persistCacheIPEnabled){
                 [[MSDKDnsDB shareInstance] insertOrReplaceDomainInfo:cacheDict Domain:domain];
             }
         }

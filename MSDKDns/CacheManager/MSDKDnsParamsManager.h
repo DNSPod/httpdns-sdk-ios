@@ -53,5 +53,6 @@
 - (NSDictionary *)msdkDnsGetIPRankData;
 - (BOOL)msdkDnsGetEnableKeepDomainsAlive;
 - (BOOL)msdkDnsGetExpiredIPEnabled;
+- (BOOL)msdkDnsGetPersistCacheIPEnabled;
 
 @end
