@@ -8,6 +8,7 @@
 #import "MSDKDnsInfoTool.h"
 #import "MSDKDnsLog.h"
 #import "MSDKDnsManager.h"
+#import "MSDKDnsDB.h"
 #import "MSDKDnsNetworkManager.h"
 #import "MSDKDnsParamsManager.h"
 #import "MSDKDnsTCPSpeedTester.h"
@@ -539,6 +540,10 @@
         
         if (cacheDict && domain) {
             [[MSDKDnsManager shareInstance] cacheDomainInfo:cacheDict Domain:domain];
+            BOOL persistCacheIPEnabled = [[MSDKDnsParamsManager shareInstance] msdkDnsGetPersistCacheIPEnabled];
+            if (resolver && resolver != self.localDnsResolver && persistCacheIPEnabled){
+                [[MSDKDnsDB shareInstance] insertOrReplaceDomainInfo:cacheDict Domain:domain];
+            }
         }
     }
 }

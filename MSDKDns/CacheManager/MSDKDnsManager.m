@@ -6,6 +6,7 @@
 #import "MSDKDnsService.h"
 #import "MSDKDnsLog.h"
 #import "MSDKDns.h"
+#import "MSDKDnsDB.h"
 #import "MSDKDnsInfoTool.h"
 #import "MSDKDnsParamsManager.h"
 #import "MSDKDnsNetworkManager.h"
@@ -132,6 +133,67 @@ static MSDKDnsManager * _sharedInstance = nil;
     NSDictionary * result = verbose?
         [self fullResultDictionary:domains fromCache:cacheDomainDict] :
         [self resultDictionary:domains fromCache:cacheDomainDict];
+    return result;
+}
+
+// 
+- (NSDictionary *)getHostsByNamesEnableExpired:(NSArray *)domains verbose:(BOOL)verbose {
+    // 获取当前ipv4/ipv6/双栈网络环境
+    msdkdns::MSDKDNS_TLocalIPStack netStack = [self detectAddressType];
+    __block float timeOut = 2.0;
+    __block NSDictionary * cacheDomainDict = nil;
+    dispatch_sync([MSDKDnsInfoTool msdkdns_queue], ^{
+        if (domains && [domains count] > 0 && _domainDict) {
+            cacheDomainDict = [[NSDictionary alloc] initWithDictionary:_domainDict];
+        }
+        timeOut = [[MSDKDnsParamsManager shareInstance] msdkDnsGetMTimeOut];
+    });
+    // 待查询数组
+    NSMutableArray *toCheckDomains = [NSMutableArray array];
+    // 需要排除结果的域名数组
+    NSMutableArray *toEmptyDomains = [NSMutableArray array];
+    // 查找缓存，不存在或者ttl超时则放入待查询数组，ttl超时还放入排除结果的数组以便如果禁用返回ttl过期的解析结果则进行排除结果
+    for (int i = 0; i < [domains count]; i++) {
+        NSString *domain = [domains objectAtIndex:i];
+        if ([[self domianCache:cacheDomainDict check:domain] isEqualToString:MSDKDnsDomainCacheEmpty]) {
+            [toCheckDomains addObject:domain];
+        } else if ([[self domianCache:cacheDomainDict check:domain] isEqualToString:MSDKDnsDomainCacheExpired]) {
+            [toCheckDomains addObject:domain];
+            [toEmptyDomains addObject:domain];
+        } else {
+            MSDKDNSLOG(@"%@ TTL has not expiried,return result from cache directly!", domain);
+            dispatch_async([MSDKDnsInfoTool msdkdns_queue], ^{
+                [self uploadReport:YES Domain:domain NetStack:netStack];
+            });
+        }
+    }
+    // 当待查询数组中存在数据的时候，就开启异步线程执行解析操作，并且更新缓存
+    if (toCheckDomains && [toCheckDomains count] != 0) {
+        dispatch_async([MSDKDnsInfoTool msdkdns_queue], ^{
+            if (!_serviceArray) {
+                self.serviceArray = [[NSMutableArray alloc] init];
+            }
+            int dnsId = [[MSDKDnsParamsManager shareInstance] msdkDnsGetMDnsId];
+            NSString * dnsKey = [[MSDKDnsParamsManager shareInstance] msdkDnsGetMDnsKey];
+            HttpDnsEncryptType encryptType = [[MSDKDnsParamsManager shareInstance] msdkDnsGetEncryptType];
+            MSDKDnsService * dnsService = [[MSDKDnsService alloc] init];
+            [self.serviceArray addObject:dnsService];
+            __weak __typeof__(self) weakSelf = self;
+            //进行httpdns请求
+            [dnsService getHostsByNames:toCheckDomains TimeOut:timeOut DnsId:dnsId DnsKey:dnsKey NetStack:netStack encryptType:encryptType returnIps:^() {
+                __strong __typeof(self) strongSelf = weakSelf;
+                if (strongSelf) {
+                    [toCheckDomains enumerateObjectsUsingBlock:^(id _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
+                        [strongSelf uploadReport:NO Domain:obj NetStack:netStack];
+                    }];
+                    [strongSelf dnsHasDone:dnsService];
+                }
+            }];
+        });
+    }
+    NSDictionary * result = verbose?
+        [self fullResultDictionaryEnableExpired:domains fromCache:cacheDomainDict toEmpty:toEmptyDomains] :
+        [self resultDictionaryEnableExpired:domains fromCache:cacheDomainDict toEmpty:toEmptyDomains];
     return result;
 }
 
@@ -336,6 +398,83 @@ static MSDKDnsManager * _sharedInstance = nil;
                     NSArray * ipsArray = hresultDict_4A[kIP];
                     if (ipsArray && [ipsArray isKindOfClass:[NSArray class]] && ipsArray.count > 0) {
                         [ipResult setObject:ipsArray forKey:@"ipv6"];
+                    }
+                }
+            }
+        }
+        [resultDict setObject:ipResult forKey:domain];
+    }
+    return resultDict;
+}
+
+- (NSDictionary *)resultDictionaryEnableExpired: (NSArray *)domains fromCache:(NSDictionary *)domainDict toEmpty:(NSArray *)emptyDomains {
+    NSMutableDictionary *resultDict = [NSMutableDictionary dictionary];
+    BOOL expiredIPEnabled = [[MSDKDnsParamsManager shareInstance] msdkDnsGetExpiredIPEnabled];
+    for (int i = 0; i < [domains count]; i++) {
+        NSString *domain = [domains objectAtIndex:i];
+        NSArray *arr = [self resultArray:domain fromCache:domainDict];
+        BOOL domainNeedEmpty = [emptyDomains containsObject:domain];
+        // 缓存过期，并且没有开启使用过期缓存
+        if (domainNeedEmpty && !expiredIPEnabled) {
+            [resultDict setObject:@[@0,@0] forKey:domain];
+        } else {
+            [resultDict setObject:arr forKey:domain];
+        }
+    }
+    return resultDict;
+}
+
+- (NSDictionary *)fullResultDictionaryEnableExpired: (NSArray *)domains fromCache:(NSDictionary *)domainDict toEmpty:(NSArray *)emptyDomains {
+    NSMutableDictionary *resultDict = [NSMutableDictionary dictionary];
+    BOOL expiredIPEnabled = [[MSDKDnsParamsManager shareInstance] msdkDnsGetExpiredIPEnabled];
+    for (int i = 0; i < [domains count]; i++) {
+        NSString *domain = [domains objectAtIndex:i];
+        BOOL domainNeedEmpty = [emptyDomains containsObject:domain];
+        NSMutableDictionary * ipResult = [NSMutableDictionary dictionary];
+        BOOL httpOnly = [[MSDKDnsParamsManager shareInstance] msdkDnsGetHttpOnly];
+        if (domainDict) {
+            NSDictionary * cacheDict = domainDict[domain];
+            if (cacheDict && [cacheDict isKindOfClass:[NSDictionary class]]) {
+                
+                NSDictionary * hresultDict_A = cacheDict[kMSDKHttpDnsCache_A];
+                NSDictionary * hresultDict_4A = cacheDict[kMSDKHttpDnsCache_4A];
+                
+                if (!httpOnly) {
+                    NSDictionary * lresultDict = cacheDict[kMSDKLocalDnsCache];
+                    if (lresultDict && [lresultDict isKindOfClass:[NSDictionary class]]) {
+                        NSArray *ipsArray = [lresultDict[kIP] mutableCopy];
+                        if (ipsArray.count == 2) {
+                            // 缓存过期，并且没有开启使用过期缓存
+                            if (domainNeedEmpty && !expiredIPEnabled) {
+                                [ipResult setObject:@[@0] forKey:@"ipv4"];
+                                [ipResult setObject:@[@0] forKey:@"ipv6"];
+                            } else {
+                                [ipResult setObject:@[ipsArray[0]] forKey:@"ipv4"];
+                                [ipResult setObject:@[ipsArray[1]] forKey:@"ipv6"];
+                            }
+                        }
+                    }
+                }
+                if (hresultDict_A && [hresultDict_A isKindOfClass:[NSDictionary class]]) {
+                    NSArray * ipsArray = hresultDict_A[kIP];
+                    if (ipsArray && [ipsArray isKindOfClass:[NSArray class]] && ipsArray.count > 0) {
+                        // 缓存过期，并且没有开启使用过期缓存
+                        if (domainNeedEmpty && !expiredIPEnabled) {
+                            [ipResult setObject:@[@0] forKey:@"ipv4"];
+                        } else {
+                            [ipResult setObject:ipsArray forKey:@"ipv4"];
+                        }
+                    }
+                }
+                if (hresultDict_4A && [hresultDict_4A isKindOfClass:[NSDictionary class]]) {
+                    NSArray * ipsArray = hresultDict_4A[kIP];
+                    if (ipsArray && [ipsArray isKindOfClass:[NSArray class]] && ipsArray.count > 0) {
+                        // 缓存过期，并且没有开启使用过期缓存
+                        if (domainNeedEmpty && !expiredIPEnabled) {
+                            [ipResult setObject:@[@0] forKey:@"ipv6"];
+                        } else {
+                            [ipResult setObject:ipsArray forKey:@"ipv6"];
+                        }
                     }
                 }
             }
@@ -685,6 +824,70 @@ static MSDKDnsManager * _sharedInstance = nil;
     }
     return NO;
 }
+
+// 检查缓存状态
+- (NSString *) domianCache:(NSDictionary *)cache check:(NSString *)domain {
+    NSDictionary * domainInfo = cache[domain];
+    if (domainInfo && [domainInfo isKindOfClass:[NSDictionary class]]) {
+        NSDictionary * cacheDict = domainInfo[kMSDKHttpDnsCache_A];
+        if (!cacheDict || ![cacheDict isKindOfClass:[NSDictionary class]]) {
+            cacheDict = domainInfo[kMSDKHttpDnsCache_4A];
+        }
+        if (cacheDict && [cacheDict isKindOfClass:[NSDictionary class]]) {
+            NSString * ttlExpried = cacheDict[kTTLExpired];
+            double timeInterval = [[NSDate date] timeIntervalSince1970];
+            if (timeInterval <= ttlExpried.doubleValue) {
+                return MSDKDnsDomainCacheHit;
+            } else {
+                return MSDKDnsDomainCacheExpired;
+            }
+        }
+    }
+    return MSDKDnsDomainCacheEmpty;
+}
+
+- (void)loadIPsFromPersistCacheAsync {
+    dispatch_async([MSDKDnsInfoTool msdkdns_queue], ^{
+        NSDictionary *result = [[MSDKDnsDB shareInstance] getDataFromDB];
+        MSDKDNSLOG(@"loadDB domainInfo = %@",result);
+        NSMutableArray *expiredDomains = [[NSMutableArray alloc] init];
+        for (NSString *domain in result) {
+            NSDictionary *domainInfo = [result valueForKey:domain];
+            if ([self isDomainCacheExpired:domainInfo]) {
+                [expiredDomains addObject:domain];
+            }
+            [self cacheDomainInfo:domainInfo Domain:domain];
+        }
+        // 删除本地持久化缓存中过期缓存
+        if (expiredDomains && expiredDomains.count > 0){
+            [[MSDKDnsDB shareInstance] deleteDBData:expiredDomains];
+        }
+    });
+}
+
+- (BOOL)isDomainCacheExpired: (NSDictionary *)domainInfo {
+    NSDictionary *httpDnsIPV4Info = [domainInfo valueForKey:kMSDKHttpDnsCache_A];
+    NSDictionary *httpDnsIPV6Info = [domainInfo valueForKey:kMSDKHttpDnsCache_4A];
+    NSMutableString *expiredTime = [[NSMutableString alloc] init];
+    double nowTime = [[NSDate date] timeIntervalSince1970];
+    if (httpDnsIPV4Info) {
+        NSString *ipv4ExpiredTime = [httpDnsIPV4Info valueForKey:kTTLExpired];
+        if (ipv4ExpiredTime) {
+            expiredTime = [[NSMutableString alloc]initWithString:ipv4ExpiredTime];
+        }
+    }
+    if (httpDnsIPV6Info) {
+        NSString *ipv6ExpiredTime = [httpDnsIPV6Info valueForKey:kTTLExpired];
+        if (ipv6ExpiredTime) {
+            expiredTime = [[NSMutableString alloc]initWithString:ipv6ExpiredTime];
+        }
+    }
+    if (expiredTime && nowTime <= expiredTime.doubleValue) {
+        return false;
+    }
+    return true;
+}
+
 # pragma mark - detect address type
 - (msdkdns::MSDKDNS_TLocalIPStack)detectAddressType {
     msdkdns::MSDKDNS_TLocalIPStack netStack = msdkdns::MSDKDNS_ELocalIPStack_None;

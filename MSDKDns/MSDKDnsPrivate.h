@@ -69,4 +69,18 @@ static NSString * const MSDKDns_Success = @"0"; // 成功
 static NSString * const MSDKDnsEventHttpDnsfail = @"HttpDnsfail";
 static NSString * const MSDKDnsEventHttpDnsSpend = @"HttpDnsSpend";
 
+//命中缓存的状态
+static NSString * const MSDKDnsDomainCacheHit = @"domainCacheHit";         //命中缓存
+static NSString * const MSDKDnsDomainCacheExpired = @"domainCacheExpired"; //缓存过期
+static NSString * const MSDKDnsDomainCacheEmpty = @"domainCacheEmpty";     //没有缓存
+
+//本地DB存储字段
+static NSString * const DB_HttpDNS_IPV4_Channel = [kMSDKHttpDnsCache_A stringByAppendingString:kChannel];
+static NSString * const DB_HttpDNS_IPV4_ClientIP = [kMSDKHttpDnsCache_A stringByAppendingString:kClientIP];
+static NSString * const DB_HttpDNS_IPV4_TimeConsuming = [kMSDKHttpDnsCache_A stringByAppendingString:kDnsTimeConsuming];
+static NSString * const DB_HttpDNS_IPV4_TTL = [kMSDKHttpDnsCache_A stringByAppendingString:kTTL];
+static NSString * const DB_HttpDNS_IPV4_TTLExpired = [kMSDKHttpDnsCache_A stringByAppendingString:kTTLExpired];
+
+
+
 #endif
