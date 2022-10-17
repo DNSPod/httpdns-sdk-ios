@@ -11,6 +11,7 @@
 #import "MSDKDnsParamsManager.h"
 #import "MSDKDnsNetworkManager.h"
 #import "msdkdns_local_ip_stack.h"
+#import "AttaReport.h"
 #if defined(__has_include)
     #if __has_include("httpdnsIps.h")
         #include "httpdnsIps.h"
@@ -202,6 +203,13 @@ static MSDKDnsManager * _sharedInstance = nil;
 - (void)getHostsByNames:(NSArray *)domains
                 verbose:(BOOL)verbose
               returnIps:(void (^)(NSDictionary * ipsDict))handler {
+    [self getHostsByNames:domains verbose:verbose from:MSDKDnsEventHttpDnsNormal returnIps:handler];
+}
+
+- (void)getHostsByNames:(NSArray *)domains
+                verbose:(BOOL)verbose
+                from:(NSString *)origin
+              returnIps:(void (^)(NSDictionary * ipsDict))handler {
     // 获取当前ipv4/ipv6/双栈网络环境
     msdkdns::MSDKDNS_TLocalIPStack netStack = [self detectAddressType];
     __block float timeOut = 2.0;
@@ -247,7 +255,7 @@ static MSDKDnsManager * _sharedInstance = nil;
         [self.serviceArray addObject:dnsService];
         __weak __typeof__(self) weakSelf = self;
         HttpDnsEncryptType encryptType = [[MSDKDnsParamsManager shareInstance] msdkDnsGetEncryptType];
-        [dnsService getHostsByNames:toCheckDomains TimeOut:timeOut DnsId:dnsId DnsKey:dnsKey NetStack:netStack encryptType:encryptType returnIps:^() {
+        [dnsService getHostsByNames:toCheckDomains TimeOut:timeOut DnsId:dnsId DnsKey:dnsKey NetStack:netStack encryptType:encryptType from:origin returnIps:^() {
             __strong __typeof(self) strongSelf = weakSelf;
             if (strongSelf) {
                 [toCheckDomains enumerateObjectsUsingBlock:^(id _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
@@ -279,7 +287,7 @@ static MSDKDnsManager * _sharedInstance = nil;
     HttpDnsEncryptType encryptType = [[MSDKDnsParamsManager shareInstance] msdkDnsGetEncryptType];
     
     MSDKDnsService * dnsService = [[MSDKDnsService alloc] init];
-    [dnsService getHostsByNames:domains TimeOut:timeOut DnsId:dnsId DnsKey:dnsKey NetStack:netStack encryptType:encryptType returnIps:^{
+    [dnsService getHostsByNames:domains TimeOut:timeOut DnsId:dnsId DnsKey:dnsKey NetStack:netStack encryptType:encryptType from:MSDKDnsEventHttpDnsAutoRefresh returnIps:^{
         if(needClear){
             // 当请求结束了需要将该域名开启的标志清除，方便下次继续开启延迟解析请求
             // NSLog(@"延时更新请求结束!请求域名为%@",domains);
@@ -295,7 +303,7 @@ static MSDKDnsManager * _sharedInstance = nil;
     });
     if (domains && [domains count] > 0) {
         MSDKDNSLOG(@"preResolve domains: %@", [domains componentsJoinedByString:@","] );
-        [self getHostsByNames:domains verbose:NO returnIps:^(NSDictionary *ipsDict) {
+        [self getHostsByNames:domains verbose:NO from:MSDKDnsEventHttpDnsPreResolved returnIps:^(NSDictionary *ipsDict) {
             if (ipsDict) {
                 MSDKDNSLOG(@"preResolve domains success.");
             } else {
@@ -569,7 +577,35 @@ static MSDKDnsManager * _sharedInstance = nil;
 }
 
 #pragma mark - uploadReport
+- (void)hitCacheAttaUploadReport:(NSString *)domain {
+    static int count = 0;
+    count ++;
+    if ([[MSDKDnsParamsManager shareInstance] msdkDnsGetEnableReport] && [[AttaReport sharedInstance] shoulReportDnsSpend]) {
+        [[AttaReport sharedInstance] reportEvent:@{
+            MSDKDns_ErrorCode: MSDKDns_Success,
+            @"eventName": MSDKDnsEventHttpDnsCached,
+            @"dnsIp": [[MSDKDnsManager shareInstance] currentDnsServer],
+            @"req_dn": domain,
+            @"req_type": @"a",
+            @"req_timeout": @0,
+            @"req_ttl": @0,
+            @"req_query": @0,
+            @"req_ip": @"",
+            @"spend": @0,
+            @"statusCode": @0,
+            @"count":[NSString stringWithFormat:@"%d", count],
+            @"isCache": @1,
+        }];
+        count = 0;
+     }
+}
+
 - (void)uploadReport:(BOOL)isFromCache Domain:(NSString *)domain NetStack:(msdkdns::MSDKDNS_TLocalIPStack)netStack {
+    // 命中缓存进行atta上报
+    if (isFromCache) {
+        [self hitCacheAttaUploadReport:domain];
+    }
+    
     Class beaconClass = NSClassFromString(@"BeaconBaseInterface");
     if (beaconClass == 0x0) {
         MSDKDNSLOG(@"Beacon framework is not imported");

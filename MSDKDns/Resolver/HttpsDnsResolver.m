@@ -32,6 +32,7 @@
 {
     [super startWithDomains:domains TimeOut:timeOut DnsId:dnsId DnsKey:dnsKey NetStack:netStack];
     NSString *domainStr = [domains componentsJoinedByString:@","];
+    self.errorCode = MSDKDns_UnResolve;
     if (!domainStr || domainStr.length == 0) {
         MSDKDNSLOG(@"HttpDns Domain is must needed!");
         self.domainInfo = nil;
@@ -183,6 +184,7 @@
         
         if (self.domainInfo && [self.domainInfo count] > 0) {
             self.isFinished = YES;
+            self.errorCode = MSDKDns_Success;
             self.isSucceed = YES;
             if (self.delegate && [self.delegate respondsToSelector:@selector(resolver:didGetDomainInfo:)]) {
                 [self.delegate resolver:self didGetDomainInfo:self.domainInfo];
@@ -199,6 +201,7 @@
     self.domainInfo = nil;
     self.isFinished = YES;
     self.isSucceed = NO;
+    self.errorCode = MSDKDns_NoData;
     self.errorInfo = errorInfo;
     if (self.delegate && [self.delegate respondsToSelector:@selector(resolver:getDomainError:retry:)]) {
         [self.delegate resolver:self getDomainError:self.errorInfo retry:NO];
@@ -210,6 +213,7 @@
     MSDKDNSLOG(@"HttpDns Failed:%@",[error userInfo]);
     self.domainInfo = nil;
     self.isFinished = YES;
+    self.errorCode = MSDKDns_Timeout;
     self.isSucceed = NO;
     self.errorInfo = error.userInfo[@"NSLocalizedDescription"];
     if (self.delegate && [self.delegate respondsToSelector:@selector(resolver:getDomainError:retry:)]) {

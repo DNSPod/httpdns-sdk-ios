@@ -471,4 +471,49 @@ char MSDKDnsHexCharToChar(char high, char low) {
     return wifiName;
 }
 
+/**
+ 生成sessionId,sessionId为12位，采用base62编码
+ @return 返回sessionId
+ */
++ (NSString *)generateSessionID {
+    static NSString *sessionId = nil;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        NSString *alphabet = @"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+        NSUInteger length = alphabet.length;
+        if (![self isValidString:sessionId]) {
+            NSMutableString *mSessionId = [NSMutableString string];
+            for (int i = 0; i < 12; i++) {
+                [mSessionId appendFormat:@"%@", [alphabet substringWithRange:NSMakeRange(arc4random() % length, 1)]];
+            }
+            sessionId = [mSessionId copy];
+        }
+    });
+    return sessionId;
+}
+
++ (BOOL)isValidString:(id)notValidString {
+    if (!notValidString) {
+        return NO;
+    }
+    BOOL isKindOf = NO;
+    @try {
+        isKindOf = [notValidString isKindOfClass:[NSString class]];
+    } @catch (NSException *exception) {}
+    if (!isKindOf) {
+        return NO;
+    }
+    
+    NSInteger stringLength = 0;
+    @try {
+        stringLength = [notValidString length];
+    } @catch (NSException *exception) {
+        MSDKDNSLOG(@"类名与方法名：%@（在第%@行）, 描述：%@", @(__PRETTY_FUNCTION__), @(__LINE__), exception);
+    }
+    if (stringLength == 0) {
+        return NO;
+    }
+    return YES;
+}
+
 @end
