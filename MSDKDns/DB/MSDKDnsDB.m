@@ -44,15 +44,15 @@ static MSDKDnsDB * _sharedInstance = nil;
                 NSString *createSql = @"create table if not exists HttpDNSTable(id integer primary key autoincrement, domain text UNIQUE, httpDnsIPV4Channel text, httpDnsIPV4ClientIP text, httpDnsIPV4IPs text, httpDnsIPV4TimeConsuming text, httpDnsIPV4TTL text, httpDnsIPV4TTLExpried text, httpDnsIPV6Channel text, httpDnsIPV6ClientIP text, httpDnsIPV6IPs text, httpDnsIPV6TimeConsuming text, httpDnsIPV6TTL text, httpDnsIPV6TTLExpried text)";
                 
                 if (sqlite3_exec(_db, [createSql UTF8String], NULL, NULL, &_error) == SQLITE_OK) {
-                    NSLog(@"Successfully create table into database.");
+                    MSDKDNSLOG(@"Successfully create table into database.");
                 } else {
-                    NSLog(@"Failed to create table into database, error: %s", _error);
+                    MSDKDNSLOG(@"Failed to create table into database, error: %s", _error);
                     
                     // 每次使用完毕清空 error 字符串，提供给下一次使用
                     sqlite3_free(_error);
                 }
             }else{
-                NSLog(@"Failed to open Database");
+                MSDKDNSLOG(@"Failed to open Database");
             }
         } @catch (NSException *exception) {
             MSDKDNSLOG(@"Failed to connect Database");
@@ -125,9 +125,9 @@ static MSDKDnsDB * _sharedInstance = nil;
         NSString *insertSql = [NSString stringWithFormat:@"INSERT OR REPLACE into HttpDNSTable(domain, httpDnsIPV4Channel, httpDnsIPV4ClientIP, httpDnsIPV4IPs, httpDnsIPV4TimeConsuming, httpDnsIPV4TTL, httpDnsIPV4TTLExpried, httpDnsIPV6ClientIP, httpDnsIPV6IPs, httpDnsIPV6TimeConsuming, httpDnsIPV6TTL, httpDnsIPV6TTLExpried) values('%@','%@','%@','%@','%@','%@','%@','%@','%@','%@','%@','%@')",[domain copy],hresultDict_A_kChannel,hresultDict_A_kClientIP,hresultDict_A_kIP,hresultDict_A_kDnsTimeConsuming,hresultDict_A_kTTL,hresultDict_A_kTTLExpired,hresultDict_4A_kClientIP,hresultDict_4A_kIP,hresultDict_4A_kDnsTimeConsuming,hresultDict_4A_kTTL,hresultDict_4A_kTTLExpired];
         
         if (sqlite3_exec(_db, [insertSql UTF8String], NULL, NULL, &_error) == SQLITE_OK) {
-            NSLog(@"Successfully insert data into database, domain = %@, domainInfo = %@", domain, domainInfo);
+            MSDKDNSLOG(@"Successfully insert data into database, domain = %@, domainInfo = %@", domain, domainInfo);
         } else {
-            NSLog(@"Failed to insert data into database, error: %s", _error);
+            MSDKDNSLOG(@"Failed to insert data into database, error: %s", _error);
             
             // 每次使用完毕清空 error 字符串，提供给下一次使用
             sqlite3_free(_error);
@@ -237,9 +237,9 @@ static MSDKDnsDB * _sharedInstance = nil;
                 
                 [newResult setObject:domainInfo forKey:domain];
             }
-            NSLog(@"Successfully select data from database, result = %@",newResult);
+            MSDKDNSLOG(@"Successfully select data from database, result = %@",newResult);
         } else {
-            NSLog(@"Failed to select data from database, error: %s", _error);
+            MSDKDNSLOG(@"Failed to select data from database, error: %s", _error);
         }
     
     } @catch (NSException *exception) {
@@ -254,9 +254,9 @@ static MSDKDnsDB * _sharedInstance = nil;
     @try {
         NSString *sql = [NSString stringWithFormat:@"DELETE FROM HttpDNSTable WHERE domain IN ('%@')", [domains componentsJoinedByString:@"','"]];
         if (sqlite3_exec(_db, [sql UTF8String], NULL, NULL, &_error) == SQLITE_OK) {
-            NSLog(@"Successfully delete data into database. domains = %@", domains);
+            MSDKDNSLOG(@"Successfully delete data into database. domains = %@", domains);
         } else {
-            NSLog(@"Failed to delete data into database. error:%s", _error);
+            MSDKDNSLOG(@"Failed to delete data into database. error:%s", _error);
             // 每次使用完毕清空 error 字符串，提供给下一次使用
             sqlite3_free(_error);
         }
@@ -289,14 +289,14 @@ static MSDKDnsDB * _sharedInstance = nil;
                 triedFinalizingOpenStatements = YES;
                 sqlite3_stmt *pStmt;
                 while ((pStmt = sqlite3_next_stmt(_db, nil)) !=0) {
-                    NSLog(@"Closing leaked statement");
+                    MSDKDNSLOG(@"Closing leaked statement");
                     sqlite3_finalize(pStmt);
                     retry = YES;
                 }
             }
         }
         else if (SQLITE_OK != rc) {
-            NSLog(@"error closing!: %d", rc);
+            MSDKDNSLOG(@"Failed to close Database: %d", rc);
         }
     }
     while (retry);
