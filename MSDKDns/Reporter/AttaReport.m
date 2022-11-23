@@ -50,8 +50,13 @@ static AttaReport * _sharedInstance = nil;
         NSURLSessionConfiguration *defaultSessionConfiguration = [NSURLSessionConfiguration defaultSessionConfiguration];
         self.session = [NSURLSession sessionWithConfiguration:defaultSessionConfiguration delegate:nil delegateQueue:nil];
 #ifdef httpdnsIps_h
+    #if IS_INTL
+        self.attaid = ATTAID_INTL;
+        self.token = ATTAToken_INTL;
+    #else
         self.attaid = ATTAID;
         self.token = ATTAToken;
+    #endif
         self.reportUrl = ATTAReportUrl;
         self.limit = ATTAReportDnsSpendLimit;
         self.interval = ATTAReportDnsSpendInterval;

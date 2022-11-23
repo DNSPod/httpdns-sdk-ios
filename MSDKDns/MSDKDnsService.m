@@ -476,6 +476,21 @@
             }else if (resolver == self.httpDnsResolver_BOTH) {
                 req_type = @"addrs";
             }
+            
+            NSDictionary * dnsIPs = [self getDomainsDNSFromCache:self.toCheckDomains];
+            NSString *localDnsIPs = [dnsIPs valueForKey:kMSDKDnsLDNS_IP];
+            NSString *httpDnsIP_A = [dnsIPs valueForKey:kMSDKDns_A_IP];
+            NSString *httpDnsIP_4A = [dnsIPs valueForKey:kMSDKDns_4A_IP];
+            NSString *httpdnsIPs = @"";
+            
+            if ([httpDnsIP_A length] > 0 && [httpDnsIP_4A length] > 0) {
+                httpdnsIPs = [NSString stringWithFormat:@"%@,%@", httpDnsIP_A, httpDnsIP_4A];
+            } else if ([httpDnsIP_A length] > 0) {
+                httpdnsIPs = [NSString stringWithFormat:@"%@", httpDnsIP_A];
+            } else if ([httpDnsIP_4A length] > 0) {
+                httpdnsIPs = [NSString stringWithFormat:@"%@", httpDnsIP_4A];
+            }
+            
             [[AttaReport sharedInstance] reportEvent:@{
                 MSDKDns_ErrorCode: httpResolver.errorCode,
                 @"eventName": self.origin,
@@ -489,6 +504,8 @@
                 @"statusCode": @(httpResolver.statusCode),
                 @"count": @1,
                 @"isCache": @0,
+                @"ldns": localDnsIPs,
+                @"hdns": httpdnsIPs,
             }];
         }
     }

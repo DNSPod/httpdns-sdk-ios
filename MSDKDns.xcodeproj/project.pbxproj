@@ -38,6 +38,82 @@
 		54EA82232760890B005F68A9 /* AttaReport.m in Sources */ = {isa = PBXBuildFile; fileRef = 54EA82212760890B005F68A9 /* AttaReport.m */; };
 		54EA822427608A55005F68A9 /* AttaReport.h in Headers */ = {isa = PBXBuildFile; fileRef = 54EA82202760890B005F68A9 /* AttaReport.h */; };
 		54EA822527608A58005F68A9 /* AttaReport.m in Sources */ = {isa = PBXBuildFile; fileRef = 54EA82212760890B005F68A9 /* AttaReport.m */; };
+		5F094377292B82D50004374B /* MSDKDnsParamsManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 502422EB2140073F0094403C /* MSDKDnsParamsManager.m */; };
+		5F094378292B82D50004374B /* MSDKDnsInfoTool.m in Sources */ = {isa = PBXBuildFile; fileRef = 44BFE2361CA58C3A00D7FE87 /* MSDKDnsInfoTool.m */; };
+		5F094379292B82D50004374B /* HttpsDnsResolver.m in Sources */ = {isa = PBXBuildFile; fileRef = DD5935541DDC56B200BF9348 /* HttpsDnsResolver.m */; };
+		5F09437A292B82D50004374B /* MSDKDnsManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 445B36621CBD095C00BD4345 /* MSDKDnsManager.m */; };
+		5F09437B292B82D50004374B /* MSDKDnsService.m in Sources */ = {isa = PBXBuildFile; fileRef = 444044F81B3133A30010F5D5 /* MSDKDnsService.m */; };
+		5F09437C292B82D50004374B /* MSDKDnsTCPSpeedTester.m in Sources */ = {isa = PBXBuildFile; fileRef = 5F5DAF4C28A525E300BF5B79 /* MSDKDnsTCPSpeedTester.m */; };
+		5F09437D292B82D50004374B /* aes.mm in Sources */ = {isa = PBXBuildFile; fileRef = C8EBE7D2256664C500BEFEEC /* aes.mm */; };
+		5F09437E292B82D50004374B /* msdkdns_local_ip_stack.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 501001EC215E1F1D003288A5 /* msdkdns_local_ip_stack.cpp */; };
+		5F09437F292B82D50004374B /* MSDKDnsReachability.m in Sources */ = {isa = PBXBuildFile; fileRef = 44BFE2471CA59D9800D7FE87 /* MSDKDnsReachability.m */; };
+		5F094380292B82D50004374B /* MSDKDnsNetworkManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 445B36681CBD1D4700BD4345 /* MSDKDnsNetworkManager.m */; };
+		5F094381292B82D50004374B /* MSDKDnsLog.m in Sources */ = {isa = PBXBuildFile; fileRef = 4497F8B71B4628F000D51391 /* MSDKDnsLog.m */; };
+		5F094382292B82D50004374B /* MSDKDnsHttpMessageTools.m in Sources */ = {isa = PBXBuildFile; fileRef = 504F54391ECAF89F001BD7A9 /* MSDKDnsHttpMessageTools.m */; };
+		5F094383292B82D50004374B /* MSDKDnsDB.m in Sources */ = {isa = PBXBuildFile; fileRef = 5F1E287D28B72A7D00AD0D9F /* MSDKDnsDB.m */; };
+		5F094384292B82D50004374B /* MSDKDnsResolver.m in Sources */ = {isa = PBXBuildFile; fileRef = 448EE4E11B329899004A2131 /* MSDKDnsResolver.m */; };
+		5F094385292B82D50004374B /* AttaReport.m in Sources */ = {isa = PBXBuildFile; fileRef = 54EA82212760890B005F68A9 /* AttaReport.m */; };
+		5F094386292B82D50004374B /* MSDKDns.m in Sources */ = {isa = PBXBuildFile; fileRef = 4455D15D1B3A5B90005BF126 /* MSDKDns.m */; };
+		5F094387292B82D50004374B /* LocalDnsResolver.m in Sources */ = {isa = PBXBuildFile; fileRef = 448EE4DF1B329899004A2131 /* LocalDnsResolver.m */; };
+		5F094389292B82D50004374B /* libsqlite3.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 5F1332E828FFEC4600A22D2A /* libsqlite3.tbd */; };
+		5F09438A292B82D50004374B /* libc++.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = C8EBE7DA2566675800BEFEEC /* libc++.tbd */; };
+		5F09438D292B82D50004374B /* MSDKDnsReachability.h in Headers */ = {isa = PBXBuildFile; fileRef = 44BFE2461CA59D9800D7FE87 /* MSDKDnsReachability.h */; };
+		5F09438E292B82D50004374B /* MSDKDnsDB.h in Headers */ = {isa = PBXBuildFile; fileRef = 5F1E287F28B72A7D00AD0D9F /* MSDKDnsDB.h */; };
+		5F09438F292B82D50004374B /* MSDKDnsHttpMessageTools.h in Headers */ = {isa = PBXBuildFile; fileRef = 504F54381ECAF89F001BD7A9 /* MSDKDnsHttpMessageTools.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		5F094390292B82D50004374B /* MSDKDnsNetworkManager.h in Headers */ = {isa = PBXBuildFile; fileRef = 445B36671CBD1D4700BD4345 /* MSDKDnsNetworkManager.h */; };
+		5F094391292B82D50004374B /* aes.h in Headers */ = {isa = PBXBuildFile; fileRef = C8EBE7D1256664C400BEFEEC /* aes.h */; };
+		5F094392292B82D50004374B /* MSDKDnsManager.h in Headers */ = {isa = PBXBuildFile; fileRef = 445B36611CBD095C00BD4345 /* MSDKDnsManager.h */; };
+		5F094393292B82D50004374B /* MSDKDnsLog.h in Headers */ = {isa = PBXBuildFile; fileRef = 4497F8B61B4628F000D51391 /* MSDKDnsLog.h */; };
+		5F094394292B82D50004374B /* MSDKDns.h in Headers */ = {isa = PBXBuildFile; fileRef = 4455D15C1B3A5B90005BF126 /* MSDKDns.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		5F094395292B82D50004374B /* LocalDnsResolver.h in Headers */ = {isa = PBXBuildFile; fileRef = 448EE4DE1B329899004A2131 /* LocalDnsResolver.h */; };
+		5F094396292B82D50004374B /* HttpsDnsResolver.h in Headers */ = {isa = PBXBuildFile; fileRef = DD5935551DDC56B200BF9348 /* HttpsDnsResolver.h */; };
+		5F094397292B82D50004374B /* MSDKDnsTCPSpeedTester.h in Headers */ = {isa = PBXBuildFile; fileRef = 5F5DAF4B28A525E300BF5B79 /* MSDKDnsTCPSpeedTester.h */; };
+		5F094398292B82D50004374B /* MSDKDnsResolver.h in Headers */ = {isa = PBXBuildFile; fileRef = 448EE4E01B329899004A2131 /* MSDKDnsResolver.h */; };
+		5F094399292B82D50004374B /* AttaReport.h in Headers */ = {isa = PBXBuildFile; fileRef = 54EA82202760890B005F68A9 /* AttaReport.h */; };
+		5F09439A292B82D50004374B /* MSDKDnsSpeedTester.h in Headers */ = {isa = PBXBuildFile; fileRef = 5F5DAF4D28A525E300BF5B79 /* MSDKDnsSpeedTester.h */; };
+		5F09439B292B82D50004374B /* MSDKDnsInfoTool.h in Headers */ = {isa = PBXBuildFile; fileRef = 44BFE2351CA58C3A00D7FE87 /* MSDKDnsInfoTool.h */; };
+		5F09439C292B82D50004374B /* MSDKDnsParamsManager.h in Headers */ = {isa = PBXBuildFile; fileRef = 502422EA2140073F0094403C /* MSDKDnsParamsManager.h */; };
+		5F09439D292B82D50004374B /* MSDKDnsPrivate.h in Headers */ = {isa = PBXBuildFile; fileRef = 4497F8BC1B46306200D51391 /* MSDKDnsPrivate.h */; };
+		5F09439E292B82D50004374B /* MSDKDnsService.h in Headers */ = {isa = PBXBuildFile; fileRef = 444044F71B3133A30010F5D5 /* MSDKDnsService.h */; };
+		5F09439F292B82D50004374B /* msdkdns_local_ip_stack.h in Headers */ = {isa = PBXBuildFile; fileRef = 501001ED215E1F1D003288A5 /* msdkdns_local_ip_stack.h */; };
+		5F0943AA292B96CC0004374B /* MSDKDnsParamsManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 502422EB2140073F0094403C /* MSDKDnsParamsManager.m */; };
+		5F0943AB292B96CC0004374B /* MSDKDnsInfoTool.m in Sources */ = {isa = PBXBuildFile; fileRef = 44BFE2361CA58C3A00D7FE87 /* MSDKDnsInfoTool.m */; };
+		5F0943AC292B96CC0004374B /* HttpsDnsResolver.m in Sources */ = {isa = PBXBuildFile; fileRef = DD5935541DDC56B200BF9348 /* HttpsDnsResolver.m */; };
+		5F0943AD292B96CC0004374B /* MSDKDnsManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 445B36621CBD095C00BD4345 /* MSDKDnsManager.m */; };
+		5F0943AE292B96CC0004374B /* MSDKDnsService.m in Sources */ = {isa = PBXBuildFile; fileRef = 444044F81B3133A30010F5D5 /* MSDKDnsService.m */; };
+		5F0943AF292B96CC0004374B /* MSDKDnsTCPSpeedTester.m in Sources */ = {isa = PBXBuildFile; fileRef = 5F5DAF4C28A525E300BF5B79 /* MSDKDnsTCPSpeedTester.m */; };
+		5F0943B0292B96CC0004374B /* msdkdns_local_ip_stack.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 501001EC215E1F1D003288A5 /* msdkdns_local_ip_stack.cpp */; };
+		5F0943B1292B96CC0004374B /* MSDKDnsReachability.m in Sources */ = {isa = PBXBuildFile; fileRef = 44BFE2471CA59D9800D7FE87 /* MSDKDnsReachability.m */; };
+		5F0943B2292B96CC0004374B /* aes.mm in Sources */ = {isa = PBXBuildFile; fileRef = C8EBE7D2256664C500BEFEEC /* aes.mm */; };
+		5F0943B3292B96CC0004374B /* MSDKDnsNetworkManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 445B36681CBD1D4700BD4345 /* MSDKDnsNetworkManager.m */; };
+		5F0943B4292B96CC0004374B /* MSDKDnsLog.m in Sources */ = {isa = PBXBuildFile; fileRef = 4497F8B71B4628F000D51391 /* MSDKDnsLog.m */; };
+		5F0943B5292B96CC0004374B /* MSDKDnsHttpMessageTools.m in Sources */ = {isa = PBXBuildFile; fileRef = 504F54391ECAF89F001BD7A9 /* MSDKDnsHttpMessageTools.m */; };
+		5F0943B6292B96CC0004374B /* MSDKDnsDB.m in Sources */ = {isa = PBXBuildFile; fileRef = 5F1E287D28B72A7D00AD0D9F /* MSDKDnsDB.m */; };
+		5F0943B7292B96CC0004374B /* MSDKDnsResolver.m in Sources */ = {isa = PBXBuildFile; fileRef = 448EE4E11B329899004A2131 /* MSDKDnsResolver.m */; };
+		5F0943B8292B96CC0004374B /* AttaReport.m in Sources */ = {isa = PBXBuildFile; fileRef = 54EA82212760890B005F68A9 /* AttaReport.m */; };
+		5F0943B9292B96CC0004374B /* MSDKDns.m in Sources */ = {isa = PBXBuildFile; fileRef = 4455D15D1B3A5B90005BF126 /* MSDKDns.m */; };
+		5F0943BA292B96CC0004374B /* LocalDnsResolver.m in Sources */ = {isa = PBXBuildFile; fileRef = 448EE4DF1B329899004A2131 /* LocalDnsResolver.m */; };
+		5F0943BC292B96CC0004374B /* libsqlite3.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 5F1332E828FFEC4600A22D2A /* libsqlite3.tbd */; };
+		5F0943BD292B96CC0004374B /* libc++.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = C8EBE7DA2566675800BEFEEC /* libc++.tbd */; };
+		5F0943C0292B96CC0004374B /* MSDKDnsReachability.h in Headers */ = {isa = PBXBuildFile; fileRef = 44BFE2461CA59D9800D7FE87 /* MSDKDnsReachability.h */; };
+		5F0943C1292B96CC0004374B /* MSDKDnsDB.h in Headers */ = {isa = PBXBuildFile; fileRef = 5F1E287F28B72A7D00AD0D9F /* MSDKDnsDB.h */; };
+		5F0943C2292B96CC0004374B /* MSDKDnsHttpMessageTools.h in Headers */ = {isa = PBXBuildFile; fileRef = 504F54381ECAF89F001BD7A9 /* MSDKDnsHttpMessageTools.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		5F0943C3292B96CC0004374B /* MSDKDnsNetworkManager.h in Headers */ = {isa = PBXBuildFile; fileRef = 445B36671CBD1D4700BD4345 /* MSDKDnsNetworkManager.h */; };
+		5F0943C4292B96CC0004374B /* aes.h in Headers */ = {isa = PBXBuildFile; fileRef = C8EBE7D1256664C400BEFEEC /* aes.h */; };
+		5F0943C5292B96CC0004374B /* MSDKDnsManager.h in Headers */ = {isa = PBXBuildFile; fileRef = 445B36611CBD095C00BD4345 /* MSDKDnsManager.h */; };
+		5F0943C6292B96CC0004374B /* MSDKDnsLog.h in Headers */ = {isa = PBXBuildFile; fileRef = 4497F8B61B4628F000D51391 /* MSDKDnsLog.h */; };
+		5F0943C7292B96CC0004374B /* MSDKDns.h in Headers */ = {isa = PBXBuildFile; fileRef = 4455D15C1B3A5B90005BF126 /* MSDKDns.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		5F0943C8292B96CC0004374B /* LocalDnsResolver.h in Headers */ = {isa = PBXBuildFile; fileRef = 448EE4DE1B329899004A2131 /* LocalDnsResolver.h */; };
+		5F0943C9292B96CC0004374B /* HttpsDnsResolver.h in Headers */ = {isa = PBXBuildFile; fileRef = DD5935551DDC56B200BF9348 /* HttpsDnsResolver.h */; };
+		5F0943CA292B96CC0004374B /* MSDKDnsTCPSpeedTester.h in Headers */ = {isa = PBXBuildFile; fileRef = 5F5DAF4B28A525E300BF5B79 /* MSDKDnsTCPSpeedTester.h */; };
+		5F0943CB292B96CC0004374B /* MSDKDnsResolver.h in Headers */ = {isa = PBXBuildFile; fileRef = 448EE4E01B329899004A2131 /* MSDKDnsResolver.h */; };
+		5F0943CC292B96CC0004374B /* AttaReport.h in Headers */ = {isa = PBXBuildFile; fileRef = 54EA82202760890B005F68A9 /* AttaReport.h */; };
+		5F0943CD292B96CC0004374B /* MSDKDnsSpeedTester.h in Headers */ = {isa = PBXBuildFile; fileRef = 5F5DAF4D28A525E300BF5B79 /* MSDKDnsSpeedTester.h */; };
+		5F0943CE292B96CC0004374B /* MSDKDnsInfoTool.h in Headers */ = {isa = PBXBuildFile; fileRef = 44BFE2351CA58C3A00D7FE87 /* MSDKDnsInfoTool.h */; };
+		5F0943CF292B96CC0004374B /* MSDKDnsParamsManager.h in Headers */ = {isa = PBXBuildFile; fileRef = 502422EA2140073F0094403C /* MSDKDnsParamsManager.h */; };
+		5F0943D0292B96CC0004374B /* MSDKDnsPrivate.h in Headers */ = {isa = PBXBuildFile; fileRef = 4497F8BC1B46306200D51391 /* MSDKDnsPrivate.h */; };
+		5F0943D1292B96CC0004374B /* MSDKDnsService.h in Headers */ = {isa = PBXBuildFile; fileRef = 444044F71B3133A30010F5D5 /* MSDKDnsService.h */; };
+		5F0943D2292B96CC0004374B /* msdkdns_local_ip_stack.h in Headers */ = {isa = PBXBuildFile; fileRef = 501001ED215E1F1D003288A5 /* msdkdns_local_ip_stack.h */; };
 		5F1332E928FFEC4A00A22D2A /* libsqlite3.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 5F1332E828FFEC4600A22D2A /* libsqlite3.tbd */; };
 		5F1332EA28FFEC5000A22D2A /* libsqlite3.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 5F1332E828FFEC4600A22D2A /* libsqlite3.tbd */; };
 		5F1E288428B72A7D00AD0D9F /* MSDKDnsDB.m in Sources */ = {isa = PBXBuildFile; fileRef = 5F1E287D28B72A7D00AD0D9F /* MSDKDnsDB.m */; };
@@ -116,6 +192,8 @@
 		54EA81F1275478D1005F68A9 /* httpdnsIps.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = httpdnsIps.h; sourceTree = "<group>"; };
 		54EA82202760890B005F68A9 /* AttaReport.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AttaReport.h; sourceTree = "<group>"; };
 		54EA82212760890B005F68A9 /* AttaReport.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AttaReport.m; sourceTree = "<group>"; };
+		5F0943A5292B82D50004374B /* MSDKDns_C11_intl.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MSDKDns_C11_intl.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		5F0943D8292B96CC0004374B /* MSDKDns_intl.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MSDKDns_intl.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		5F1332E828FFEC4600A22D2A /* libsqlite3.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libsqlite3.tbd; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/lib/libsqlite3.tbd; sourceTree = DEVELOPER_DIR; };
 		5F1E287D28B72A7D00AD0D9F /* MSDKDnsDB.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MSDKDnsDB.m; sourceTree = "<group>"; };
 		5F1E287F28B72A7D00AD0D9F /* MSDKDnsDB.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MSDKDnsDB.h; sourceTree = "<group>"; };
@@ -137,6 +215,24 @@
 			files = (
 				5F1332EA28FFEC5000A22D2A /* libsqlite3.tbd in Frameworks */,
 				C8EBE7F7256669B900BEFEEC /* libc++.tbd in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		5F094388292B82D50004374B /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				5F094389292B82D50004374B /* libsqlite3.tbd in Frameworks */,
+				5F09438A292B82D50004374B /* libc++.tbd in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		5F0943BB292B96CC0004374B /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				5F0943BC292B96CC0004374B /* libsqlite3.tbd in Frameworks */,
+				5F0943BD292B96CC0004374B /* libc++.tbd in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -166,6 +262,8 @@
 			children = (
 				44224FC01B312DD6003497C4 /* MSDKDns.framework */,
 				DD43F4B9231CC36D0000A89F /* MSDKDns_C11.framework */,
+				5F0943A5292B82D50004374B /* MSDKDns_C11_intl.framework */,
+				5F0943D8292B96CC0004374B /* MSDKDns_intl.framework */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -310,6 +408,58 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		5F09438C292B82D50004374B /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				5F09438D292B82D50004374B /* MSDKDnsReachability.h in Headers */,
+				5F09438E292B82D50004374B /* MSDKDnsDB.h in Headers */,
+				5F09438F292B82D50004374B /* MSDKDnsHttpMessageTools.h in Headers */,
+				5F094390292B82D50004374B /* MSDKDnsNetworkManager.h in Headers */,
+				5F094391292B82D50004374B /* aes.h in Headers */,
+				5F094392292B82D50004374B /* MSDKDnsManager.h in Headers */,
+				5F094393292B82D50004374B /* MSDKDnsLog.h in Headers */,
+				5F094394292B82D50004374B /* MSDKDns.h in Headers */,
+				5F094395292B82D50004374B /* LocalDnsResolver.h in Headers */,
+				5F094396292B82D50004374B /* HttpsDnsResolver.h in Headers */,
+				5F094397292B82D50004374B /* MSDKDnsTCPSpeedTester.h in Headers */,
+				5F094398292B82D50004374B /* MSDKDnsResolver.h in Headers */,
+				5F094399292B82D50004374B /* AttaReport.h in Headers */,
+				5F09439A292B82D50004374B /* MSDKDnsSpeedTester.h in Headers */,
+				5F09439B292B82D50004374B /* MSDKDnsInfoTool.h in Headers */,
+				5F09439C292B82D50004374B /* MSDKDnsParamsManager.h in Headers */,
+				5F09439D292B82D50004374B /* MSDKDnsPrivate.h in Headers */,
+				5F09439E292B82D50004374B /* MSDKDnsService.h in Headers */,
+				5F09439F292B82D50004374B /* msdkdns_local_ip_stack.h in Headers */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		5F0943BF292B96CC0004374B /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				5F0943C0292B96CC0004374B /* MSDKDnsReachability.h in Headers */,
+				5F0943C1292B96CC0004374B /* MSDKDnsDB.h in Headers */,
+				5F0943C2292B96CC0004374B /* MSDKDnsHttpMessageTools.h in Headers */,
+				5F0943C3292B96CC0004374B /* MSDKDnsNetworkManager.h in Headers */,
+				5F0943C4292B96CC0004374B /* aes.h in Headers */,
+				5F0943C5292B96CC0004374B /* MSDKDnsManager.h in Headers */,
+				5F0943C6292B96CC0004374B /* MSDKDnsLog.h in Headers */,
+				5F0943C7292B96CC0004374B /* MSDKDns.h in Headers */,
+				5F0943C8292B96CC0004374B /* LocalDnsResolver.h in Headers */,
+				5F0943C9292B96CC0004374B /* HttpsDnsResolver.h in Headers */,
+				5F0943CA292B96CC0004374B /* MSDKDnsTCPSpeedTester.h in Headers */,
+				5F0943CB292B96CC0004374B /* MSDKDnsResolver.h in Headers */,
+				5F0943CC292B96CC0004374B /* AttaReport.h in Headers */,
+				5F0943CD292B96CC0004374B /* MSDKDnsSpeedTester.h in Headers */,
+				5F0943CE292B96CC0004374B /* MSDKDnsInfoTool.h in Headers */,
+				5F0943CF292B96CC0004374B /* MSDKDnsParamsManager.h in Headers */,
+				5F0943D0292B96CC0004374B /* MSDKDnsPrivate.h in Headers */,
+				5F0943D1292B96CC0004374B /* MSDKDnsService.h in Headers */,
+				5F0943D2292B96CC0004374B /* msdkdns_local_ip_stack.h in Headers */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		DD43F4A5231CC36D0000A89F /* Headers */ = {
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
@@ -360,6 +510,48 @@
 			productReference = 44224FC01B312DD6003497C4 /* MSDKDns.framework */;
 			productType = "com.apple.product-type.bundle";
 		};
+		5F094374292B82D50004374B /* MSDKDns_C11_intl */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 5F0943A2292B82D50004374B /* Build configuration list for PBXNativeTarget "MSDKDns_C11_intl" */;
+			buildPhases = (
+				5F094375292B82D50004374B /* ShellScript */,
+				5F094376292B82D50004374B /* Sources */,
+				5F094388292B82D50004374B /* Frameworks */,
+				5F09438B292B82D50004374B /* Resources */,
+				5F09438C292B82D50004374B /* Headers */,
+				5F0943A0292B82D50004374B /* Run Script */,
+				5F0943A1292B82D50004374B /* ShellScript */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = MSDKDns_C11_intl;
+			productName = MSDKDns;
+			productReference = 5F0943A5292B82D50004374B /* MSDKDns_C11_intl.framework */;
+			productType = "com.apple.product-type.bundle";
+		};
+		5F0943A7292B96CC0004374B /* MSDKDns_intl */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 5F0943D5292B96CC0004374B /* Build configuration list for PBXNativeTarget "MSDKDns_intl" */;
+			buildPhases = (
+				5F0943A8292B96CC0004374B /* ShellScript */,
+				5F0943A9292B96CC0004374B /* Sources */,
+				5F0943BB292B96CC0004374B /* Frameworks */,
+				5F0943BE292B96CC0004374B /* Resources */,
+				5F0943BF292B96CC0004374B /* Headers */,
+				5F0943D3292B96CC0004374B /* ShellScript */,
+				5F0943D4292B96CC0004374B /* ShellScript */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = MSDKDns_intl;
+			productName = MSDKDns;
+			productReference = 5F0943D8292B96CC0004374B /* MSDKDns_intl.framework */;
+			productType = "com.apple.product-type.bundle";
+		};
 		DD43F493231CC36D0000A89F /* MSDKDns_C11 */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = DD43F4B6231CC36D0000A89F /* Build configuration list for PBXNativeTarget "MSDKDns_C11" */;
@@ -394,6 +586,12 @@
 						CreatedOnToolsVersion = 6.3;
 						DevelopmentTeam = 4PK94A7P3R;
 					};
+					5F094374292B82D50004374B = {
+						DevelopmentTeam = 4PK94A7P3R;
+					};
+					5F0943A7292B96CC0004374B = {
+						DevelopmentTeam = 4PK94A7P3R;
+					};
 					DD43F493231CC36D0000A89F = {
 						DevelopmentTeam = 4PK94A7P3R;
 					};
@@ -413,13 +611,29 @@
 			projectRoot = "";
 			targets = (
 				44224FBF1B312DD6003497C4 /* MSDKDns */,
+				5F0943A7292B96CC0004374B /* MSDKDns_intl */,
 				DD43F493231CC36D0000A89F /* MSDKDns_C11 */,
+				5F094374292B82D50004374B /* MSDKDns_C11_intl */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
 		44224FBE1B312DD6003497C4 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		5F09438B292B82D50004374B /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		5F0943BE292B96CC0004374B /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -463,6 +677,85 @@
 			shellScript = "HEADERS_ROOT=$SRCROOT/$PRODUCT_NAME\nFRAMEWORK_HEADERS_DIR=\"$BUILT_PRODUCTS_DIR/$WRAPPER_NAME/Versions/$FRAMEWORK_VERSION/Headers\"\n\necho \"Run Script 2\"\n\n## only header files expected at this point\nPUBLIC_HEADERS=$(find $FRAMEWORK_HEADERS_DIR/. -not -type d 2> /dev/null | sed -e \"s@.*/@@g\")\n\nFIND_OPTS=\"\"\nfor PUBLIC_HEADER in $PUBLIC_HEADERS; do\nif [ -n \"$FIND_OPTS\" ]; then\nFIND_OPTS=\"$FIND_OPTS -o\"\nfi\nFIND_OPTS=\"$FIND_OPTS -name '$PUBLIC_HEADER'\"\ndone\n\nif [ -n \"$FIND_OPTS\" ]; then\nfor ORIG_HEADER in $(eval \"find $HEADERS_ROOT/. $FIND_OPTS\" 2> /dev/null | sed -e \"s@^$HEADERS_ROOT/./@@g\"); do\nPUBLIC_HEADER=$(basename $ORIG_HEADER)\nRELATIVE_PATH=$(dirname $ORIG_HEADER)\nif [ -e $FRAMEWORK_HEADERS_DIR/$PUBLIC_HEADER ]; then\nmkdir -p \"$FRAMEWORK_HEADERS_DIR/$RELATIVE_PATH\"\nmv \"$FRAMEWORK_HEADERS_DIR/$PUBLIC_HEADER\" \"$FRAMEWORK_HEADERS_DIR/$RELATIVE_PATH/$PUBLIC_HEADER\"\nfi\ndone\nfi\n";
 		};
 		444044D61B31306F0010F5D5 /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "echo \"Run Script 3\"\nset -e\n\nset +u\nif [[ $UFW_MASTER_SCRIPT_RUNNING ]]\nthen\n# Nothing for the slave script to do\nexit 0\nfi\nset -u\nexport UFW_MASTER_SCRIPT_RUNNING=1\n\n\n# Functions\n\n## List files in the specified directory, storing to the specified array.\n#\n# @param $1 The path to list\n# @param $2 The name of the array to fill\n#\n##\nlist_files ()\n{\n    filelist=$(ls \"$1\")\n    while read line\n    do\n    eval \"$2[\\${#$2[*]}]=\\\"\\$line\\\"\"\n    done <<< \"$filelist\"\n}\n\n\n# Sanity check\n\nif [[ ! -f \"${BUILT_PRODUCTS_DIR}/${EXECUTABLE_PATH}\" ]]\nthen\necho \"Framework target \\\"${TARGET_NAME}\\\" had no source files to build from. Make sure your source files have the correct target membership\"\nexit 1\nfi\n\n\n# Gather information\n\nif [[ \"$SDK_NAME\" =~ ([A-Za-z]+) ]]\nthen\nUFW_SDK_PLATFORM=${BASH_REMATCH[1]}\nelse\necho \"Could not find platform name from SDK_NAME: $SDK_NAME\"\nexit 1\nfi\n\nif [[ \"$SDK_NAME\" =~ ([0-9]+.*$) ]]\nthen\nUFW_SDK_VERSION=${BASH_REMATCH[1]}\nelse\necho \"Could not find sdk version from SDK_NAME: $SDK_NAME\"\nexit 1\nfi\n\nif [[ \"$UFW_SDK_PLATFORM\" = \"iphoneos\" ]]\nthen\nUFW_OTHER_PLATFORM=iphonesimulator\nelse\nUFW_OTHER_PLATFORM=iphoneos\nfi\n\nif [[ \"$BUILT_PRODUCTS_DIR\" =~ (.*)$UFW_SDK_PLATFORM$ ]]\nthen\nUFW_OTHER_BUILT_PRODUCTS_DIR=\"${BASH_REMATCH[1]}${UFW_OTHER_PLATFORM}\"\nelse\necho \"Could not find $UFW_SDK_PLATFORM in $BUILT_PRODUCTS_DIR\"\nexit 1\nfi\n\n\n# Short-circuit if all binaries are up to date.\n# We already checked the other platform in the prerun script.\n\n#if [[ -f \"${BUILT_PRODUCTS_DIR}/${EXECUTABLE_PATH}\" ]] && [[ -f \"${BUILT_PRODUCTS_DIR}/${PRODUCT_NAME}.embeddedframework/${EXECUTABLE_PATH}\" ]] && [[ ! \"${BUILT_PRODUCTS_DIR}/${EXECUTABLE_PATH}\" -nt \"${BUILT_PRODUCTS_DIR}/${PRODUCT_NAME}.embeddedframework/${EXECUTABLE_PATH}\" ]]\n#then\n#    exit 0\n#fi\n\n\n# Make sure the other platform gets built\n\necho \"Build other platform\"\n\necho xcodebuild OTHER_CFLAGS=\"-fembed-bitcode\" -project \"${PROJECT_FILE_PATH}\" -target \"${TARGET_NAME}\" -configuration \"${CONFIGURATION}\" -sdk ${UFW_OTHER_PLATFORM}${UFW_SDK_VERSION} BUILD_DIR=\"${BUILD_DIR}\" CONFIGURATION_TEMP_DIR=\"${PROJECT_TEMP_DIR}/${CONFIGURATION}-${UFW_OTHER_PLATFORM}\" $ACTION\nxcodebuild OTHER_CFLAGS=\"-fembed-bitcode\" -project \"${PROJECT_FILE_PATH}\" -target \"${TARGET_NAME}\" -configuration \"${CONFIGURATION}\" -sdk ${UFW_OTHER_PLATFORM}${UFW_SDK_VERSION} BUILD_DIR=\"${BUILD_DIR}\" CONFIGURATION_TEMP_DIR=\"${PROJECT_TEMP_DIR}/${CONFIGURATION}-${UFW_OTHER_PLATFORM}\" $ACTION\n\n\n# Build the fat static library binary\n#echo \"Create universal static library\"\n#echo \"$DT_TOOLCHAIN_DIR/usr/bin/libtool\" -static \"${BUILT_PRODUCTS_DIR}/${EXECUTABLE_PATH}\" \"${UFW_OTHER_BUILT_PRODUCTS_DIR}/${EXECUTABLE_PATH}\" -o \"${BUILT_PRODUCTS_DIR}/${EXECUTABLE_PATH}.temp\"\n#\"$DT_TOOLCHAIN_DIR/usr/bin/libtool\" -static \"${BUILT_PRODUCTS_DIR}/${EXECUTABLE_PATH}\" \"${UFW_OTHER_BUILT_PRODUCTS_DIR}/${EXECUTABLE_PATH}\" -o \"${BUILT_PRODUCTS_DIR}/${EXECUTABLE_PATH}.temp\"\n#echo mv \"${BUILT_PRODUCTS_DIR}/${EXECUTABLE_PATH}.temp\" \"${BUILT_PRODUCTS_DIR}/${EXECUTABLE_PATH}\"\n#mv \"${BUILT_PRODUCTS_DIR}/${EXECUTABLE_PATH}.temp\" \"${BUILT_PRODUCTS_DIR}/${EXECUTABLE_PATH}\"\n\n\n# Build framework structure\n\necho \"Build symlinks\"\n\n#echo ln -sfh A \"${BUILT_PRODUCTS_DIR}/${WRAPPER_NAME}/Versions/Current\"\n#ln -sfh A \"${BUILT_PRODUCTS_DIR}/${WRAPPER_NAME}/Versions/Current\"\n#echo ln -sfh Versions/Current/Headers \"${BUILT_PRODUCTS_DIR}/${WRAPPER_NAME}/Headers\"\n#ln -sfh Versions/Current/Headers \"${BUILT_PRODUCTS_DIR}/${WRAPPER_NAME}/Headers\"\n#echo ln -sfh Versions/Current/Resources \"${BUILT_PRODUCTS_DIR}/${WRAPPER_NAME}/Resources\"\n#ln -sfh Versions/Current/Resources \"${BUILT_PRODUCTS_DIR}/${WRAPPER_NAME}/Resources\"\n#echo ln -sfh \"Versions/Current/${EXECUTABLE_NAME}\" \"${BUILT_PRODUCTS_DIR}/${WRAPPER_NAME}/${EXECUTABLE_NAME}\"\n#ln -sfh \"Versions/Current/${EXECUTABLE_NAME}\" \"${BUILT_PRODUCTS_DIR}/${WRAPPER_NAME}/${EXECUTABLE_NAME}\"\ncp -R \"${BUILT_PRODUCTS_DIR}/${WRAPPER_NAME}/Versions/A/\" \"${BUILT_PRODUCTS_DIR}/${WRAPPER_NAME}/\"\n\nrm -R \"${BUILT_PRODUCTS_DIR}/${WRAPPER_NAME}/Versions\"\n\ncp -R \"${UFW_OTHER_BUILT_PRODUCTS_DIR}/${WRAPPER_NAME}/Versions/A/\" \"${UFW_OTHER_BUILT_PRODUCTS_DIR}/${WRAPPER_NAME}/\"\nrm -R \"${UFW_OTHER_BUILT_PRODUCTS_DIR}/${WRAPPER_NAME}/Versions\"\n\n# Link to binary for unit tests\n\nmkdir -p \"${BUILT_PRODUCTS_DIR}/.fake_fw_testing.framework\"\nln -sfh \"../${WRAPPER_NAME}/${EXECUTABLE_NAME}\" \"${BUILT_PRODUCTS_DIR}/.fake_fw_testing.framework/.fake_fw_testing\"\n\n\n# Build embedded framework structure\n\n#echo \"Build Embedded Framework\"\n\n#echo rm -rf \"${BUILT_PRODUCTS_DIR}/${PRODUCT_NAME}.embeddedframework\"\n#rm -rf \"${BUILT_PRODUCTS_DIR}/${PRODUCT_NAME}.embeddedframework\"\n#echo mkdir -p \"${BUILT_PRODUCTS_DIR}/${PRODUCT_NAME}.embeddedframework/MsdkResources\"\n#mkdir -p \"${BUILT_PRODUCTS_DIR}/${PRODUCT_NAME}.embeddedframework/MsdkResources\"\n#echo cp -a \"${BUILT_PRODUCTS_DIR}/${WRAPPER_NAME}\" \"${BUILT_PRODUCTS_DIR}/${PRODUCT_NAME}.embeddedframework/\"\n#cp -a \"${BUILT_PRODUCTS_DIR}/${WRAPPER_NAME}\" \"${BUILT_PRODUCTS_DIR}/${PRODUCT_NAME}.embeddedframework/\"\n\n#declare -a UFW_FILE_LIST\n#list_files \"${BUILT_PRODUCTS_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}\" UFW_FILE_LIST\n#for filename in \"${UFW_FILE_LIST[@]}\"\n#do\n#    if [[ \"${filename}\" != \"Info.plist\" ]] && [[ ! \"${filename}\" =~ .*\\.lproj$ ]]\n#    then\n#        echo ln -sfh \"../${WRAPPER_NAME}/Resources/${filename}\" \"${BUILT_PRODUCTS_DIR}/${PRODUCT_NAME}.embeddedframework/Resources/${filename}\"\n#        ln -sfh \"../${WRAPPER_NAME}/Resources/${filename}\" \"${BUILT_PRODUCTS_DIR}/${PRODUCT_NAME}.embeddedframework/MsdkResources/${filename}\"\n#    fi\n#done\n#cp -a \"${BUILT_PRODUCTS_DIR}/${WRAPPER_NAME}/Resources/\" \"${BUILT_PRODUCTS_DIR}/${PRODUCT_NAME}.embeddedframework/MsdkResources/\"\n#rm -R \"${BUILT_PRODUCTS_DIR}/${WRAPPER_NAME}/Resources\"\n\n# Replace other platform's framework with a copy of this one (so that both have the same universal binary)\n\necho \"Create xcframework\"\necho xcodebuild -create-xcframework \\\n    -framework \"${BUILT_PRODUCTS_DIR}/${PRODUCT_NAME}.framework\" \\\n    -framework \"${UFW_OTHER_BUILT_PRODUCTS_DIR}/${PRODUCT_NAME}.framework\" \\\n    -output \"${BUILT_PRODUCTS_DIR}/${PRODUCT_NAME}.xcframework\"\nxcodebuild -create-xcframework \\\n    -framework \"${BUILT_PRODUCTS_DIR}/${PRODUCT_NAME}.framework\" \\\n    -framework \"${UFW_OTHER_BUILT_PRODUCTS_DIR}/${PRODUCT_NAME}.framework\" \\\n    -output \"${BUILT_PRODUCTS_DIR}/${PRODUCT_NAME}.xcframework\"\n\necho \"Copy from $UFW_SDK_PLATFORM to $UFW_OTHER_PLATFORM\"\n\necho rm -rf \"${BUILD_DIR}/${CONFIGURATION}-${UFW_OTHER_PLATFORM}\"\nrm -rf \"${BUILD_DIR}/${CONFIGURATION}-${UFW_OTHER_PLATFORM}\"\necho cp -a \"${BUILD_DIR}/${CONFIGURATION}-${UFW_SDK_PLATFORM}\" \"${BUILD_DIR}/${CONFIGURATION}-${UFW_OTHER_PLATFORM}\"\ncp -a \"${BUILD_DIR}/${CONFIGURATION}-${UFW_SDK_PLATFORM}\" \"${BUILD_DIR}/${CONFIGURATION}-${UFW_OTHER_PLATFORM}\"\n\n# Copy library\nif [ -d \"$PROJECT_DIR/../$PRODUCT_NAME\" ]; then\nrm -r \"$PROJECT_DIR/../$PRODUCT_NAME\"\nfi\n\nif [ ! -d \"$PROJECT_DIR/../$PRODUCT_NAME\" ]; then\nmkdir \"$PROJECT_DIR/../$PRODUCT_NAME\"\nfi\n\ncp -R \"$BUILT_PRODUCTS_DIR/$PRODUCT_NAME.framework\" \"$BUILT_PRODUCTS_DIR/$PRODUCT_NAME.xcframework\" \"$PROJECT_DIR/../$PRODUCT_NAME\"\n";
+		};
+		5F094375292B82D50004374B /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "echo \"Run Script 1\"\n\nset -e\n\nset +u\nif [[ $UFW_MASTER_SCRIPT_RUNNING ]]\nthen\n# Nothing for the slave script to do\nexit 0\nfi\nset -u\n\nif [[ \"$SDK_NAME\" =~ ([A-Za-z]+) ]]\nthen\nUFW_SDK_PLATFORM=${BASH_REMATCH[1]}\nelse\necho \"Could not find platform name from SDK_NAME: $SDK_NAME\"\nexit 1\nfi\n\nif [[ \"$SDK_NAME\" =~ ([0-9]+.*$) ]]\nthen\nUFW_SDK_VERSION=${BASH_REMATCH[1]}\nelse\necho \"Could not find sdk version  from SDK_NAME: $SDK_NAME\"\nexit 1\nfi\n\nif [[ \"$UFW_SDK_PLATFORM\" = \"iphoneos\" ]]\nthen\nUFW_OTHER_PLATFORM=iphonesimulator\nelse\nUFW_OTHER_PLATFORM=iphoneos\nfi\n\nif [[ \"$BUILT_PRODUCTS_DIR\" =~ (.*)$UFW_SDK_PLATFORM$ ]]\nthen\nUFW_OTHER_BUILT_PRODUCTS_DIR=\"${BASH_REMATCH[1]}${UFW_OTHER_PLATFORM}\"\nelse\necho \"Could not find $UFW_SDK_PLATFORM in $BUILT_PRODUCTS_DIR\"\nexit 1\nfi\n\n\n# Short-circuit if all binaries are up to date\n\n#if [[ -f \"${BUILT_PRODUCTS_DIR}/${EXECUTABLE_PATH}\" ]] && \\\n#   [[ -f \"${BUILT_PRODUCTS_DIR}/${PRODUCT_NAME}.embeddedframework/${EXECUTABLE_PATH}\" ]] && \\\n#   [[ ! \"${BUILT_PRODUCTS_DIR}/${EXECUTABLE_PATH}\" -nt \"${BUILT_PRODUCTS_DIR}/${PRODUCT_NAME}.embeddedframework/${EXECUTABLE_PATH}\" ]]\n#   [[ -f \"${UFW_OTHER_BUILT_PRODUCTS_DIR}/${EXECUTABLE_PATH}\" ]] && \\\n#   [[ -f \"${UFW_OTHER_BUILT_PRODUCTS_DIR}/${PRODUCT_NAME}.embeddedframework/${EXECUTABLE_PATH}\" ]] && \\\n#   [[ ! \"${UFW_OTHER_BUILT_PRODUCTS_DIR}/${EXECUTABLE_PATH}\" -nt \"${UFW_OTHER_BUILT_PRODUCTS_DIR}/${PRODUCT_NAME}.embeddedframework/${EXECUTABLE_PATH}\" ]]\n#then\n#    exit 0\n#fi\n\n\n# Clean other platform if needed\n\nif [[ ! -f \"${BUILT_PRODUCTS_DIR}/${EXECUTABLE_PATH}\" ]]\nthen\necho \"Platform \\\"$UFW_SDK_PLATFORM\\\" was cleaned recently. Cleaning \\\"$UFW_OTHER_PLATFORM\\\" as well\"\necho xcodebuild -project \"${PROJECT_FILE_PATH}\" -target \"${TARGET_NAME}\" -configuration \"${CONFIGURATION}\" -sdk ${UFW_OTHER_PLATFORM}${UFW_SDK_VERSION} BUILD_DIR=\"${BUILD_DIR}\" CONFIGURATION_TEMP_DIR=\"${PROJECT_TEMP_DIR}/${CONFIGURATION}-${UFW_OTHER_PLATFORM}\" clean\nxcodebuild -project \"${PROJECT_FILE_PATH}\" -target \"${TARGET_NAME}\" -configuration \"${CONFIGURATION}\" -sdk ${UFW_OTHER_PLATFORM}${UFW_SDK_VERSION} BUILD_DIR=\"${BUILD_DIR}\" CONFIGURATION_TEMP_DIR=\"${PROJECT_TEMP_DIR}/${CONFIGURATION}-${UFW_OTHER_PLATFORM}\" clean\nfi\n\n\n# Make sure we are building from fresh binaries\n\nrm -rf \"${BUILT_PRODUCTS_DIR}/${EXECUTABLE_PATH}\"\n#rm -rf \"${BUILT_PRODUCTS_DIR}/${PRODUCT_NAME}.embeddedframework\"\nrm -rf \"${UFW_OTHER_BUILT_PRODUCTS_DIR}/${EXECUTABLE_PATH}\"\n#rm -rf \"${UFW_OTHER_BUILT_PRODUCTS_DIR}/${PRODUCT_NAME}.embeddedframework\"\nrm -rf \"${BUILT_PRODUCTS_DIR}/${PRODUCT_NAME}.xcframework\"\n";
+		};
+		5F0943A0292B82D50004374B /* Run Script */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "Run Script";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "HEADERS_ROOT=$SRCROOT/$PRODUCT_NAME\nFRAMEWORK_HEADERS_DIR=\"$BUILT_PRODUCTS_DIR/$WRAPPER_NAME/Versions/$FRAMEWORK_VERSION/Headers\"\n\necho \"Run Script 2\"\n\n## only header files expected at this point\nPUBLIC_HEADERS=$(find $FRAMEWORK_HEADERS_DIR/. -not -type d 2> /dev/null | sed -e \"s@.*/@@g\")\n\nFIND_OPTS=\"\"\nfor PUBLIC_HEADER in $PUBLIC_HEADERS; do\nif [ -n \"$FIND_OPTS\" ]; then\nFIND_OPTS=\"$FIND_OPTS -o\"\nfi\nFIND_OPTS=\"$FIND_OPTS -name '$PUBLIC_HEADER'\"\ndone\n\nif [ -n \"$FIND_OPTS\" ]; then\nfor ORIG_HEADER in $(eval \"find $HEADERS_ROOT/. $FIND_OPTS\" 2> /dev/null | sed -e \"s@^$HEADERS_ROOT/./@@g\"); do\nPUBLIC_HEADER=$(basename $ORIG_HEADER)\nRELATIVE_PATH=$(dirname $ORIG_HEADER)\nif [ -e $FRAMEWORK_HEADERS_DIR/$PUBLIC_HEADER ]; then\nmkdir -p \"$FRAMEWORK_HEADERS_DIR/$RELATIVE_PATH\"\nmv \"$FRAMEWORK_HEADERS_DIR/$PUBLIC_HEADER\" \"$FRAMEWORK_HEADERS_DIR/$RELATIVE_PATH/$PUBLIC_HEADER\"\nfi\ndone\nfi\n";
+		};
+		5F0943A1292B82D50004374B /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "echo \"Run Script 3\"\nset -e\n\nset +u\nif [[ $UFW_MASTER_SCRIPT_RUNNING ]]\nthen\n# Nothing for the slave script to do\nexit 0\nfi\nset -u\nexport UFW_MASTER_SCRIPT_RUNNING=1\n\n\n# Functions\n\n## List files in the specified directory, storing to the specified array.\n#\n# @param $1 The path to list\n# @param $2 The name of the array to fill\n#\n##\nlist_files ()\n{\n    filelist=$(ls \"$1\")\n    while read line\n    do\n    eval \"$2[\\${#$2[*]}]=\\\"\\$line\\\"\"\n    done <<< \"$filelist\"\n}\n\n\n# Sanity check\n\nif [[ ! -f \"${BUILT_PRODUCTS_DIR}/${EXECUTABLE_PATH}\" ]]\nthen\necho \"Framework target \\\"${TARGET_NAME}\\\" had no source files to build from. Make sure your source files have the correct target membership\"\nexit 1\nfi\n\n\n# Gather information\n\nif [[ \"$SDK_NAME\" =~ ([A-Za-z]+) ]]\nthen\nUFW_SDK_PLATFORM=${BASH_REMATCH[1]}\nelse\necho \"Could not find platform name from SDK_NAME: $SDK_NAME\"\nexit 1\nfi\n\nif [[ \"$SDK_NAME\" =~ ([0-9]+.*$) ]]\nthen\nUFW_SDK_VERSION=${BASH_REMATCH[1]}\nelse\necho \"Could not find sdk version from SDK_NAME: $SDK_NAME\"\nexit 1\nfi\n\nif [[ \"$UFW_SDK_PLATFORM\" = \"iphoneos\" ]]\nthen\nUFW_OTHER_PLATFORM=iphonesimulator\nelse\nUFW_OTHER_PLATFORM=iphoneos\nfi\n\nif [[ \"$BUILT_PRODUCTS_DIR\" =~ (.*)$UFW_SDK_PLATFORM$ ]]\nthen\nUFW_OTHER_BUILT_PRODUCTS_DIR=\"${BASH_REMATCH[1]}${UFW_OTHER_PLATFORM}\"\nelse\necho \"Could not find $UFW_SDK_PLATFORM in $BUILT_PRODUCTS_DIR\"\nexit 1\nfi\n\n\n# Short-circuit if all binaries are up to date.\n# We already checked the other platform in the prerun script.\n\n#if [[ -f \"${BUILT_PRODUCTS_DIR}/${EXECUTABLE_PATH}\" ]] && [[ -f \"${BUILT_PRODUCTS_DIR}/${PRODUCT_NAME}.embeddedframework/${EXECUTABLE_PATH}\" ]] && [[ ! \"${BUILT_PRODUCTS_DIR}/${EXECUTABLE_PATH}\" -nt \"${BUILT_PRODUCTS_DIR}/${PRODUCT_NAME}.embeddedframework/${EXECUTABLE_PATH}\" ]]\n#then\n#    exit 0\n#fi\n\n\n# Make sure the other platform gets built\n\necho \"Build other platform\"\n\necho xcodebuild OTHER_CFLAGS=\"-fembed-bitcode\" -project \"${PROJECT_FILE_PATH}\" -target \"${TARGET_NAME}\" -configuration \"${CONFIGURATION}\" -sdk ${UFW_OTHER_PLATFORM}${UFW_SDK_VERSION} BUILD_DIR=\"${BUILD_DIR}\" CONFIGURATION_TEMP_DIR=\"${PROJECT_TEMP_DIR}/${CONFIGURATION}-${UFW_OTHER_PLATFORM}\" $ACTION\nxcodebuild OTHER_CFLAGS=\"-fembed-bitcode\" -project \"${PROJECT_FILE_PATH}\" -target \"${TARGET_NAME}\" -configuration \"${CONFIGURATION}\" -sdk ${UFW_OTHER_PLATFORM}${UFW_SDK_VERSION} BUILD_DIR=\"${BUILD_DIR}\" CONFIGURATION_TEMP_DIR=\"${PROJECT_TEMP_DIR}/${CONFIGURATION}-${UFW_OTHER_PLATFORM}\" $ACTION\n\n\n# Build the fat static library binary\n#echo \"Create universal static library\"\n#echo \"$DT_TOOLCHAIN_DIR/usr/bin/libtool\" -static \"${BUILT_PRODUCTS_DIR}/${EXECUTABLE_PATH}\" \"${UFW_OTHER_BUILT_PRODUCTS_DIR}/${EXECUTABLE_PATH}\" -o \"${BUILT_PRODUCTS_DIR}/${EXECUTABLE_PATH}.temp\"\n#\"$DT_TOOLCHAIN_DIR/usr/bin/libtool\" -static \"${BUILT_PRODUCTS_DIR}/${EXECUTABLE_PATH}\" \"${UFW_OTHER_BUILT_PRODUCTS_DIR}/${EXECUTABLE_PATH}\" -o \"${BUILT_PRODUCTS_DIR}/${EXECUTABLE_PATH}.temp\"\n#echo mv \"${BUILT_PRODUCTS_DIR}/${EXECUTABLE_PATH}.temp\" \"${BUILT_PRODUCTS_DIR}/${EXECUTABLE_PATH}\"\n#mv \"${BUILT_PRODUCTS_DIR}/${EXECUTABLE_PATH}.temp\" \"${BUILT_PRODUCTS_DIR}/${EXECUTABLE_PATH}\"\n\n\n# Build framework structure\n\necho \"Build symlinks\"\n\n#echo ln -sfh A \"${BUILT_PRODUCTS_DIR}/${WRAPPER_NAME}/Versions/Current\"\n#ln -sfh A \"${BUILT_PRODUCTS_DIR}/${WRAPPER_NAME}/Versions/Current\"\n#echo ln -sfh Versions/Current/Headers \"${BUILT_PRODUCTS_DIR}/${WRAPPER_NAME}/Headers\"\n#ln -sfh Versions/Current/Headers \"${BUILT_PRODUCTS_DIR}/${WRAPPER_NAME}/Headers\"\n#echo ln -sfh Versions/Current/Resources \"${BUILT_PRODUCTS_DIR}/${WRAPPER_NAME}/Resources\"\n#ln -sfh Versions/Current/Resources \"${BUILT_PRODUCTS_DIR}/${WRAPPER_NAME}/Resources\"\n#echo ln -sfh \"Versions/Current/${EXECUTABLE_NAME}\" \"${BUILT_PRODUCTS_DIR}/${WRAPPER_NAME}/${EXECUTABLE_NAME}\"\n#ln -sfh \"Versions/Current/${EXECUTABLE_NAME}\" \"${BUILT_PRODUCTS_DIR}/${WRAPPER_NAME}/${EXECUTABLE_NAME}\"\ncp -R \"${BUILT_PRODUCTS_DIR}/${WRAPPER_NAME}/Versions/A/\" \"${BUILT_PRODUCTS_DIR}/${WRAPPER_NAME}/\"\n\nrm -R \"${BUILT_PRODUCTS_DIR}/${WRAPPER_NAME}/Versions\"\n\ncp -R \"${UFW_OTHER_BUILT_PRODUCTS_DIR}/${WRAPPER_NAME}/Versions/A/\" \"${UFW_OTHER_BUILT_PRODUCTS_DIR}/${WRAPPER_NAME}/\"\nrm -R \"${UFW_OTHER_BUILT_PRODUCTS_DIR}/${WRAPPER_NAME}/Versions\"\n\n# Link to binary for unit tests\n\nmkdir -p \"${BUILT_PRODUCTS_DIR}/.fake_fw_testing.framework\"\nln -sfh \"../${WRAPPER_NAME}/${EXECUTABLE_NAME}\" \"${BUILT_PRODUCTS_DIR}/.fake_fw_testing.framework/.fake_fw_testing\"\n\n# Build embedded framework structure\n\n#echo \"Build Embedded Framework\"\n\n#echo rm -rf \"${BUILT_PRODUCTS_DIR}/${PRODUCT_NAME}.embeddedframework\"\n#rm -rf \"${BUILT_PRODUCTS_DIR}/${PRODUCT_NAME}.embeddedframework\"\n#echo mkdir -p \"${BUILT_PRODUCTS_DIR}/${PRODUCT_NAME}.embeddedframework/MsdkResources\"\n#mkdir -p \"${BUILT_PRODUCTS_DIR}/${PRODUCT_NAME}.embeddedframework/MsdkResources\"\n#echo cp -a \"${BUILT_PRODUCTS_DIR}/${WRAPPER_NAME}\" \"${BUILT_PRODUCTS_DIR}/${PRODUCT_NAME}.embeddedframework/\"\n#cp -a \"${BUILT_PRODUCTS_DIR}/${WRAPPER_NAME}\" \"${BUILT_PRODUCTS_DIR}/${PRODUCT_NAME}.embeddedframework/\"\n\n#declare -a UFW_FILE_LIST\n#list_files \"${BUILT_PRODUCTS_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}\" UFW_FILE_LIST\n#for filename in \"${UFW_FILE_LIST[@]}\"\n#do\n#    if [[ \"${filename}\" != \"Info.plist\" ]] && [[ ! \"${filename}\" =~ .*\\.lproj$ ]]\n#    then\n#        echo ln -sfh \"../${WRAPPER_NAME}/Resources/${filename}\" \"${BUILT_PRODUCTS_DIR}/${PRODUCT_NAME}.embeddedframework/Resources/${filename}\"\n#        ln -sfh \"../${WRAPPER_NAME}/Resources/${filename}\" \"${BUILT_PRODUCTS_DIR}/${PRODUCT_NAME}.embeddedframework/MsdkResources/${filename}\"\n#    fi\n#done\n#cp -a \"${BUILT_PRODUCTS_DIR}/${WRAPPER_NAME}/Resources/\" \"${BUILT_PRODUCTS_DIR}/${PRODUCT_NAME}.embeddedframework/MsdkResources/\"\n#rm -R \"${BUILT_PRODUCTS_DIR}/${WRAPPER_NAME}/Resources\"\n\n# Replace other platform's framework with a copy of this one (so that both have the same universal binary)\n\necho \"Create xcframework\"\necho xcodebuild -create-xcframework \\\n    -framework \"${BUILT_PRODUCTS_DIR}/${PRODUCT_NAME}.framework\" \\\n    -framework \"${UFW_OTHER_BUILT_PRODUCTS_DIR}/${PRODUCT_NAME}.framework\" \\\n    -output \"${BUILT_PRODUCTS_DIR}/${PRODUCT_NAME}.xcframework\"\nxcodebuild -create-xcframework \\\n    -framework \"${BUILT_PRODUCTS_DIR}/${PRODUCT_NAME}.framework\" \\\n    -framework \"${UFW_OTHER_BUILT_PRODUCTS_DIR}/${PRODUCT_NAME}.framework\" \\\n    -output \"${BUILT_PRODUCTS_DIR}/${PRODUCT_NAME}.xcframework\"\n\necho \"Copy from $UFW_SDK_PLATFORM to $UFW_OTHER_PLATFORM\"\n\necho rm -rf \"${BUILD_DIR}/${CONFIGURATION}-${UFW_OTHER_PLATFORM}\"\nrm -rf \"${BUILD_DIR}/${CONFIGURATION}-${UFW_OTHER_PLATFORM}\"\necho cp -a \"${BUILD_DIR}/${CONFIGURATION}-${UFW_SDK_PLATFORM}\" \"${BUILD_DIR}/${CONFIGURATION}-${UFW_OTHER_PLATFORM}\"\ncp -a \"${BUILD_DIR}/${CONFIGURATION}-${UFW_SDK_PLATFORM}\" \"${BUILD_DIR}/${CONFIGURATION}-${UFW_OTHER_PLATFORM}\"\n\n# Copy library\nif [ -d \"$PROJECT_DIR/../$PRODUCT_NAME\" ]; then\nrm -r \"$PROJECT_DIR/../$PRODUCT_NAME\"\nfi\n\nif [ ! -d \"$PROJECT_DIR/../$PRODUCT_NAME\" ]; then\nmkdir \"$PROJECT_DIR/../$PRODUCT_NAME\"\nfi\n\ncp -R \"$BUILT_PRODUCTS_DIR/$PRODUCT_NAME.framework\" \"$BUILT_PRODUCTS_DIR/$PRODUCT_NAME.xcframework\" \"$PROJECT_DIR/../$PRODUCT_NAME\"\n";
+		};
+		5F0943A8292B96CC0004374B /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "echo \"Run Script 1\"\n\nset -e\n\nset +u\nif [[ $UFW_MASTER_SCRIPT_RUNNING ]]\nthen\n# Nothing for the slave script to do\nexit 0\nfi\nset -u\n\nif [[ \"$SDK_NAME\" =~ ([A-Za-z]+) ]]\nthen\nUFW_SDK_PLATFORM=${BASH_REMATCH[1]}\nelse\necho \"Could not find platform name from SDK_NAME: $SDK_NAME\"\nexit 1\nfi\n\nif [[ \"$SDK_NAME\" =~ ([0-9]+.*$) ]]\nthen\nUFW_SDK_VERSION=${BASH_REMATCH[1]}\nelse\necho \"Could not find sdk version  from SDK_NAME: $SDK_NAME\"\nexit 1\nfi\n\nif [[ \"$UFW_SDK_PLATFORM\" = \"iphoneos\" ]]\nthen\nUFW_OTHER_PLATFORM=iphonesimulator\nelse\nUFW_OTHER_PLATFORM=iphoneos\nfi\n\nif [[ \"$BUILT_PRODUCTS_DIR\" =~ (.*)$UFW_SDK_PLATFORM$ ]]\nthen\nUFW_OTHER_BUILT_PRODUCTS_DIR=\"${BASH_REMATCH[1]}${UFW_OTHER_PLATFORM}\"\nelse\necho \"Could not find $UFW_SDK_PLATFORM in $BUILT_PRODUCTS_DIR\"\nexit 1\nfi\n\n\n# Short-circuit if all binaries are up to date\n\n#if [[ -f \"${BUILT_PRODUCTS_DIR}/${EXECUTABLE_PATH}\" ]] && \\\n#   [[ -f \"${BUILT_PRODUCTS_DIR}/${PRODUCT_NAME}.embeddedframework/${EXECUTABLE_PATH}\" ]] && \\\n#   [[ ! \"${BUILT_PRODUCTS_DIR}/${EXECUTABLE_PATH}\" -nt \"${BUILT_PRODUCTS_DIR}/${PRODUCT_NAME}.embeddedframework/${EXECUTABLE_PATH}\" ]]\n#   [[ -f \"${UFW_OTHER_BUILT_PRODUCTS_DIR}/${EXECUTABLE_PATH}\" ]] && \\\n#   [[ -f \"${UFW_OTHER_BUILT_PRODUCTS_DIR}/${PRODUCT_NAME}.embeddedframework/${EXECUTABLE_PATH}\" ]] && \\\n#   [[ ! \"${UFW_OTHER_BUILT_PRODUCTS_DIR}/${EXECUTABLE_PATH}\" -nt \"${UFW_OTHER_BUILT_PRODUCTS_DIR}/${PRODUCT_NAME}.embeddedframework/${EXECUTABLE_PATH}\" ]]\n#then\n#    exit 0\n#fi\n\n\n# Clean other platform if needed\n\nif [[ ! -f \"${BUILT_PRODUCTS_DIR}/${EXECUTABLE_PATH}\" ]]\nthen\necho \"Platform \\\"$UFW_SDK_PLATFORM\\\" was cleaned recently. Cleaning \\\"$UFW_OTHER_PLATFORM\\\" as well\"\necho xcodebuild -project \"${PROJECT_FILE_PATH}\" -target \"${TARGET_NAME}\" -configuration \"${CONFIGURATION}\" -sdk ${UFW_OTHER_PLATFORM}${UFW_SDK_VERSION} BUILD_DIR=\"${BUILD_DIR}\" CONFIGURATION_TEMP_DIR=\"${PROJECT_TEMP_DIR}/${CONFIGURATION}-${UFW_OTHER_PLATFORM}\" clean\nxcodebuild -project \"${PROJECT_FILE_PATH}\" -target \"${TARGET_NAME}\" -configuration \"${CONFIGURATION}\" -sdk ${UFW_OTHER_PLATFORM}${UFW_SDK_VERSION} BUILD_DIR=\"${BUILD_DIR}\" CONFIGURATION_TEMP_DIR=\"${PROJECT_TEMP_DIR}/${CONFIGURATION}-${UFW_OTHER_PLATFORM}\" clean\nfi\n\n\n# Make sure we are building from fresh binaries\n\nrm -rf \"${BUILT_PRODUCTS_DIR}/${EXECUTABLE_PATH}\"\n#rm -rf \"${BUILT_PRODUCTS_DIR}/${PRODUCT_NAME}.embeddedframework\"\nrm -rf \"${UFW_OTHER_BUILT_PRODUCTS_DIR}/${EXECUTABLE_PATH}\"\n#rm -rf \"${UFW_OTHER_BUILT_PRODUCTS_DIR}/${PRODUCT_NAME}.embeddedframework\"\nrm -rf \"${BUILT_PRODUCTS_DIR}/${PRODUCT_NAME}.xcframework\"\n";
+		};
+		5F0943D3292B96CC0004374B /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "HEADERS_ROOT=$SRCROOT/$PRODUCT_NAME\nFRAMEWORK_HEADERS_DIR=\"$BUILT_PRODUCTS_DIR/$WRAPPER_NAME/Versions/$FRAMEWORK_VERSION/Headers\"\n\necho \"Run Script 2\"\n\n## only header files expected at this point\nPUBLIC_HEADERS=$(find $FRAMEWORK_HEADERS_DIR/. -not -type d 2> /dev/null | sed -e \"s@.*/@@g\")\n\nFIND_OPTS=\"\"\nfor PUBLIC_HEADER in $PUBLIC_HEADERS; do\nif [ -n \"$FIND_OPTS\" ]; then\nFIND_OPTS=\"$FIND_OPTS -o\"\nfi\nFIND_OPTS=\"$FIND_OPTS -name '$PUBLIC_HEADER'\"\ndone\n\nif [ -n \"$FIND_OPTS\" ]; then\nfor ORIG_HEADER in $(eval \"find $HEADERS_ROOT/. $FIND_OPTS\" 2> /dev/null | sed -e \"s@^$HEADERS_ROOT/./@@g\"); do\nPUBLIC_HEADER=$(basename $ORIG_HEADER)\nRELATIVE_PATH=$(dirname $ORIG_HEADER)\nif [ -e $FRAMEWORK_HEADERS_DIR/$PUBLIC_HEADER ]; then\nmkdir -p \"$FRAMEWORK_HEADERS_DIR/$RELATIVE_PATH\"\nmv \"$FRAMEWORK_HEADERS_DIR/$PUBLIC_HEADER\" \"$FRAMEWORK_HEADERS_DIR/$RELATIVE_PATH/$PUBLIC_HEADER\"\nfi\ndone\nfi\n";
+		};
+		5F0943D4292B96CC0004374B /* ShellScript */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -539,6 +832,54 @@
 				54EA82232760890B005F68A9 /* AttaReport.m in Sources */,
 				4455D15F1B3A5B90005BF126 /* MSDKDns.m in Sources */,
 				448EE4E71B329899004A2131 /* LocalDnsResolver.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		5F094376292B82D50004374B /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				5F094377292B82D50004374B /* MSDKDnsParamsManager.m in Sources */,
+				5F094378292B82D50004374B /* MSDKDnsInfoTool.m in Sources */,
+				5F094379292B82D50004374B /* HttpsDnsResolver.m in Sources */,
+				5F09437A292B82D50004374B /* MSDKDnsManager.m in Sources */,
+				5F09437B292B82D50004374B /* MSDKDnsService.m in Sources */,
+				5F09437C292B82D50004374B /* MSDKDnsTCPSpeedTester.m in Sources */,
+				5F09437D292B82D50004374B /* aes.mm in Sources */,
+				5F09437E292B82D50004374B /* msdkdns_local_ip_stack.cpp in Sources */,
+				5F09437F292B82D50004374B /* MSDKDnsReachability.m in Sources */,
+				5F094380292B82D50004374B /* MSDKDnsNetworkManager.m in Sources */,
+				5F094381292B82D50004374B /* MSDKDnsLog.m in Sources */,
+				5F094382292B82D50004374B /* MSDKDnsHttpMessageTools.m in Sources */,
+				5F094383292B82D50004374B /* MSDKDnsDB.m in Sources */,
+				5F094384292B82D50004374B /* MSDKDnsResolver.m in Sources */,
+				5F094385292B82D50004374B /* AttaReport.m in Sources */,
+				5F094386292B82D50004374B /* MSDKDns.m in Sources */,
+				5F094387292B82D50004374B /* LocalDnsResolver.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		5F0943A9292B96CC0004374B /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				5F0943AA292B96CC0004374B /* MSDKDnsParamsManager.m in Sources */,
+				5F0943AB292B96CC0004374B /* MSDKDnsInfoTool.m in Sources */,
+				5F0943AC292B96CC0004374B /* HttpsDnsResolver.m in Sources */,
+				5F0943AD292B96CC0004374B /* MSDKDnsManager.m in Sources */,
+				5F0943AE292B96CC0004374B /* MSDKDnsService.m in Sources */,
+				5F0943AF292B96CC0004374B /* MSDKDnsTCPSpeedTester.m in Sources */,
+				5F0943B0292B96CC0004374B /* msdkdns_local_ip_stack.cpp in Sources */,
+				5F0943B1292B96CC0004374B /* MSDKDnsReachability.m in Sources */,
+				5F0943B2292B96CC0004374B /* aes.mm in Sources */,
+				5F0943B3292B96CC0004374B /* MSDKDnsNetworkManager.m in Sources */,
+				5F0943B4292B96CC0004374B /* MSDKDnsLog.m in Sources */,
+				5F0943B5292B96CC0004374B /* MSDKDnsHttpMessageTools.m in Sources */,
+				5F0943B6292B96CC0004374B /* MSDKDnsDB.m in Sources */,
+				5F0943B7292B96CC0004374B /* MSDKDnsResolver.m in Sources */,
+				5F0943B8292B96CC0004374B /* AttaReport.m in Sources */,
+				5F0943B9292B96CC0004374B /* MSDKDns.m in Sources */,
+				5F0943BA292B96CC0004374B /* LocalDnsResolver.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -769,6 +1110,186 @@
 			};
 			name = Release;
 		};
+		5F0943A3292B82D50004374B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1107;
+				DEAD_CODE_STRIPPING = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = 4PK94A7P3R;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				ENABLE_BITCODE = YES;
+				FRAMEWORK_SEARCH_PATHS = "$(PROJECT_DIR)/..";
+				GCC_INPUT_FILETYPE = sourcecode.cpp.objcpp;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"IS_INTL=1",
+				);
+				INFOPLIST_FILE = MSDKDns/Info.plist;
+				INSTALL_PATH = "$(BUILT_PRODUCTS_DIR)";
+				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
+				LINK_WITH_STANDARD_LIBRARIES = NO;
+				MACH_O_TYPE = mh_object;
+				MACOSX_DEPLOYMENT_TARGET = "";
+				MARKETING_VERSION = 1.6.1;
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_CFLAGS = "-fembed-bitcode";
+				OTHER_LDFLAGS = (
+					"-ObjC",
+					"-fembed-bitcode",
+				);
+				PRIVATE_HEADERS_FOLDER_PATH = "$(CONTENTS_FOLDER_PATH)/Versions/A/PrivateHeaders";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.tencent.$(PRODUCT_NAME:rfc1034identifier)";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PUBLIC_HEADERS_FOLDER_PATH = "$(CONTENTS_FOLDER_PATH)/Versions/A/Headers";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				WRAPPER_EXTENSION = framework;
+			};
+			name = Debug;
+		};
+		5F0943A4292B82D50004374B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				COMBINE_HIDPI_IMAGES = YES;
+				COPY_PHASE_STRIP = YES;
+				CURRENT_PROJECT_VERSION = 1107;
+				DEAD_CODE_STRIPPING = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = 4PK94A7P3R;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				ENABLE_BITCODE = YES;
+				FRAMEWORK_SEARCH_PATHS = "$(PROJECT_DIR)/..";
+				GCC_INPUT_FILETYPE = sourcecode.cpp.objcpp;
+				GCC_PREPROCESSOR_DEFINITIONS = "IS_INTL=1";
+				INFOPLIST_FILE = MSDKDns/Info.plist;
+				INSTALL_PATH = "$(BUILT_PRODUCTS_DIR)";
+				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
+				LINK_WITH_STANDARD_LIBRARIES = NO;
+				MACH_O_TYPE = mh_object;
+				MACOSX_DEPLOYMENT_TARGET = "";
+				MARKETING_VERSION = 1.6.1;
+				OTHER_CFLAGS = "-fembed-bitcode";
+				OTHER_LDFLAGS = (
+					"-ObjC",
+					"-fembed-bitcode",
+				);
+				PRIVATE_HEADERS_FOLDER_PATH = "$(CONTENTS_FOLDER_PATH)/Versions/A/PrivateHeaders";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.tencent.$(PRODUCT_NAME:rfc1034identifier)";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PUBLIC_HEADERS_FOLDER_PATH = "$(CONTENTS_FOLDER_PATH)/Versions/A/Headers";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				WRAPPER_EXTENSION = framework;
+			};
+			name = Release;
+		};
+		5F0943D6292B96CC0004374B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++98";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1107;
+				DEAD_CODE_STRIPPING = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = 4PK94A7P3R;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				ENABLE_BITCODE = YES;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(PROJECT_DIR)/../**",
+					"$(inherited)",
+				);
+				GCC_INPUT_FILETYPE = sourcecode.cpp.objcpp;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"IS_INTL=1",
+				);
+				INFOPLIST_FILE = MSDKDns/Info.plist;
+				INSTALL_PATH = "$(BUILT_PRODUCTS_DIR)";
+				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(SYSTEM_LIBRARY_DIR)/Tcl/sqlite3",
+				);
+				LINK_WITH_STANDARD_LIBRARIES = NO;
+				MACH_O_TYPE = mh_object;
+				MACOSX_DEPLOYMENT_TARGET = "";
+				MARKETING_VERSION = 1.6.1;
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_CFLAGS = "-fembed-bitcode";
+				OTHER_LDFLAGS = (
+					"-ObjC",
+					"-fembed-bitcode",
+				);
+				PRIVATE_HEADERS_FOLDER_PATH = "$(CONTENTS_FOLDER_PATH)/Versions/A/PrivateHeaders";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.tencent.$(PRODUCT_NAME:rfc1034identifier)";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PUBLIC_HEADERS_FOLDER_PATH = "$(CONTENTS_FOLDER_PATH)/Versions/A/Headers";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				WRAPPER_EXTENSION = framework;
+			};
+			name = Debug;
+		};
+		5F0943D7292B96CC0004374B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++98";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				COMBINE_HIDPI_IMAGES = YES;
+				COPY_PHASE_STRIP = YES;
+				CURRENT_PROJECT_VERSION = 1107;
+				DEAD_CODE_STRIPPING = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = 4PK94A7P3R;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				ENABLE_BITCODE = YES;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(PROJECT_DIR)/../**",
+					"$(inherited)",
+				);
+				GCC_INPUT_FILETYPE = sourcecode.cpp.objcpp;
+				GCC_PREPROCESSOR_DEFINITIONS = "IS_INTL=1";
+				INFOPLIST_FILE = MSDKDns/Info.plist;
+				INSTALL_PATH = "$(BUILT_PRODUCTS_DIR)";
+				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(SYSTEM_LIBRARY_DIR)/Tcl/sqlite3",
+				);
+				LINK_WITH_STANDARD_LIBRARIES = NO;
+				MACH_O_TYPE = mh_object;
+				MACOSX_DEPLOYMENT_TARGET = "";
+				MARKETING_VERSION = 1.6.1;
+				OTHER_CFLAGS = "-fembed-bitcode";
+				OTHER_LDFLAGS = (
+					"-ObjC",
+					"-fembed-bitcode",
+				);
+				PRIVATE_HEADERS_FOLDER_PATH = "$(CONTENTS_FOLDER_PATH)/Versions/A/PrivateHeaders";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.tencent.$(PRODUCT_NAME:rfc1034identifier)";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PUBLIC_HEADERS_FOLDER_PATH = "$(CONTENTS_FOLDER_PATH)/Versions/A/Headers";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				WRAPPER_EXTENSION = framework;
+			};
+			name = Release;
+		};
 		DD43F4B7231CC36D0000A89F /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -864,6 +1385,24 @@
 			buildConfigurations = (
 				44224FC81B312DD6003497C4 /* Debug */,
 				44224FC91B312DD6003497C4 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		5F0943A2292B82D50004374B /* Build configuration list for PBXNativeTarget "MSDKDns_C11_intl" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				5F0943A3292B82D50004374B /* Debug */,
+				5F0943A4292B82D50004374B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		5F0943D5292B96CC0004374B /* Build configuration list for PBXNativeTarget "MSDKDns_intl" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				5F0943D6292B96CC0004374B /* Debug */,
+				5F0943D7292B96CC0004374B /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

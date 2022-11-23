@@ -77,11 +77,17 @@ static MSDKDnsParamsManager * _sharedInstance = nil;
             self.serverArray = [self.serverArray arrayByAddingObjectsFromArray:self.backupServerIps];
         } else {
 #ifdef httpdnsIps_h
+    #if IS_INTL
+            if (self.msdkEncryptType != HttpDnsEncryptTypeHTTPS) {
+                self.serverArray = [self.serverArray arrayByAddingObjectsFromArray:httpServerIps_INTL];
+            }
+    #else
             if (self.msdkEncryptType == HttpDnsEncryptTypeHTTPS) {
                 self.serverArray = [self.serverArray arrayByAddingObjectsFromArray:httpsServerIps];
             } else {
                 self.serverArray = [self.serverArray arrayByAddingObjectsFromArray:httpServerIps];
             }
+    #endif
 #endif
         }
     });

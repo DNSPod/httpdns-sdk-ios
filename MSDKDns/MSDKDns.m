@@ -39,6 +39,15 @@ static MSDKDns * _sharedInstance = nil;
 }
 
 - (BOOL) initConfig:(DnsConfig *)config {
+#if IS_INTL
+    if (config->encryptType == HttpDnsEncryptTypeHTTPS) {
+        //开启了使用过期缓存功能，给出提示建议使用同步接口进行解析
+        @throw [NSException exceptionWithName:@"MSDKDns wrong use of encryptType"
+                                           reason:@"HttpDnsEncryptTypeHTTPS cannot be used because httpdns-sdk-intl version still doesn't support, it is recommended to use HttpDnsEncryptTypeDES or HttpDnsEncryptTypeAES"
+                                         userInfo:nil];
+        return NO;
+    }
+#endif
     [[MSDKDnsLog sharedInstance] setEnableLog:config->debug];
     [[MSDKDnsParamsManager shareInstance] msdkDnsSetMAppId:config->appId MTimeOut:config->timeout MEncryptType:config->encryptType];
     [[MSDKDnsParamsManager shareInstance] msdkDnsSetMDnsId:config->dnsId MDnsKey:config->dnsKey MToken:config->token];
