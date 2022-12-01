@@ -18,6 +18,7 @@
 @interface MSDKDns ()
 
 @property (assign, nonatomic) BOOL msdkDnsReady;
+@property (strong, nonatomic) NSMutableURLRequest *request;
 
 @end
 
@@ -109,8 +110,8 @@ static MSDKDns * _sharedInstance = nil;
 //    NSLog(@"urlStr ==== %@", urlStr);
     //    NSURL *url = [NSURL URLWithString:@"http://182.254.60.40/conf?id=96157&alg=des"];
     NSURL *url = [NSURL URLWithString:urlStr];
-    NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:url];
-    NSURLSessionDataTask *dataTask = [[NSURLSession sharedSession] dataTaskWithRequest:request completionHandler:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
+    self.request = [NSMutableURLRequest requestWithURL:url];
+    NSURLSessionDataTask *dataTask = [[NSURLSession sharedSession] dataTaskWithRequest:self.request completionHandler:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
         if (data && (error == nil)) {
             // 网络访问成功，解析数据
             NSString *str = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
@@ -129,7 +130,7 @@ static MSDKDns * _sharedInstance = nil;
                     [[MSDKDnsParamsManager shareInstance] msdkDnsSetEnableReport:[logValue isEqualToString:@"1"]?YES:NO];
                     MSDKDNSLOG(@"Successfully get configuration.config data is %@, %@",str,configDict);
                 }else{
-                    MSDKDNSLOG(@"Failed to get configuration，error：%@",str);
+//                    MSDKDNSLOG(@"Failed to get configuration，error：%@",str);
                 }
             }else {
             // 数据为空暂时不做处理
@@ -140,6 +141,63 @@ static MSDKDns * _sharedInstance = nil;
         }
     }];
     [dataTask resume];
+}
+
+- (void)URLSession:(NSURLSession *)session task:(NSURLSessionTask *)task didReceiveChallenge:(NSURLAuthenticationChallenge *)challenge completionHandler:(void (^)(NSURLSessionAuthChallengeDisposition disposition, NSURLCredential * __nullable credential))completionHandler {
+    if (!challenge) {
+        return;
+    }
+
+    NSURLSessionAuthChallengeDisposition disposition = NSURLSessionAuthChallengePerformDefaultHandling;
+    NSURLCredential *credential = nil;
+
+    //获取原始域名信息
+    NSString *host = [[self.request allHTTPHeaderFields] objectForKey:@"host"];
+    if (!host) {
+        host = self.request.URL.host;
+    }
+    if ([challenge.protectionSpace.authenticationMethod  isEqualToString:NSURLAuthenticationMethodServerTrust]) {
+        if ([self evaluateServerTrust:challenge.protectionSpace.serverTrust forDomain:host]) {
+            disposition = NSURLSessionAuthChallengeUseCredential;
+            credential = [NSURLCredential credentialForTrust:challenge.protectionSpace.serverTrust];
+        } else {
+            disposition = NSURLSessionAuthChallengePerformDefaultHandling;
+        }
+    } else {
+        disposition = NSURLSessionAuthChallengePerformDefaultHandling;
+    }
+
+    // 对于其他的 challenges 直接使用默认的验证方案
+    completionHandler(disposition,credential);
+}
+
+
+- (BOOL)evaluateServerTrust:(SecTrustRef)serverTrust forDomain:(NSString *)domain {
+    /*
+     * 创建证书校验策略
+     */
+    NSMutableArray *policies = [NSMutableArray array];
+    if (domain) {
+        [policies addObject:(__bridge_transfer id)SecPolicyCreateSSL(true, (__bridge CFStringRef)domain)];
+    } else {
+        [policies addObject:(__bridge_transfer id)SecPolicyCreateBasicX509()];
+    }
+    
+    /*
+     * 绑定校验策略到服务端的证书上
+     */
+    SecTrustSetPolicies(serverTrust, (__bridge CFArrayRef)policies);
+    
+    /*
+     * 评估当前serverTrust是否可信任，
+     * 官方建议在result = kSecTrustResultUnspecified 或 kSecTrustResultProceed
+     * 的情况下serverTrust可以被验证通过，https://developer.apple.com/library/ios/technotes/tn2232/_index.html
+     * 关于SecTrustResultType的详细信息请参考SecTrust.h
+     */
+    SecTrustResultType result;
+    SecTrustEvaluate(serverTrust, &result);
+    
+    return (result == kSecTrustResultUnspecified || result == kSecTrustResultProceed);
 }
 
 //将获取到的配置string转换为数据字典格式
