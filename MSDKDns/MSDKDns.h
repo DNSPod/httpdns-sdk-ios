@@ -70,11 +70,6 @@ typedef struct DnsConfigStruct {
 - (BOOL) WGSetDnsOpenId:(NSString *)openId;
 
 /**
- * 设置 httpdns 备份服务器ip（无需手动设置，sdk 会自动设置）
- */
-- (void) WGSetDnsBackupServerIps:(NSArray *)ips;
-
-/**
  * 设置预解析的域名，设置的域名会在sdk初始化完成后自动进行解析
  */
 - (void) WGSetPreResolvedDomains:(NSArray *)domains;

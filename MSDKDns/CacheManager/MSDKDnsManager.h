@@ -5,6 +5,7 @@
 #import <objc/runtime.h>
 #import <Foundation/Foundation.h>
 #import "MSDKDnsPrivate.h"
+#import "MSDKDns.h"
 
 #if defined(__has_include)
     #if __has_include(<MSDK/BeaconBaseInterface.h>)
@@ -18,9 +19,16 @@
 
 @class MSDKDnsService;
 
+typedef enum {
+    net_undetected = 0,
+    net_detecting = 1,
+    net_detected = 2,
+} HttpDnsSdkStatus;
+
 @interface MSDKDnsManager : NSObject
 
 @property (strong, nonatomic, readonly) NSMutableDictionary * domainDict;
+@property (assign, nonatomic, readonly) HttpDnsSdkStatus sdkStatus;
 
 + (instancetype)shareInstance;
 
@@ -47,4 +55,12 @@
 - (void)msdkDnsClearDomainsOpenDelayDispatch:(NSArray *)domains;
 - (NSMutableDictionary *)msdkDnsGetDomainISOpenDelayDispatch;
 - (void)loadIPsFromPersistCacheAsync;
+/*
+ * 获取底层配置
+ */
+- (void)fetchConfig:(int) mdnsId MEncryptType:(HttpDnsEncryptType)mdnsEncryptType MDnsKey:(NSString *)mdnsKey MToken:(NSString* )mdnsToken;
+/*
+ * 获取三网域名解析IP
+ */
+- (void)detectHttpDnsServers;
 @end
