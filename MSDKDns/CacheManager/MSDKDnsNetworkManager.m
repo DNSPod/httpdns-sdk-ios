@@ -79,8 +79,14 @@ static MSDKDnsNetworkManager *manager = nil;
                 [self getHostsByKeepAliveDomains];
                 //重置ip指针
                 [[MSDKDnsManager shareInstance] switchToMainServer];
-                // 探测dnsIp
-                 [[MSDKDnsManager shareInstance] detectHttpDnsServers];
+                
+                BOOL enableDetectHostServer = [[MSDKDnsParamsManager shareInstance] msdkDnsGetEnableDetectHostServer];
+                if (!enableDetectHostServer) {
+                    MSDKDNSLOG(@"Network did changed, detect HttpDns servers");
+                    // 探测dnsIp
+                    [[MSDKDnsManager shareInstance] detectHttpDnsServers];
+                }
+                 
             }];
             
             [NSNotificationCenter.defaultCenter addObserverForName:UIApplicationDidEnterBackgroundNotification
@@ -106,8 +112,12 @@ static MSDKDnsNetworkManager *manager = nil;
                 [self.reachability startNotifier];
                 //对保活域名发送解析请求
                 [self getHostsByKeepAliveDomains];
-                // 探测dnsIp
-                [[MSDKDnsManager shareInstance] detectHttpDnsServers];
+                
+                BOOL enableDetectHostServer = [[MSDKDnsParamsManager shareInstance] msdkDnsGetEnableDetectHostServer];
+                if (!enableDetectHostServer) {
+                    // 探测dnsIp
+                    [[MSDKDnsManager shareInstance] detectHttpDnsServers];
+                }
             }];
             
             _reachability = [MSDKDnsReachability reachabilityForInternetConnection];

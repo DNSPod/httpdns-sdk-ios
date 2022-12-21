@@ -76,6 +76,7 @@ static NSString * const MSDKDnsEventHttpDnsCached = @"HDNSLookupCached";        
 static NSString * const MSDKDnsEventHttpDnsNormal = @"HDNSGetHostByName";        //常规解析请求
 static NSString * const MSDKDnsEventHttpDnsPreResolved = @"HDNSPreLookup";       //预解析请求
 static NSString * const MSDKDnsEventHttpDnsAutoRefresh = @"HDNSLookupAsync";     //缓存自动刷新
+static NSString * const MSDKDnsEventHttpDnsExpiredAsync = @"HDNSLookupExpiredAsync"; //乐观DNS中缓存异步刷新请求
 static NSString * const MSDKDnsEventHttpDnsGetHTTPDNSDomainIP = @"HDNSGetDomainIP"; //获取三网域名的IP
 
 //命中缓存的状态

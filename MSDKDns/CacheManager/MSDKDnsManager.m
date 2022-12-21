@@ -1009,6 +1009,21 @@ static MSDKDnsManager * _sharedInstance = nil;
                 }else{
 //                    MSDKDNSLOG(@"Failed to get configuration，error：%@",str);
                 }
+                // NSLog(@"configDict = %@",configDict);
+//                暂时测试，默认开启探测三网域名IP
+                [[MSDKDnsManager shareInstance] detectHttpDnsServers];
+                if(configDict && [configDict objectForKey:@"domain"]){
+                    NSString *domainValue = [configDict objectForKey:@"domain"];
+                    if ([domainValue isEqualToString:@"1"]) {
+                        [[MSDKDnsParamsManager shareInstance] msdkDnsSetEnableDetectHostServer:YES];
+                        [[MSDKDnsManager shareInstance] detectHttpDnsServers];
+                    }
+                    // MSDKDNSLOG(@"Successfully get configuration.config data is %@, %@",str,configDict);
+                }else{
+                //    MSDKDNSLOG(@"Failed to get configuration，error：%@",str);
+                }
+                
+                
             }else {
             // 数据为空暂时不做处理
             }
@@ -1125,9 +1140,10 @@ static MSDKDnsManager * _sharedInstance = nil;
             HttpDnsEncryptType encryptType = HttpDnsEncryptTypeDES;
             MSDKDnsService * dnsService = [[MSDKDnsService alloc] init];
             __weak __typeof__(self) weakSelf = self;
+            __block float timeOut = 2.0;
             self.sdkStatus = net_detecting;
             [dnsService getHttpDNSDomainIPsByNames:domains
-                                           TimeOut:2000
+                                           TimeOut:timeOut
                                              DnsId:dnsId
                                             DnsKey:dnsKey
                                           NetStack:netStack

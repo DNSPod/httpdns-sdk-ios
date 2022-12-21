@@ -64,7 +64,6 @@ static MSDKDns * _sharedInstance = nil;
         [[MSDKDnsParamsManager shareInstance] msdkDnsSetMinutesBeforeSwitchToMain:config->minutesBeforeSwitchToMain];
     }
     [[MSDKDnsParamsManager shareInstance] msdkDnsSetEnableReport:config->enableReport];
-    [[MSDKDnsManager shareInstance] detectHttpDnsServers];
     [[MSDKDnsManager shareInstance] fetchConfig:config->dnsId MEncryptType:config->encryptType MDnsKey:config->dnsKey MToken:config->token];
     MSDKDNSLOG(@"MSDKDns init success.");
     return YES;
