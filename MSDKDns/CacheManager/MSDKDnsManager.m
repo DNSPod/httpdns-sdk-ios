@@ -186,7 +186,7 @@ static MSDKDnsManager * _sharedInstance = nil;
             [self.serviceArray addObject:dnsService];
             __weak __typeof__(self) weakSelf = self;
             //进行httpdns请求
-            [dnsService getHostsByNames:toCheckDomains TimeOut:timeOut DnsId:dnsId DnsKey:dnsKey NetStack:netStack encryptType:encryptType returnIps:^() {
+            [dnsService getHostsByNames:toCheckDomains TimeOut:timeOut DnsId:dnsId DnsKey:dnsKey NetStack:netStack encryptType:encryptType from:MSDKDnsEventHttpDnsExpiredAsync returnIps:^{
                 __strong __typeof(self) strongSelf = weakSelf;
                 if (strongSelf) {
                     [toCheckDomains enumerateObjectsUsingBlock:^(id _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
@@ -949,6 +949,10 @@ static MSDKDnsManager * _sharedInstance = nil;
     return netStack;
 }
 
+- (int)getAddressType {
+    return [self detectAddressType];
+}
+
 
 # pragma mark - servers
 
@@ -1011,7 +1015,7 @@ static MSDKDnsManager * _sharedInstance = nil;
                 }
                 // NSLog(@"configDict = %@",configDict);
 //                暂时测试，默认开启探测三网域名IP
-                [[MSDKDnsManager shareInstance] detectHttpDnsServers];
+                // [[MSDKDnsManager shareInstance] detectHttpDnsServers];
                 if(configDict && [configDict objectForKey:@"domain"]){
                     NSString *domainValue = [configDict objectForKey:@"domain"];
                     if ([domainValue isEqualToString:@"1"]) {
@@ -1127,11 +1131,13 @@ static MSDKDnsManager * _sharedInstance = nil;
 #ifdef httpdnsIps_h
     #if IS_INTL
         domain = MSDKDnsServerDomain_INTL;
+        dnsId = MSDKDnsId_INTL;
+        dnsKey = MSDKDnsKey_INTL;
     #else
         domain = MSDKDnsServerDomain;
-    #endif
         dnsId = MSDKDnsId;
         dnsKey = MSDKDnsKey;
+    #endif
 #endif
         if (![domain isEqualToString:@""] && dnsId != 0 && ![dnsKey isEqualToString:@""]) {
             NSArray *domains = @[domain];

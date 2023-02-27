@@ -481,6 +481,11 @@ static MSDKDns * _sharedInstance = nil;
     return [[MSDKDnsManager shareInstance] getDnsDetail:domain];
 }
 
+- (int) WGGetNetworkStack {
+    int type = [[MSDKDnsManager shareInstance] getAddressType];
+    return [[MSDKDnsManager shareInstance] getAddressType];
+}
+
 #pragma mark - others
 
 - (void)clearCache {

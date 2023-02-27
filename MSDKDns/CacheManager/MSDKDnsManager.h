@@ -63,4 +63,5 @@ typedef enum {
  * 获取三网域名解析IP
  */
 - (void)detectHttpDnsServers;
+- (int)getAddressType;
 @end

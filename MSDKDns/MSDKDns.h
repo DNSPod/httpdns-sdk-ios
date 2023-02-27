@@ -5,7 +5,7 @@
 #ifndef __MSDKDns_H__
 #define __MSDKDns_H__
 
-#define MSDKDns_Version @"1.6.3"
+#define MSDKDns_Version @"1.6.4"
 
 #import <Foundation/Foundation.h>
 
@@ -186,11 +186,18 @@ typedef struct DnsConfigStruct {
 */
 - (NSDictionary *) WGGetDnsDetail:(NSString *) domain;
 
-#pragma mark 清除缓存
+#pragma mark-清除缓存
 /**
  清理本地所有缓存，除非业务明确需要，不要调用该方法
 */
 - (void)clearCache;
+
+#pragma mark-查询网络栈支持情况
+/**
+ 查询网络栈支持情况
+ @return 0: UNKNOWN, 1: IPV4_ONLY, 2: IPV6_ONLY, 3: DUAL_STACK;
+*/
+- (int) WGGetNetworkStack;
 
 @end
 #endif

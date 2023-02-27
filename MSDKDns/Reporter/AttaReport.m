@@ -78,6 +78,21 @@ static AttaReport * _sharedInstance = nil;
     NSString *systemName = [[UIDevice currentDevice] systemName];
     NSString *systemVersion = [[UIDevice currentDevice] systemVersion];
     NSMutableDictionary *dic = [NSMutableDictionary dictionaryWithDictionary:params];
+    NSString *eventName = [dic objectForKey:@"eventName"];
+    
+    int _DNSID = 0;
+    #ifdef httpdnsIps_h
+        #if IS_INTL
+            _DNSID = MSDKDnsId_INTL;
+        #else
+            _DNSID = MSDKDnsId;
+        #endif
+    #endif
+    // 如果是三网解析域名的请求，dnsID就使用指定的dnsID上报
+    if ([eventName isEqualToString:MSDKDnsEventHttpDnsGetHTTPDNSDomainIP]){
+        dnsId = _DNSID;
+    }
+    
     [dic addEntriesFromDictionary:@{
         @"carrier": carrier,
         @"networkType": networkType,
