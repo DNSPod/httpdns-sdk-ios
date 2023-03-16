@@ -24,6 +24,8 @@ DerivedData
 # CocoaPods
 Pods/
 
+.idea/
+
 # Header
 MSDKDns/httpdnsIps.h
 MSDKDns.xcodeproj/project.xcworkspace
