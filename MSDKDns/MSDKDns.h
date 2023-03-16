@@ -5,7 +5,7 @@
 #ifndef __MSDKDns_H__
 #define __MSDKDns_H__
 
-#define MSDKDns_Version @"1.6.4"
+#define MSDKDns_Version @"1.7.0"
 
 #import <Foundation/Foundation.h>
 
