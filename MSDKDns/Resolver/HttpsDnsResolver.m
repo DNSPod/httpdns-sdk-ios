@@ -8,11 +8,8 @@
 #import "MSDKDnsLog.h"
 #import "MSDKDnsInfoTool.h"
 
-@interface HttpsDnsResolver() <NSURLConnectionDelegate,NSURLConnectionDataDelegate>
+@interface HttpsDnsResolver() <NSURLSessionTaskDelegate, NSURLSessionDataDelegate>
 
-@property (strong, nonatomic) NSMutableData * responseData;
-@property (strong, nonatomic) NSURLConnection * connection;
-@property (nonatomic , assign) CFRunLoopRef rl;
 @property (copy, nonatomic) NSString * dnsKey;
 @property (nonatomic, assign) HttpDnsIPType ipType;
 @property (nonatomic, assign) NSInteger encryptType;  // 0 des  1 aes
@@ -21,17 +18,28 @@
 
 @implementation HttpsDnsResolver
 
+static NSURLSession *_resolveHOSTSession = nil;
+
+- (instancetype)init {
+    if (self = [super init]) {
+        static dispatch_once_t onceToken;
+        dispatch_once(&onceToken, ^{
+            NSURLSessionConfiguration *configuration = [NSURLSessionConfiguration defaultSessionConfiguration];
+            _resolveHOSTSession = [NSURLSession sessionWithConfiguration:configuration delegate:self delegateQueue:nil];
+        });
+    }
+    return self;
+}
+
 - (void)dealloc {
     MSDKDNSLOG(@"HttpDnsResolver dealloc!");
-    [self setResponseData:nil];
-    [self.connection cancel];
-    [self setConnection:nil];
 }
 
 - (void)startWithDomains:(NSArray *)domains TimeOut:(float)timeOut DnsId:(int)dnsId DnsKey:(NSString *)dnsKey NetStack:(msdkdns::MSDKDNS_TLocalIPStack)netStack encryptType:(NSInteger)encryptType
 {
     [super startWithDomains:domains TimeOut:timeOut DnsId:dnsId DnsKey:dnsKey NetStack:netStack];
     NSString *domainStr = [domains componentsJoinedByString:@","];
+    id<MSDKDnsResolverDelegate> delegate = self.delegate;
     self.errorCode = MSDKDns_UnResolve;
     if (!domainStr || domainStr.length == 0) {
         MSDKDNSLOG(@"HttpDns Domain is must needed!");
@@ -39,8 +47,8 @@
         self.isFinished = YES;
         self.isSucceed = NO;
         self.errorInfo = @"Domian is null";
-        if (self.delegate && [self.delegate respondsToSelector:@selector(resolver:getDomainError:retry:)]) {
-            [self.delegate resolver:self getDomainError:self.errorInfo retry:NO];
+        if (delegate && [delegate respondsToSelector:@selector(resolver:getDomainError:retry:)]) {
+            [delegate resolver:self getDomainError:self.errorInfo retry:NO];
         }
         return;
     }
@@ -59,65 +67,110 @@
     }
     
     NSURL * httpDnsUrl = [MSDKDnsInfoTool httpsUrlWithDomain:domainStr DnsId:dnsId DnsKey:_dnsKey IPType:self.ipType encryptType:_encryptType];
+    
     if (httpDnsUrl) {
-        MSDKDNSLOG(@"HttpDns TimeOut is %f", timeOut);
-        NSURLRequest * request = [NSURLRequest requestWithURL:httpDnsUrl cachePolicy:NSURLRequestReloadIgnoringCacheData timeoutInterval:timeOut];
-        self.connection = [NSURLConnection connectionWithRequest:request delegate:self];
-        [self.connection start];
-        self.rl = CFRunLoopGetCurrent();
-        CFRunLoopRun();
+        MSDKDNSLOG("HttpDns Request URL: %@", httpDnsUrl);
+        NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:httpDnsUrl
+                                                               cachePolicy:NSURLRequestReloadIgnoringLocalCacheData
+                                                           timeoutInterval:timeOut];
+        NSURLSessionTask *task = [_resolveHOSTSession dataTaskWithRequest:request completionHandler:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
+            if (error) {
+                MSDKDNSLOG(@"HttpDns Failed:%@",[error userInfo]);
+                self.domainInfo = nil;
+                self.isFinished = YES;
+                self.errorCode = MSDKDns_Timeout;
+                self.isSucceed = NO;
+                self.errorInfo = error.userInfo[@"NSLocalizedDescription"];
+                if (delegate && [delegate respondsToSelector:@selector(resolver:getDomainError:retry:)]) {
+                    [delegate resolver:self getDomainError:self.errorInfo retry:YES];
+                }
+            } else {
+                MSDKDNSLOG(@"HttpDns didReceiveData!");
+                NSString * errorInfo = @"";
+                NSHTTPURLResponse *httpResponse = (NSHTTPURLResponse*)response;
+                self.statusCode = [httpResponse statusCode];
+                if (data && data.length > 0) {
+                    NSString * decryptStr = nil;
+                    NSString * responseStr = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
+                    MSDKDNSLOG(@"The httpdns responseStr:%@", responseStr);
+                    if (self.encryptType != 2 && self.dnsKey && self.dnsKey.length > 0) {
+                        if (self.encryptType == 0) {
+                            decryptStr = [MSDKDnsInfoTool decryptUseDES:responseStr key:self.dnsKey];
+                        } else {
+                            decryptStr = [MSDKDnsInfoTool decryptUseAES:responseStr key:self.dnsKey];
+                        }
+                    } else if (self.encryptType == 2) {
+                        decryptStr = [responseStr copy];
+                    }
+                    
+                    self.domainInfo = [self parseResultString:decryptStr];
+                    
+                    if (self.domainInfo && [self.domainInfo count] > 0) {
+                        self.isFinished = YES;
+                        self.errorCode = MSDKDns_Success;
+                        self.isSucceed = YES;
+                        if (delegate && [delegate respondsToSelector:@selector(resolver:didGetDomainInfo:)]) {
+                            [delegate resolver:self didGetDomainInfo:self.domainInfo];
+                        }
+                        return;
+                    } else {
+                        errorInfo = @"HttpDns Failed, responseStr is not format.";
+                    }
+                } else {
+                    errorInfo = @"HttpDns response data error!";
+                }
+                self.domainInfo = nil;
+                self.isFinished = YES;
+                self.isSucceed = NO;
+                self.errorCode = MSDKDns_NoData;
+                self.errorInfo = errorInfo;
+                if (delegate && [delegate respondsToSelector:@selector(resolver:getDomainError:retry:)]) {
+                    [delegate resolver:self getDomainError:self.errorInfo retry:NO];
+                }
+            }
+        }];
+        [task resume];
     } else {
+        MSDKDNSLOG("HttpDns Request URL is null");
         self.domainInfo = nil;
         self.isFinished = YES;
         self.isSucceed = NO;
         self.errorInfo = @"httpUrl is null";
-        if (self.delegate && [self.delegate respondsToSelector:@selector(resolver:getDomainError:retry:)]) {
-            [self.delegate resolver:self getDomainError:self.errorInfo retry:NO];
+        if (delegate && [delegate respondsToSelector:@selector(resolver:getDomainError:retry:)]) {
+            [delegate resolver:self getDomainError:self.errorInfo retry:NO];
         }
     }
 }
 
-#pragma mark - NSURLConnectionDelegate
+#pragma mark - NSURLSessionTaskDelegate
 
-- (void)connection:(NSURLConnection *)connection willSendRequestForAuthenticationChallenge:(NSURLAuthenticationChallenge *)challenge {
-    MSDKDNSLOG(@"https willSendRequestForAuthenticationChallenge");
+- (void)URLSession:(NSURLSession *)session task:(NSURLSessionTask *)task didReceiveChallenge:(NSURLAuthenticationChallenge *)challenge completionHandler:(void (^)(NSURLSessionAuthChallengeDisposition disposition, NSURLCredential * __nullable credential))completionHandler {
     if (!challenge) {
         return;
     }
-    
-    /*
-     * URL里面的host在使用HTTPDNS的情况下被设置成了IP，此处从HTTP Header中获取真实域名
-     */
-    NSURLRequest *request = connection.originalRequest;
+    NSURLSessionAuthChallengeDisposition disposition = NSURLSessionAuthChallengePerformDefaultHandling;
+    NSURLCredential *credential = nil;
+
+    NSURLRequest *request = task.originalRequest;
     NSDictionary *headerDict = request.allHTTPHeaderFields;
-    NSString *host = headerDict[@"Host"];
-    if (host == nil || [host length] == 0) {
-        host = headerDict[@"host"];
+
+    //获取原始域名信息
+    NSString *host = [headerDict objectForKey:@"host"];
+    if (!host) {
+        host = request.URL.host;
     }
-    
-    /*
-     * 判断challenge的身份验证方法是否是NSURLAuthenticationMethodServerTrust（HTTPS模式下会进行该身份验证流程），
-     * 在没有配置身份验证方法的情况下进行默认的网络请求流程。
-     */
-    if ([challenge.protectionSpace.authenticationMethod isEqualToString:NSURLAuthenticationMethodServerTrust]) {
+    if ([challenge.protectionSpace.authenticationMethod  isEqualToString:NSURLAuthenticationMethodServerTrust]) {
         if ([self evaluateServerTrust:challenge.protectionSpace.serverTrust forDomain:host]) {
-            /*
-             * 验证完以后，需要构造一个NSURLCredential发送给发起方
-             */
-            NSURLCredential *credential = [NSURLCredential credentialForTrust:challenge.protectionSpace.serverTrust];
-            [[challenge sender] useCredential:credential forAuthenticationChallenge:challenge];
+            disposition = NSURLSessionAuthChallengeUseCredential;
+            credential = [NSURLCredential credentialForTrust:challenge.protectionSpace.serverTrust];
         } else {
-            /*
-             * 验证失败，取消这次验证流程
-             */
-            [[challenge sender] cancelAuthenticationChallenge:challenge];
+            disposition = NSURLSessionAuthChallengePerformDefaultHandling;
         }
     } else {
-        /*
-         * 对于其他验证方法直接进行处理流程
-         */
-        [[challenge sender] continueWithoutCredentialForAuthenticationChallenge:challenge];
+        disposition = NSURLSessionAuthChallengePerformDefaultHandling;
     }
+    // 对于其他的 challenges 直接使用默认的验证方案
+    completionHandler(disposition,credential);
 }
 
 - (BOOL)evaluateServerTrust:(SecTrustRef)serverTrust forDomain:(NSString *)domain {
@@ -148,81 +201,7 @@
     return (result == kSecTrustResultUnspecified || result == kSecTrustResultProceed);
 }
 
-- (void)connection:(NSURLConnection *)connection didReceiveResponse:(NSURLResponse *)response {
-    MSDKDNSLOG(@"HttpDnsResolver didReceiveResponse!");
-    self.responseData = nil;
-    self.responseData = [NSMutableData new];
-    NSHTTPURLResponse *httpResponse = (NSHTTPURLResponse*)response;
-    self.statusCode = [httpResponse statusCode];
-}
-
-- (void)connection:(NSURLConnection *)connection didReceiveData:(NSData *)data {
-    MSDKDNSLOG(@"HttpDnsResolver didReceiveData!");
-    if (data && data.length > 0) {
-        [self.responseData appendData:data];
-    }
-}
-
-- (void)connectionDidFinishLoading:(NSURLConnection *)connection {
-    MSDKDNSLOG(@"connectionDidFinishLoading: %@", self.responseData);
-    NSString * errorInfo = @"";
-    if (self.responseData.length > 0) {
-        NSString * decryptStr = nil;
-        NSString * responseStr = [[NSString alloc] initWithData:self.responseData encoding:NSUTF8StringEncoding];
-        MSDKDNSLOG(@"The httpdns responseStr:%@", responseStr);
-        if (_encryptType != 2 && _dnsKey && _dnsKey.length > 0) {
-            if (_encryptType == 0) {
-                decryptStr = [MSDKDnsInfoTool decryptUseDES:responseStr key:_dnsKey];
-            } else {
-                decryptStr = [MSDKDnsInfoTool decryptUseAES:responseStr key:_dnsKey];
-            }
-        } else if (_encryptType == 2) {
-            decryptStr = [responseStr copy];
-        }
-        
-        self.domainInfo = [self parseResultString:decryptStr];
-        
-        if (self.domainInfo && [self.domainInfo count] > 0) {
-            self.isFinished = YES;
-            self.errorCode = MSDKDns_Success;
-            self.isSucceed = YES;
-            if (self.delegate && [self.delegate respondsToSelector:@selector(resolver:didGetDomainInfo:)]) {
-                [self.delegate resolver:self didGetDomainInfo:self.domainInfo];
-            }
-            CFRunLoopStop(self.rl);
-            return;
-        } else {
-            errorInfo = @"HttpDns Failed, responseStr is not format.";
-        }
-    } else {
-        errorInfo = @"HttpDns response data error!";
-    }
-    
-    self.domainInfo = nil;
-    self.isFinished = YES;
-    self.isSucceed = NO;
-    self.errorCode = MSDKDns_NoData;
-    self.errorInfo = errorInfo;
-    if (self.delegate && [self.delegate respondsToSelector:@selector(resolver:getDomainError:retry:)]) {
-        [self.delegate resolver:self getDomainError:self.errorInfo retry:NO];
-    }
-    CFRunLoopStop(self.rl);
-}
-
-- (void)connection:(NSURLConnection *)connection didFailWithError:(NSError *)error {
-    MSDKDNSLOG(@"HttpDns Failed:%@",[error userInfo]);
-    self.domainInfo = nil;
-    self.isFinished = YES;
-    self.errorCode = MSDKDns_Timeout;
-    self.isSucceed = NO;
-    self.errorInfo = error.userInfo[@"NSLocalizedDescription"];
-    if (self.delegate && [self.delegate respondsToSelector:@selector(resolver:getDomainError:retry:)]) {
-        [self.delegate resolver:self getDomainError:self.errorInfo retry:YES];
-    }
-    CFRunLoopStop(self.rl);
-}
-
-#pragma mark -
+#pragma mark - util
 - (NSString *)getQueryDomain:(NSString *)str {
     // 删除域名后面添加的.
     if ([[str substringFromIndex:str.length - 1]  isEqual: @"."]) {
