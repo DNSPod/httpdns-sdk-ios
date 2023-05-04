@@ -299,12 +299,15 @@ char MSDKDnsHexCharToChar(char high, char low) {
     if (res_len > 0) {
         res_buf = (unsigned char *)calloc(res_len, sizeof(unsigned char));
         // 注意: 解密后的长度可能会比output的长度要短，因为要预留padding长度
-        int decodedLen = self_dns::AesCryptWithKey(src, src_len, res_buf, mode, aes_key, AES_IV);
-        res_len = decodedLen < res_len ? decodedLen : res_len;
+        if (res_buf != nullptr) { // 进行空指针判断
+            int decodedLen = self_dns::AesCryptWithKey(src, src_len, res_buf, mode, aes_key, AES_IV);
+            res_len = decodedLen < res_len ? decodedLen : res_len;
+            NSData *ret = [NSData dataWithBytes:res_buf length:res_len];
+            free(res_buf); // 在返回值之前释放res_buf
+            return ret;
+        }
     }
-    NSData *ret = [NSData dataWithBytes:res_buf length:res_len];
-    free(res_buf);
-    return ret;
+    return nil; // 如果分配内存失败，则返回nil
 }
 
 // 获取16个字节的随机串
