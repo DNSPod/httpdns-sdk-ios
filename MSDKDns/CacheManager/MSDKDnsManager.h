@@ -7,16 +7,6 @@
 #import "MSDKDnsPrivate.h"
 #import "MSDKDns.h"
 
-#if defined(__has_include)
-    #if __has_include(<MSDK/BeaconBaseInterface.h>)
-        #include <MSDK/BeaconBaseInterface.h>
-    #endif
-
-    #if __has_include("BeaconAPI_Base/BeaconBaseInterface.h")
-        #include "BeaconAPI_Base/BeaconBaseInterface.h"
-    #endif
-#endif
-
 @class MSDKDnsService;
 
 typedef enum {
