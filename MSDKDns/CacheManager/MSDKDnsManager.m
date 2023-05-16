@@ -1141,7 +1141,7 @@ static MSDKDnsManager * _sharedInstance = nil;
 #endif
         if (![domain isEqualToString:@""] && dnsId != 0 && ![dnsKey isEqualToString:@""]) {
             NSArray *domains = @[domain];
-            msdkdns::MSDKDNS_TLocalIPStack netStack = [self detectAddressType];
+            msdkdns::MSDKDNS_TLocalIPStack netStack = msdkdns::MSDKDNS_ELocalIPStack_IPv4;
             BOOL httpOnly = true;
             HttpDnsEncryptType encryptType = HttpDnsEncryptTypeDES;
             MSDKDnsService * dnsService = [[MSDKDnsService alloc] init];
