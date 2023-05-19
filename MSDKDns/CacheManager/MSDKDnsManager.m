@@ -1256,6 +1256,8 @@ static MSDKDnsManager * _sharedInstance = nil;
     #if IS_INTL
         if ([[MSDKDnsParamsManager shareInstance] msdkDnsGetEncryptType] != HttpDnsEncryptTypeHTTPS) {
             [servers addObjectsFromArray: MSDKDnsHttpServerIps_INTL];
+        } else {
+            // 国际站SDK暂不支持HTTPS解析
         }
     #else
         if ([[MSDKDnsParamsManager shareInstance] msdkDnsGetEncryptType] == HttpDnsEncryptTypeHTTPS) {
