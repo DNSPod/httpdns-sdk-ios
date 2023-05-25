@@ -5,12 +5,12 @@
 #import "MSDKDnsManager.h"
 #import "MSDKDnsService.h"
 #import "MSDKDnsLog.h"
-#import "MSDKDns.h"
 #import "MSDKDnsDB.h"
 #import "MSDKDnsInfoTool.h"
 #import "MSDKDnsParamsManager.h"
 #import "MSDKDnsNetworkManager.h"
 #import "msdkdns_local_ip_stack.h"
+#import "AttaReport.h"
 #if defined(__has_include)
     #if __has_include("httpdnsIps.h")
         #include "httpdnsIps.h"
@@ -26,6 +26,9 @@
 @property (nonatomic, assign, readwrite) BOOL waitToSwitch; // 防止连续多次切换
 // 延迟记录字典，记录哪些域名已经开启了延迟解析请求
 @property (strong, nonatomic, readwrite) NSMutableDictionary* domainISOpenDelayDispatch;
+@property (nonatomic, assign, readwrite) HttpDnsSdkStatus sdkStatus;
+@property (nonatomic, strong, readwrite) NSArray * dnsServers;
+@property (strong, nonatomic) NSMutableURLRequest *request;
 
 @end
 
@@ -58,6 +61,9 @@ static MSDKDnsManager * _sharedInstance = nil;
         _serverIndex = 0;
         _firstFailTime = nil;
         _waitToSwitch = NO;
+        _serviceArray = [[NSMutableArray alloc] init];
+        _sdkStatus = net_undetected;
+        _dnsServers = [self defaultServers];
     }
     return self;
 }
@@ -180,7 +186,7 @@ static MSDKDnsManager * _sharedInstance = nil;
             [self.serviceArray addObject:dnsService];
             __weak __typeof__(self) weakSelf = self;
             //进行httpdns请求
-            [dnsService getHostsByNames:toCheckDomains TimeOut:timeOut DnsId:dnsId DnsKey:dnsKey NetStack:netStack encryptType:encryptType returnIps:^() {
+            [dnsService getHostsByNames:toCheckDomains TimeOut:timeOut DnsId:dnsId DnsKey:dnsKey NetStack:netStack encryptType:encryptType from:MSDKDnsEventHttpDnsExpiredAsync returnIps:^{
                 __strong __typeof(self) strongSelf = weakSelf;
                 if (strongSelf) {
                     [toCheckDomains enumerateObjectsUsingBlock:^(id _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
@@ -201,6 +207,13 @@ static MSDKDnsManager * _sharedInstance = nil;
 
 - (void)getHostsByNames:(NSArray *)domains
                 verbose:(BOOL)verbose
+              returnIps:(void (^)(NSDictionary * ipsDict))handler {
+    [self getHostsByNames:domains verbose:verbose from:MSDKDnsEventHttpDnsNormal returnIps:handler];
+}
+
+- (void)getHostsByNames:(NSArray *)domains
+                verbose:(BOOL)verbose
+                from:(NSString *)origin
               returnIps:(void (^)(NSDictionary * ipsDict))handler {
     // 获取当前ipv4/ipv6/双栈网络环境
     msdkdns::MSDKDNS_TLocalIPStack netStack = [self detectAddressType];
@@ -247,7 +260,7 @@ static MSDKDnsManager * _sharedInstance = nil;
         [self.serviceArray addObject:dnsService];
         __weak __typeof__(self) weakSelf = self;
         HttpDnsEncryptType encryptType = [[MSDKDnsParamsManager shareInstance] msdkDnsGetEncryptType];
-        [dnsService getHostsByNames:toCheckDomains TimeOut:timeOut DnsId:dnsId DnsKey:dnsKey NetStack:netStack encryptType:encryptType returnIps:^() {
+        [dnsService getHostsByNames:toCheckDomains TimeOut:timeOut DnsId:dnsId DnsKey:dnsKey NetStack:netStack encryptType:encryptType from:origin returnIps:^() {
             __strong __typeof(self) strongSelf = weakSelf;
             if (strongSelf) {
                 [toCheckDomains enumerateObjectsUsingBlock:^(id _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
@@ -279,7 +292,7 @@ static MSDKDnsManager * _sharedInstance = nil;
     HttpDnsEncryptType encryptType = [[MSDKDnsParamsManager shareInstance] msdkDnsGetEncryptType];
     
     MSDKDnsService * dnsService = [[MSDKDnsService alloc] init];
-    [dnsService getHostsByNames:domains TimeOut:timeOut DnsId:dnsId DnsKey:dnsKey NetStack:netStack encryptType:encryptType returnIps:^{
+    [dnsService getHostsByNames:domains TimeOut:timeOut DnsId:dnsId DnsKey:dnsKey NetStack:netStack encryptType:encryptType from:MSDKDnsEventHttpDnsAutoRefresh returnIps:^{
         if(needClear){
             // 当请求结束了需要将该域名开启的标志清除，方便下次继续开启延迟解析请求
             // NSLog(@"延时更新请求结束!请求域名为%@",domains);
@@ -295,7 +308,7 @@ static MSDKDnsManager * _sharedInstance = nil;
     });
     if (domains && [domains count] > 0) {
         MSDKDNSLOG(@"preResolve domains: %@", [domains componentsJoinedByString:@","] );
-        [self getHostsByNames:domains verbose:NO returnIps:^(NSDictionary *ipsDict) {
+        [self getHostsByNames:domains verbose:NO from:MSDKDnsEventHttpDnsPreResolved returnIps:^(NSDictionary *ipsDict) {
             if (ipsDict) {
                 MSDKDNSLOG(@"preResolve domains success.");
             } else {
@@ -569,7 +582,35 @@ static MSDKDnsManager * _sharedInstance = nil;
 }
 
 #pragma mark - uploadReport
+- (void)hitCacheAttaUploadReport:(NSString *)domain {
+    static int count = 0;
+    count ++;
+    if ([[MSDKDnsParamsManager shareInstance] msdkDnsGetEnableReport] && [[AttaReport sharedInstance] shoulReportDnsSpend]) {
+        [[AttaReport sharedInstance] reportEvent:@{
+            MSDKDns_ErrorCode: MSDKDns_Success,
+            @"eventName": MSDKDnsEventHttpDnsCached,
+            @"dnsIp": [[MSDKDnsManager shareInstance] currentDnsServer],
+            @"req_dn": domain,
+            @"req_type": @"a",
+            @"req_timeout": @0,
+            @"req_ttl": @0,
+            @"req_query": @0,
+            @"req_ip": @"",
+            @"spend": @0,
+            @"statusCode": @0,
+            @"count":[NSString stringWithFormat:@"%d", count],
+            @"isCache": @1,
+        }];
+        count = 0;
+     }
+}
+
 - (void)uploadReport:(BOOL)isFromCache Domain:(NSString *)domain NetStack:(msdkdns::MSDKDNS_TLocalIPStack)netStack {
+    // 命中缓存进行atta上报
+    if (isFromCache) {
+        [self hitCacheAttaUploadReport:domain];
+    }
+    
     Class beaconClass = NSClassFromString(@"BeaconBaseInterface");
     if (beaconClass == 0x0) {
         MSDKDNSLOG(@"Beacon framework is not imported");
@@ -683,7 +724,7 @@ static MSDKDnsManager * _sharedInstance = nil;
     NSString * localDnsTimeConsuming = @"";
     NSString * channel = @"";
     
-    NSDictionary * cacheDict = [[MSDKDnsManager shareInstance] domainDict];
+    NSDictionary * cacheDict = [self domainDict];
     if (cacheDict && domain) {
         NSDictionary * cacheInfo = cacheDict[domain];
         if (cacheInfo) {
@@ -908,14 +949,250 @@ static MSDKDnsManager * _sharedInstance = nil;
     return netStack;
 }
 
+- (int)getAddressType {
+    return [self detectAddressType];
+}
+
 
 # pragma mark - servers
-- (NSString *)currentDnsServer {
-    int index = self.serverIndex;
-    if (index < [[[MSDKDnsParamsManager shareInstance] msdkDnsGetServerIps] count]) {
-        return  [[[MSDKDnsParamsManager shareInstance] msdkDnsGetServerIps] objectAtIndex:index];
+
+- (void)fetchConfig:(int) mdnsId MEncryptType:(HttpDnsEncryptType)mdnsEncryptType MDnsKey:(NSString *)mdnsKey MToken:(NSString* )mdnsToken {
+    
+    NSString *ipAddress = @"";
+#ifdef httpdnsIps_h
+#if IS_INTL
+    ipAddress = MSDKDnsFetchConfigHttpUrl_INTL;
+#else
+    ipAddress = MSDKDnsFetchConfigHttpUrl;
+#endif
+#endif
+    
+    NSString *protocol = @"http";
+    NSString *alg = @"des";
+    if (mdnsEncryptType == HttpDnsEncryptTypeAES) {
+        alg = @"aes";
+    } else if (mdnsEncryptType == HttpDnsEncryptTypeHTTPS) {
+#ifdef httpdnsIps_h
+#if IS_INTL
+        ipAddress = @"";
+#else
+        ipAddress = MSDKDnsFetchConfigHttpsUrl;
+#endif
+#endif
+        protocol = @"https";
     }
-    return  [[MSDKDnsParamsManager shareInstance] msdkDnsGetMDnsIp];
+    
+    NSString * urlStr = [NSString stringWithFormat:@"%@://%@/conf?id=%d&alg=%@", protocol, ipAddress, mdnsId, alg];
+    
+    if (mdnsEncryptType == HttpDnsEncryptTypeHTTPS) {
+        urlStr = [NSString stringWithFormat:@"%@://%@/conf?token=%@", protocol, ipAddress, mdnsToken];
+    }
+    
+//    NSLog(@"urlStr ==== %@", urlStr);
+    //    NSURL *url = [NSURL URLWithString:@"http://182.254.60.40/conf?id=96157&alg=des"];
+    NSURL *url = [NSURL URLWithString:urlStr];
+    self.request = [NSMutableURLRequest requestWithURL:url];
+    NSURLSessionDataTask *dataTask = [[NSURLSession sharedSession] dataTaskWithRequest:self.request completionHandler:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
+        if (data && (error == nil)) {
+            // 网络访问成功，解析数据
+            NSString *str = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
+            if(![str isEqualToString:@""]){
+//                NSLog(@"data is %@",str);
+                if (mdnsEncryptType != HttpDnsEncryptTypeHTTPS && mdnsKey && mdnsKey.length > 0) {
+                    if (mdnsEncryptType == 0) {
+                        str = [MSDKDnsInfoTool decryptUseDES:str key:mdnsKey];
+                    } else {
+                        str = [MSDKDnsInfoTool decryptUseAES:str key:mdnsKey];
+                    }
+                }
+                NSDictionary *configDict = [self parseAllConfigString:str];
+                if(configDict && [configDict objectForKey:@"log"]){
+                    NSString *logValue = [configDict objectForKey:@"log"];
+                    [[MSDKDnsParamsManager shareInstance] msdkDnsSetEnableReport:[logValue isEqualToString:@"1"]?YES:NO];
+                    MSDKDNSLOG(@"Successfully get configuration.config data is %@, %@",str,configDict);
+                }else{
+//                    MSDKDNSLOG(@"Failed to get configuration，error：%@",str);
+                }
+                // NSLog(@"configDict = %@",configDict);
+//                暂时测试，默认开启探测三网域名IP
+                // [[MSDKDnsManager shareInstance] detectHttpDnsServers];
+                if(configDict && [configDict objectForKey:@"domain"]){
+                    NSString *domainValue = [configDict objectForKey:@"domain"];
+                    if ([domainValue isEqualToString:@"1"]) {
+                        [[MSDKDnsParamsManager shareInstance] msdkDnsSetEnableDetectHostServer:YES];
+                        [[MSDKDnsManager shareInstance] detectHttpDnsServers];
+                    }
+                    // MSDKDNSLOG(@"Successfully get configuration.config data is %@, %@",str,configDict);
+                }else{
+                //    MSDKDNSLOG(@"Failed to get configuration，error：%@",str);
+                }
+                
+                
+            }else {
+            // 数据为空暂时不做处理
+            }
+        } else {
+            // 网络访问失败
+            MSDKDNSLOG(@"Failed to get configuration，error：%@",error);
+        }
+    }];
+    [dataTask resume];
+}
+
+- (void)URLSession:(NSURLSession *)session task:(NSURLSessionTask *)task didReceiveChallenge:(NSURLAuthenticationChallenge *)challenge completionHandler:(void (^)(NSURLSessionAuthChallengeDisposition disposition, NSURLCredential * __nullable credential))completionHandler {
+    if (!challenge) {
+        return;
+    }
+
+    NSURLSessionAuthChallengeDisposition disposition = NSURLSessionAuthChallengePerformDefaultHandling;
+    NSURLCredential *credential = nil;
+
+    //获取原始域名信息
+    NSString *host = [[self.request allHTTPHeaderFields] objectForKey:@"host"];
+    if (!host) {
+        host = self.request.URL.host;
+    }
+    if ([challenge.protectionSpace.authenticationMethod  isEqualToString:NSURLAuthenticationMethodServerTrust]) {
+        if ([self evaluateServerTrust:challenge.protectionSpace.serverTrust forDomain:host]) {
+            disposition = NSURLSessionAuthChallengeUseCredential;
+            credential = [NSURLCredential credentialForTrust:challenge.protectionSpace.serverTrust];
+        } else {
+            disposition = NSURLSessionAuthChallengePerformDefaultHandling;
+        }
+    } else {
+        disposition = NSURLSessionAuthChallengePerformDefaultHandling;
+    }
+
+    // 对于其他的 challenges 直接使用默认的验证方案
+    completionHandler(disposition,credential);
+}
+
+
+- (BOOL)evaluateServerTrust:(SecTrustRef)serverTrust forDomain:(NSString *)domain {
+    /*
+     * 创建证书校验策略
+     */
+    NSMutableArray *policies = [NSMutableArray array];
+    if (domain) {
+        [policies addObject:(__bridge_transfer id)SecPolicyCreateSSL(true, (__bridge CFStringRef)domain)];
+    } else {
+        [policies addObject:(__bridge_transfer id)SecPolicyCreateBasicX509()];
+    }
+    
+    /*
+     * 绑定校验策略到服务端的证书上
+     */
+    SecTrustSetPolicies(serverTrust, (__bridge CFArrayRef)policies);
+    
+    /*
+     * 评估当前serverTrust是否可信任，
+     * 官方建议在result = kSecTrustResultUnspecified 或 kSecTrustResultProceed
+     * 的情况下serverTrust可以被验证通过，https://developer.apple.com/library/ios/technotes/tn2232/_index.html
+     * 关于SecTrustResultType的详细信息请参考SecTrust.h
+     */
+    SecTrustResultType result;
+    SecTrustEvaluate(serverTrust, &result);
+    
+    return (result == kSecTrustResultUnspecified || result == kSecTrustResultProceed);
+}
+
+//将获取到的配置string转换为数据字典格式
+- (NSDictionary *)parseAllConfigString:(NSString *)configString {
+    NSArray *array = [configString componentsSeparatedByString:@"|"];
+    if (array && array.count >= 2) {
+        NSMutableDictionary *result = [NSMutableDictionary dictionary];
+        for (int i = 0; i < array.count; i++) {
+            NSString *item = array[i];
+            if(item){
+                NSArray * itemArr = [item componentsSeparatedByString:@":"];
+                if (itemArr && [itemArr count] == 2) {
+                    NSString *key = itemArr[0];
+                    NSString *value = itemArr[1];
+                    [result setObject:value forKey:key];
+                }
+            }
+        }
+        return result;
+    }
+    return nil;
+}
+
+- (void)detectHttpDnsServers {
+    // 先重置为兜底ip
+    [self resetDnsServers:nil];
+    // https 协议下不进行三网探测
+    if ([[MSDKDnsParamsManager shareInstance] msdkDnsGetEncryptType] == HttpDnsEncryptTypeHTTPS) {
+        return;
+    }
+    dispatch_async([MSDKDnsInfoTool msdkdns_queue], ^{
+        NSString *domain = @"";
+        int dnsId = 0;
+        NSString *dnsKey = @"";
+#ifdef httpdnsIps_h
+    #if IS_INTL
+        domain = MSDKDnsServerDomain_INTL;
+        dnsId = MSDKDnsId_INTL;
+        dnsKey = MSDKDnsKey_INTL;
+    #else
+        domain = MSDKDnsServerDomain;
+        dnsId = MSDKDnsId;
+        dnsKey = MSDKDnsKey;
+    #endif
+#endif
+        if (![domain isEqualToString:@""] && dnsId != 0 && ![dnsKey isEqualToString:@""]) {
+            NSArray *domains = @[domain];
+            msdkdns::MSDKDNS_TLocalIPStack netStack = msdkdns::MSDKDNS_ELocalIPStack_IPv4;
+            BOOL httpOnly = true;
+            HttpDnsEncryptType encryptType = HttpDnsEncryptTypeDES;
+            MSDKDnsService * dnsService = [[MSDKDnsService alloc] init];
+            __weak __typeof__(self) weakSelf = self;
+            __block float timeOut = 2.0;
+            self.sdkStatus = net_detecting;
+            [dnsService getHttpDNSDomainIPsByNames:domains
+                                           TimeOut:timeOut
+                                             DnsId:dnsId
+                                            DnsKey:dnsKey
+                                          NetStack:netStack
+                                       encryptType:encryptType
+                                          httpOnly:httpOnly
+                                              from:MSDKDnsEventHttpDnsGetHTTPDNSDomainIP
+                                         returnIps:^{
+                __strong __typeof(self) strongSelf = weakSelf;
+                if (strongSelf) {
+                    [strongSelf uploadReport:NO Domain:domain NetStack:netStack];
+                    NSDictionary * result = [strongSelf fullResultDictionary:domains fromCache:self.domainDict];
+                    NSDictionary *ips = [result objectForKey:domain];
+                    NSLog(@"ips === %@", ips);
+                    NSArray *ipv4s = [ips objectForKey:@"ipv4"];
+                    NSArray *ipv6s = [ips objectForKey:@"ipv6"];
+                    if (ipv4s && [ipv4s count] > 0) {
+                        [self resetDnsServers:ipv4s];
+                        self.sdkStatus = net_detected;
+                    } else if (ipv6s && [ipv6s count] > 0) {
+                        [self resetDnsServers:ipv6s];
+                        self.sdkStatus = net_detected;
+                    } else {
+                        self.sdkStatus = net_undetected;
+                    }
+                }
+            }];
+        } else {
+            MSDKDNSLOG(@"三网解析域名、dnsId或者dnsKey配置为空.");
+        }
+    });
+}
+
+- (NSString *)currentDnsServer {
+    // int index = self.serverIndex;
+    // if (index < [[[MSDKDnsParamsManager shareInstance] msdkDnsGetServerIps] count]) {
+    //     return  [[[MSDKDnsParamsManager shareInstance] msdkDnsGetServerIps] objectAtIndex:index];
+    // }
+    // return  [[MSDKDnsParamsManager shareInstance] msdkDnsGetMDnsIp];
+    int index = self.serverIndex;
+    if (index < [self.dnsServers count]) {
+        return  [self.dnsServers objectAtIndex:index];
+    }
+    return  [[self defaultServers] firstObject];
 }
 
 - (void)switchDnsServer {
@@ -924,7 +1201,7 @@ static MSDKDnsManager * _sharedInstance = nil;
     }
     self.waitToSwitch = YES;
     dispatch_async([MSDKDnsInfoTool msdkdns_queue], ^{
-        if (self.serverIndex < [[[MSDKDnsParamsManager shareInstance] msdkDnsGetServerIps] count] - 1) {
+        if (self.serverIndex < [self.dnsServers count] - 1) {
             self.serverIndex += 1;
             if (!self.firstFailTime) {
                 self.firstFailTime = [NSDate date];
@@ -957,6 +1234,40 @@ static MSDKDnsManager * _sharedInstance = nil;
         self.firstFailTime = nil;
         self.waitToSwitch = NO;
     });
+}
+
+- (void)resetDnsServers:(NSArray *)servers {
+    self.waitToSwitch = YES;
+    dispatch_async([MSDKDnsInfoTool msdkdns_queue], ^{
+        NSMutableArray *array = [[NSMutableArray alloc] init];
+        if (servers && [servers count] > 0) {
+            [array addObjectsFromArray: servers];
+        }
+        [array addObjectsFromArray:[self defaultServers]];
+        self.serverIndex = 0;
+        self.dnsServers = array;
+        self.waitToSwitch = NO;
+    });
+}
+
+- (NSArray *)defaultServers {
+    NSMutableArray *servers = [[NSMutableArray alloc] init];
+#ifdef httpdnsIps_h
+    #if IS_INTL
+        if ([[MSDKDnsParamsManager shareInstance] msdkDnsGetEncryptType] != HttpDnsEncryptTypeHTTPS) {
+            [servers addObjectsFromArray: MSDKDnsHttpServerIps_INTL];
+        } else {
+            // 国际站SDK暂不支持HTTPS解析
+        }
+    #else
+        if ([[MSDKDnsParamsManager shareInstance] msdkDnsGetEncryptType] == HttpDnsEncryptTypeHTTPS) {
+            [servers addObjectsFromArray: MSDKDnsHttpsServerIps];
+        } else {
+            [servers addObjectsFromArray: MSDKDnsHttpServerIps];
+        }
+    #endif
+#endif
+    return servers;
 }
 
 # pragma mark - operate delay tag

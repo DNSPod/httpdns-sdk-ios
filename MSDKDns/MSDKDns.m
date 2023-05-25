@@ -9,10 +9,13 @@
 #import "MSDKDnsNetworkManager.h"
 #import "MSDKDnsInfoTool.h"
 #import "MSDKDnsParamsManager.h"
+#if defined(__has_include)
+    #if __has_include("httpdnsIps.h")
+        #include "httpdnsIps.h"
+    #endif
+#endif
 
 @interface MSDKDns ()
-
-@property (assign, nonatomic) BOOL msdkDnsReady;
 
 @end
 
@@ -31,7 +34,6 @@ static MSDKDns * _sharedInstance = nil;
 
 - (instancetype) init {
     if (self = [super init]) {
-        _msdkDnsReady = NO;
         //开启网络切换，及前后台切换的监听
         [MSDKDnsNetworkManager start];
     }
@@ -39,6 +41,15 @@ static MSDKDns * _sharedInstance = nil;
 }
 
 - (BOOL) initConfig:(DnsConfig *)config {
+#if IS_INTL
+    if (config->encryptType == HttpDnsEncryptTypeHTTPS) {
+        //国际站SDK不能进行HTTPS解析，直接报错提示用户
+        @throw [NSException exceptionWithName:@"MSDKDns wrong use of encryptType"
+                                           reason:@"HttpDnsEncryptTypeHTTPS cannot be used because httpdns-sdk-intl version still doesn't support, it is recommended to use HttpDnsEncryptTypeDES or HttpDnsEncryptTypeAES"
+                                         userInfo:nil];
+        return NO;
+    }
+#endif
     [[MSDKDnsLog sharedInstance] setEnableLog:config->debug];
     [[MSDKDnsParamsManager shareInstance] msdkDnsSetMAppId:config->appId MTimeOut:config->timeout MEncryptType:config->encryptType];
     [[MSDKDnsParamsManager shareInstance] msdkDnsSetMDnsId:config->dnsId MDnsKey:config->dnsKey MToken:config->token];
@@ -53,8 +64,7 @@ static MSDKDns * _sharedInstance = nil;
         [[MSDKDnsParamsManager shareInstance] msdkDnsSetMinutesBeforeSwitchToMain:config->minutesBeforeSwitchToMain];
     }
     [[MSDKDnsParamsManager shareInstance] msdkDnsSetEnableReport:config->enableReport];
-    [[MSDKDnsManager shareInstance] switchToMainServer];
-    self.msdkDnsReady = YES;
+    [[MSDKDnsManager shareInstance] fetchConfig:config->dnsId MEncryptType:config->encryptType MDnsKey:config->dnsKey MToken:config->token];
     MSDKDNSLOG(@"MSDKDns init success.");
     return YES;
 }
@@ -88,11 +98,6 @@ static MSDKDns * _sharedInstance = nil;
     // 保存openid
     [[MSDKDnsParamsManager shareInstance] msdkDnsSetMOpenId:openId];
     return YES;
-}
-
-- (void) WGSetDnsBackupServerIps:(NSArray *)ips {
-    [[MSDKDnsParamsManager shareInstance] msdkDnsSetBackupServerIps:ips];
-    [[MSDKDnsManager shareInstance] switchToMainServer];
 }
 
 - (void) WGSetPreResolvedDomains:(NSArray *)domains {
@@ -474,6 +479,10 @@ static MSDKDns * _sharedInstance = nil;
 
 - (NSDictionary *) WGGetDnsDetail:(NSString *) domain {
     return [[MSDKDnsManager shareInstance] getDnsDetail:domain];
+}
+
+- (int) WGGetNetworkStack {
+    return [[MSDKDnsManager shareInstance] getAddressType];
 }
 
 #pragma mark - others

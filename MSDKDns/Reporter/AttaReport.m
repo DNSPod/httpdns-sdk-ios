@@ -10,6 +10,7 @@
 #import "MSDKDnsLog.h"
 #import "MSDKDnsNetworkManager.h"
 #import "MSDKDnsParamsManager.h"
+#import "MSDKDnsInfoTool.h"
 #import <CoreTelephony/CTCarrier.h>
 #import <CoreTelephony/CTTelephonyNetworkInfo.h>
 #import <UIKit/UIKit.h>
@@ -49,8 +50,13 @@ static AttaReport * _sharedInstance = nil;
         NSURLSessionConfiguration *defaultSessionConfiguration = [NSURLSessionConfiguration defaultSessionConfiguration];
         self.session = [NSURLSession sessionWithConfiguration:defaultSessionConfiguration delegate:nil delegateQueue:nil];
 #ifdef httpdnsIps_h
+    #if IS_INTL
+        self.attaid = ATTAID_INTL;
+        self.token = ATTAToken_INTL;
+    #else
         self.attaid = ATTAID;
         self.token = ATTAToken;
+    #endif
         self.reportUrl = ATTAReportUrl;
         self.limit = ATTAReportDnsSpendLimit;
         self.interval = ATTAReportDnsSpendInterval;
@@ -72,6 +78,21 @@ static AttaReport * _sharedInstance = nil;
     NSString *systemName = [[UIDevice currentDevice] systemName];
     NSString *systemVersion = [[UIDevice currentDevice] systemVersion];
     NSMutableDictionary *dic = [NSMutableDictionary dictionaryWithDictionary:params];
+    NSString *eventName = [dic objectForKey:@"eventName"];
+    
+    int _DNSID = 0;
+    #ifdef httpdnsIps_h
+        #if IS_INTL
+            _DNSID = MSDKDnsId_INTL;
+        #else
+            _DNSID = MSDKDnsId;
+        #endif
+    #endif
+    // 如果是三网解析域名的请求，dnsID就使用指定的dnsID上报
+    if ([eventName isEqualToString:MSDKDnsEventHttpDnsGetHTTPDNSDomainIP]){
+        dnsId = _DNSID;
+    }
+    
     [dic addEntriesFromDictionary:@{
         @"carrier": carrier,
         @"networkType": networkType,
@@ -82,6 +103,7 @@ static AttaReport * _sharedInstance = nil;
         @"systemName": systemName,
         @"systemVersion": systemVersion,
         @"sdkVersion": MSDKDns_Version,
+        @"sessionId": [MSDKDnsInfoTool generateSessionID]
     }];
     return [self paramsToUrlString:dic];
 }
@@ -122,9 +144,10 @@ static AttaReport * _sharedInstance = nil;
 }
 
 - (BOOL)shoulReportDnsSpend {
-    if (self.count >= self.limit) {
-        return NO;
-    }
+//    取消上报次数上限，每5分钟上报一次
+//    if (self.count >= self.limit) {
+//        return NO;
+//    }
     NSDate *now = [NSDate date];
     if ([now timeIntervalSinceDate:self.lastReportTime] >= self.interval) {
         self.lastReportTime = now;

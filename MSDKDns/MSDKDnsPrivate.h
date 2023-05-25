@@ -64,10 +64,20 @@ static NSString * const kMSDKDns_DNS_4A_IP = @"dns_4a_ips";          // 域名�
 /*** 域名解析错误码*/
 static NSString * const MSDKDns_Fail = @"-1";   // 失败
 static NSString * const MSDKDns_Success = @"0"; // 成功
+static NSString * const MSDKDns_UnResolve = @"1"; // 未解析
+static NSString * const MSDKDns_Timeout = @"2"; // 解析超时
+static NSString * const MSDKDns_NoData = @"3"; // 没有解析数据
+static NSString * const MSDKDns_ErrorCode = @"errorCode";
 
 /** 上报事件*/
 static NSString * const MSDKDnsEventHttpDnsfail = @"HttpDnsfail";
 static NSString * const MSDKDnsEventHttpDnsSpend = @"HttpDnsSpend";
+static NSString * const MSDKDnsEventHttpDnsCached = @"HDNSLookupCached";         //命中缓存
+static NSString * const MSDKDnsEventHttpDnsNormal = @"HDNSGetHostByName";        //常规解析请求
+static NSString * const MSDKDnsEventHttpDnsPreResolved = @"HDNSPreLookup";       //预解析请求
+static NSString * const MSDKDnsEventHttpDnsAutoRefresh = @"HDNSLookupAsync";     //缓存自动刷新
+static NSString * const MSDKDnsEventHttpDnsExpiredAsync = @"HDNSLookupExpiredAsync"; //乐观DNS中缓存异步刷新请求
+static NSString * const MSDKDnsEventHttpDnsGetHTTPDNSDomainIP = @"HDNSGetDomainIP"; //获取三网域名的IP
 
 //命中缓存的状态
 static NSString * const MSDKDnsDomainCacheHit = @"domainCacheHit";         //命中缓存

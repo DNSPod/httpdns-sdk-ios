@@ -5,7 +5,7 @@
 #ifndef __MSDKDns_H__
 #define __MSDKDns_H__
 
-#define MSDKDns_Version @"1.6.0"
+#define MSDKDns_Version @"1.7.0"
 
 #import <Foundation/Foundation.h>
 
@@ -68,11 +68,6 @@ typedef struct DnsConfigStruct {
  * @return YES：成功 NO：失败
  */
 - (BOOL) WGSetDnsOpenId:(NSString *)openId;
-
-/**
- * 设置 httpdns 备份服务器ip（无需手动设置，sdk 会自动设置）
- */
-- (void) WGSetDnsBackupServerIps:(NSArray *)ips;
 
 /**
  * 设置预解析的域名，设置的域名会在sdk初始化完成后自动进行解析
@@ -191,11 +186,18 @@ typedef struct DnsConfigStruct {
 */
 - (NSDictionary *) WGGetDnsDetail:(NSString *) domain;
 
-#pragma mark 清除缓存
+#pragma mark-清除缓存
 /**
  清理本地所有缓存，除非业务明确需要，不要调用该方法
 */
 - (void)clearCache;
+
+#pragma mark-查询网络栈支持情况
+/**
+ 查询网络栈支持情况
+ @return 0: UNKNOWN, 1: IPV4_ONLY, 2: IPV6_ONLY, 3: DUAL_STACK;
+*/
+- (int) WGGetNetworkStack;
 
 @end
 #endif

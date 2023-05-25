@@ -20,7 +20,7 @@
 
 - (void)startWithDomains:(NSArray *)domains TimeOut:(float)timeOut DnsId:(int)dnsId DnsKey:(NSString *)dnsKey NetStack:(msdkdns::MSDKDNS_TLocalIPStack)netStack {
     [super startWithDomains:domains TimeOut:timeOut DnsId:dnsId DnsKey:dnsKey NetStack:netStack];
-    MSDKDNSLOG(@"LocalDns TimeOut is %f", timeOut);
+    MSDKDNSLOG(@"LocalDns domain is %@, TimeOut is %f", domains, timeOut);
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, timeOut * NSEC_PER_SEC), [MSDKDnsInfoTool msdkdns_local_queue], ^{
         [self localDnsTimeout];
     });
@@ -65,7 +65,7 @@
         self.isSucceed = NO;
         self.errorInfo = @"LocalDns timeout";
         if (self.delegate && [self.delegate respondsToSelector:@selector(resolver:getDomainError:retry:)]) {
-            [self.delegate resolver:self getDomainError:nil retry:NO];
+            [self.delegate resolver:self getDomainError:self.errorInfo retry:NO];
         }
     }
 }

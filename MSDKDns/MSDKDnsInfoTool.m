@@ -45,15 +45,6 @@
     return msdkdns_local_queue;
 }
 
-+ (dispatch_queue_t) msdkdns_retry_queue {
-    static dispatch_queue_t msdkdns_retry_queue;
-    static dispatch_once_t onceToken;
-    dispatch_once(&onceToken, ^{
-        msdkdns_retry_queue = dispatch_queue_create("com.tencent.msdkdns.retry_queue", DISPATCH_QUEUE_SERIAL);
-    });
-    return msdkdns_retry_queue;
-}
-
 + (NSString *) getIPv6: (const char *)mHost {
     if (NULL == mHost)
         return nil;
@@ -444,6 +435,8 @@ char MSDKDnsHexCharToChar(char high, char low) {
             urlStr = [urlStr stringByAppendingFormat:@"&alg=aes"];
         } else if (encryptType == HttpDnsEncryptTypeHTTPS) {
             urlStr = [urlStr stringByAppendingFormat:@"&token=%@", token];
+        } else if (encryptType == HttpDnsEncryptTypeDES){
+            urlStr = [urlStr stringByAppendingFormat:@"&alg=des"];
         }
         if (routeIp && routeIp.length > 0) {
             urlStr = [urlStr stringByAppendingFormat:@"&ip=%@", routeIp];
@@ -469,6 +462,51 @@ char MSDKDnsHexCharToChar(char high, char low) {
         }
     }
     return wifiName;
+}
+
+/**
+ 生成sessionId,sessionId为12位，采用base62编码
+ @return 返回sessionId
+ */
++ (NSString *)generateSessionID {
+    static NSString *sessionId = nil;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        NSString *alphabet = @"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+        NSUInteger length = alphabet.length;
+        if (![self isValidString:sessionId]) {
+            NSMutableString *mSessionId = [NSMutableString string];
+            for (int i = 0; i < 12; i++) {
+                [mSessionId appendFormat:@"%@", [alphabet substringWithRange:NSMakeRange(arc4random() % length, 1)]];
+            }
+            sessionId = [mSessionId copy];
+        }
+    });
+    return sessionId;
+}
+
++ (BOOL)isValidString:(id)notValidString {
+    if (!notValidString) {
+        return NO;
+    }
+    BOOL isKindOf = NO;
+    @try {
+        isKindOf = [notValidString isKindOfClass:[NSString class]];
+    } @catch (NSException *exception) {}
+    if (!isKindOf) {
+        return NO;
+    }
+    
+    NSInteger stringLength = 0;
+    @try {
+        stringLength = [notValidString length];
+    } @catch (NSException *exception) {
+        MSDKDNSLOG(@"类名与方法名：%@（在第%@行）, 描述：%@", @(__PRETTY_FUNCTION__), @(__LINE__), exception);
+    }
+    if (stringLength == 0) {
+        return NO;
+    }
+    return YES;
 }
 
 @end

@@ -37,6 +37,7 @@
 @property (assign, nonatomic, readwrite) BOOL enableKeepDomainsAlive;
 @property (assign, nonatomic, readwrite) BOOL expiredIPEnabled;
 @property (assign, nonatomic, readwrite) BOOL persistCacheIPEnabled;
+@property (assign, nonatomic, readwrite) BOOL enableDetectHostServer;
 
 @end
 
@@ -62,6 +63,7 @@ static MSDKDnsParamsManager * _sharedInstance = nil;
         _msdkAddressType = HttpDnsAddressTypeAuto;
         _enableKeepDomainsAlive = YES;
         _expiredIPEnabled = NO;
+        _enableDetectHostServer = NO;
     }
     return self;
 }
@@ -77,11 +79,17 @@ static MSDKDnsParamsManager * _sharedInstance = nil;
             self.serverArray = [self.serverArray arrayByAddingObjectsFromArray:self.backupServerIps];
         } else {
 #ifdef httpdnsIps_h
+    #if IS_INTL
+            if (self.msdkEncryptType != HttpDnsEncryptTypeHTTPS) {
+                self.serverArray = [self.serverArray arrayByAddingObjectsFromArray:httpServerIps_INTL];
+            }
+    #else
             if (self.msdkEncryptType == HttpDnsEncryptTypeHTTPS) {
                 self.serverArray = [self.serverArray arrayByAddingObjectsFromArray:httpsServerIps];
             } else {
                 self.serverArray = [self.serverArray arrayByAddingObjectsFromArray:httpServerIps];
             }
+    #endif
 #endif
         }
     });
@@ -149,6 +157,12 @@ static MSDKDnsParamsManager * _sharedInstance = nil;
 - (void)msdkDnsSetEnableReport: (BOOL)enableReport {
     dispatch_async([MSDKDnsInfoTool msdkdns_queue], ^{
         self.enableReport = enableReport;
+    });
+}
+
+- (void)msdkDnsSetEnableDetectHostServer: (BOOL)enableDetectHostServer {
+    dispatch_async([MSDKDnsInfoTool msdkdns_queue], ^{
+        self.enableDetectHostServer = enableDetectHostServer;
     });
 }
 
@@ -257,6 +271,10 @@ static MSDKDnsParamsManager * _sharedInstance = nil;
 
 - (BOOL)msdkDnsGetEnableReport {
     return _enableReport;
+}
+
+- (BOOL)msdkDnsGetEnableDetectHostServer {
+    return _enableDetectHostServer;
 }
 
 - (NSArray *)msdkDnsGetPreResolvedDomains {

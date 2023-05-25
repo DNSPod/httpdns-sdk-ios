@@ -25,6 +25,7 @@
 // 设置备份ip
 - (void)msdkDnsSetBackupServerIps: (NSArray *)ips;
 - (void)msdkDnsSetEnableReport: (BOOL)enableReport;
+- (void)msdkDnsSetEnableDetectHostServer: (BOOL)enableDetectHostServer;
 - (void)msdkDnsSetPreResolvedDomains: (NSArray *)domains;
 - (void)msdkDnsSetAddressType: (HttpDnsAddressType)addressType;
 - (void)msdkDnsSetKeepAliveDomains: (NSArray *)domains;
@@ -47,6 +48,7 @@
 - (NSUInteger)msdkDnsGetRetryTimesBeforeSwitchServer;
 - (NSUInteger)msdkDnsGetMinutesBeforeSwitchToMain;
 - (BOOL)msdkDnsGetEnableReport;
+- (BOOL)msdkDnsGetEnableDetectHostServer;
 - (NSArray *)msdkDnsGetPreResolvedDomains;
 - (HttpDnsAddressType)msdkDnsGetAddressType;
 - (NSArray *)msdkDnsGetKeepAliveDomains;
