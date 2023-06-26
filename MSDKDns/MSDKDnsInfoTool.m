@@ -15,6 +15,11 @@
 #import <err.h>
 #import "aes.h"
 #import "MSDKDns.h"
+#if defined(__has_include)
+    #if __has_include("httpdnsIps.h")
+        #include "httpdnsIps.h"
+    #endif
+#endif
 
 @implementation MSDKDnsInfoTool
 
@@ -423,6 +428,20 @@ char MSDKDnsHexCharToChar(char high, char low) {
     NSString *serviceIp = [[MSDKDnsManager shareInstance] currentDnsServer];
     NSString *routeIp = [[MSDKDnsParamsManager shareInstance] msdkDnsGetRouteIp];
     
+    BOOL isHTTPDNSDomain = NO;
+    
+#ifdef httpdnsIps_h
+#if IS_INTL
+    if ([MSDKDnsServerDomain_INTL isEqualToString:domain]){
+        isHTTPDNSDomain = YES;
+    }
+#else
+    if ([MSDKDnsServerDomain isEqualToString:domain]){
+        isHTTPDNSDomain = YES;
+    }
+#endif
+#endif
+    
     if (domainEncrypStr && domainEncrypStr.length > 0) {
         NSString * httpServer = [self getIPv6:[serviceIp UTF8String]];
         if (!httpServer || httpServer.length == 0) {
@@ -441,7 +460,8 @@ char MSDKDnsHexCharToChar(char high, char low) {
         } else if (encryptType == HttpDnsEncryptTypeDES){
             urlStr = [urlStr stringByAppendingFormat:@"&alg=des"];
         }
-        if (routeIp && routeIp.length > 0) {
+        // 当解析域名为三网域名的时候，默认为是SDK默认解析行为，不加入routeIp参数
+        if (routeIp && routeIp.length > 0 && !isHTTPDNSDomain) {
             urlStr = [urlStr stringByAppendingFormat:@"&ip=%@", routeIp];
         }
         NSURL * url = [NSURL URLWithString:urlStr];
