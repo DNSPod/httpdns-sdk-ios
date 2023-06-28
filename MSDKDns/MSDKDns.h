@@ -27,7 +27,7 @@ typedef struct DnsConfigStruct {
     int dnsId; // 授权ID，腾讯云控制台申请后，通过邮件发送，用于域名解析鉴权
     NSString* dnsKey; // 加密密钥，加密方式为AES、DES时必传。腾讯云控制台申请后，通过邮件发送，用于域名解析鉴权
     NSString* token; // 加密token，加密方式为 HTTPS 时必传
-    NSString* dnsIp; // HTTPDNS 服务器 IP
+    NSString* dnsIp __attribute__((deprecated("v1.8.0及以上SDK内部调度，无需设置"))); // HTTPDNS 服务器 IP
     BOOL debug; // 是否开启Debug日志，YES：开启，NO：关闭。建议联调阶段开启，正式上线前关闭
     int timeout; // 可选，超时时间，单位ms，如设置0，则设置为默认值2000ms
     HttpDnsEncryptType encryptType; // 控制加密方式
