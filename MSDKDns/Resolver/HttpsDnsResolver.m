@@ -7,6 +7,7 @@
 #import "MSDKDnsService.h"
 #import "MSDKDnsLog.h"
 #import "MSDKDnsInfoTool.h"
+#import "MSDKDns.h"
 
 @interface HttpsDnsResolver() <NSURLSessionTaskDelegate, NSURLSessionDataDelegate>
 
@@ -70,7 +71,7 @@ static NSURLSession *_resolveHOSTSession = nil;
     
     if (httpDnsUrl) {
         MSDKDNSLOG("HttpDns Request URL: %@", httpDnsUrl);
-        NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:httpDnsUrl
+        NSURLRequest *request = [NSURLRequest requestWithURL:httpDnsUrl
                                                                cachePolicy:NSURLRequestReloadIgnoringLocalCacheData
                                                            timeoutInterval:timeOut];
         NSURLSessionTask *task = [_resolveHOSTSession dataTaskWithRequest:request completionHandler:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
@@ -93,13 +94,13 @@ static NSURLSession *_resolveHOSTSession = nil;
                     NSString * decryptStr = nil;
                     NSString * responseStr = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
                     MSDKDNSLOG(@"The httpdns responseStr:%@", responseStr);
-                    if (self.encryptType != 2 && self.dnsKey && self.dnsKey.length > 0) {
-                        if (self.encryptType == 0) {
+                    if (self.encryptType != HttpDnsEncryptTypeHTTPS && self.dnsKey && self.dnsKey.length > 0) {
+                        if (self.encryptType == HttpDnsEncryptTypeDES) {
                             decryptStr = [MSDKDnsInfoTool decryptUseDES:responseStr key:self.dnsKey];
                         } else {
                             decryptStr = [MSDKDnsInfoTool decryptUseAES:responseStr key:self.dnsKey];
                         }
-                    } else if (self.encryptType == 2) {
+                    } else if (self.encryptType == HttpDnsEncryptTypeHTTPS) {
                         decryptStr = [responseStr copy];
                     }
                     
