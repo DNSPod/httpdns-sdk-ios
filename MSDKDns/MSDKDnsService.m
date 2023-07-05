@@ -282,7 +282,7 @@
                     }
                     
                     //  NSLog(@"4444444延时更新请求等待，预计在%f秒后开始!请求域名为%@",afterTime.floatValue,domain);
-                    if (!domainISOpenDelayDispatch[domain] && afterTime) {
+                    if (!domainISOpenDelayDispatch[domain] && afterTime.floatValue > 0) {
                         // 使用静态字典来记录该域名是否开启了一个延迟解析请求，如果已经开启则忽略，没有则立马开启一个
                         [[MSDKDnsManager shareInstance] msdkDnsAddDomainOpenDelayDispatch:domain];
                         MSDKDNSLOG(@"Start the delayed execution task, it is expected to start requesting the domain name %@ after %f seconds", domain, afterTime.floatValue);

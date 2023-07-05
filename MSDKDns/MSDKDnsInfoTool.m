@@ -15,6 +15,11 @@
 #import <err.h>
 #import "aes.h"
 #import "MSDKDns.h"
+#if defined(__has_include)
+    #if __has_include("httpdnsIps.h")
+        #include "httpdnsIps.h"
+    #endif
+#endif
 
 @implementation MSDKDnsInfoTool
 
@@ -299,12 +304,15 @@ char MSDKDnsHexCharToChar(char high, char low) {
     if (res_len > 0) {
         res_buf = (unsigned char *)calloc(res_len, sizeof(unsigned char));
         // 注意: 解密后的长度可能会比output的长度要短，因为要预留padding长度
-        int decodedLen = self_dns::AesCryptWithKey(src, src_len, res_buf, mode, aes_key, AES_IV);
-        res_len = decodedLen < res_len ? decodedLen : res_len;
+        if (res_buf != nullptr) { // 进行空指针判断
+            int decodedLen = self_dns::AesCryptWithKey(src, src_len, res_buf, mode, aes_key, AES_IV);
+            res_len = decodedLen < res_len ? decodedLen : res_len;
+            NSData *ret = [NSData dataWithBytes:res_buf length:res_len];
+            free(res_buf); // 在返回值之前释放res_buf
+            return ret;
+        }
     }
-    NSData *ret = [NSData dataWithBytes:res_buf length:res_len];
-    free(res_buf);
-    return ret;
+    return nil; // 如果分配内存失败，则返回nil
 }
 
 // 获取16个字节的随机串
@@ -420,6 +428,20 @@ char MSDKDnsHexCharToChar(char high, char low) {
     NSString *serviceIp = [[MSDKDnsManager shareInstance] currentDnsServer];
     NSString *routeIp = [[MSDKDnsParamsManager shareInstance] msdkDnsGetRouteIp];
     
+    BOOL isHTTPDNSDomain = NO;
+    
+#ifdef httpdnsIps_h
+#if IS_INTL
+    if ([MSDKDnsServerDomain_INTL isEqualToString:domain]){
+        isHTTPDNSDomain = YES;
+    }
+#else
+    if ([MSDKDnsServerDomain isEqualToString:domain]){
+        isHTTPDNSDomain = YES;
+    }
+#endif
+#endif
+    
     if (domainEncrypStr && domainEncrypStr.length > 0) {
         NSString * httpServer = [self getIPv6:[serviceIp UTF8String]];
         if (!httpServer || httpServer.length == 0) {
@@ -438,7 +460,8 @@ char MSDKDnsHexCharToChar(char high, char low) {
         } else if (encryptType == HttpDnsEncryptTypeDES){
             urlStr = [urlStr stringByAppendingFormat:@"&alg=des"];
         }
-        if (routeIp && routeIp.length > 0) {
+        // 当解析域名为三网域名的时候，默认为是SDK默认解析行为，不加入routeIp参数
+        if (routeIp && routeIp.length > 0 && !isHTTPDNSDomain) {
             urlStr = [urlStr stringByAppendingFormat:@"&ip=%@", routeIp];
         }
         NSURL * url = [NSURL URLWithString:urlStr];

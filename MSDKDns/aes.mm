@@ -1259,9 +1259,9 @@ int AesGetOutLen(int len, int mode) {
 int AesCryptWithKey(const unsigned char *src, unsigned int srclen,
                     unsigned char *buff, unsigned int mode,
                     const unsigned char *AES_KEY, const unsigned char *AES_IV) {
-//  const unsigned char IVOfAES[16] = {0x4D, 0x4E, 0x41, 0x40, 0x32, 0x30,
-//                                    0x31, 0x37, 0x47, 0x4F, 0x48, 0x45,
-//                                    0x41, 0x44, 0x21, 0x21};
+ if (!src || !AES_KEY || !AES_IV) {
+   return 0;
+ }
 
   unsigned int len = srclen;
 
@@ -1283,6 +1283,9 @@ int AesCryptWithKey(const unsigned char *src, unsigned int srclen,
 
   // 设置输入
   auto *input = (unsigned char *)malloc(src_len);
+  if (!input) {
+    return 0;
+  }
   memset(input, 0, src_len);
   memcpy(input, data, len);
 

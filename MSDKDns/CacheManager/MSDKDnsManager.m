@@ -610,41 +610,17 @@ static MSDKDnsManager * _sharedInstance = nil;
     if (isFromCache) {
         [self hitCacheAttaUploadReport:domain];
     }
-    
-    Class beaconClass = NSClassFromString(@"BeaconBaseInterface");
-    if (beaconClass == 0x0) {
-        MSDKDNSLOG(@"Beacon framework is not imported");
-        return;
-    }
-
-    // 反射调用
-    // [BeaconBaseInterface onUserAction:MSDKDnsEventName isSucceed:YES elapse:0 size:0 params:params];
-    SEL methodSelector = NSSelectorFromString(@"onUserAction:isSucceed:elapse:size:params:");
-    NSMethodSignature *methodSignature = [beaconClass methodSignatureForSelector:methodSelector];
-    NSInvocation *myInvocation = [NSInvocation invocationWithMethodSignature:methodSignature];
-    [myInvocation setTarget:beaconClass];
-    [myInvocation setSelector:methodSelector];
     // 接口传参
     NSString *eventName = MSDKDnsEventName;
-    [myInvocation setArgument:&eventName atIndex:2];
-    BOOL success = YES;
-    [myInvocation setArgument:&success atIndex:3];
-    NSUInteger elapse = 0;
-    [myInvocation setArgument:&elapse atIndex:4];
-    NSUInteger size = 0;
-    [myInvocation setArgument:&size atIndex:5];
+    
     NSMutableDictionary *params = [self formatParams:isFromCache Domain:domain NetStack:netStack];
-    [myInvocation setArgument:&params atIndex:6];
-    // 在调用结束前，保持参数
-    [myInvocation retainArguments];
+    
+    MSDKDNSLOG(@"api name:%@, data:%@", eventName, params);
 
-    [myInvocation invoke];
-
-    MSDKDNSLOG(@"ReportingEvent, name:%@, events:%@", eventName, params);
 }
 
 - (NSMutableDictionary *)formatParams:(BOOL)isFromCache Domain:(NSString *)domain NetStack:(msdkdns::MSDKDNS_TLocalIPStack)netStack {
-    MSDKDNSLOG(@"uploadReport %@",domain);
+    MSDKDNSLOG(@"domain:%@",domain);
     //dns结束时上报结果
     NSMutableDictionary * params = [NSMutableDictionary new];
     
@@ -680,10 +656,6 @@ static MSDKDnsManager * _sharedInstance = nil;
     //netType
     NSString * networkType = [[MSDKDnsNetworkManager shareInstance] networkType];
     [params setValue:networkType forKey:kMSDKDnsNetType];
-    
-    //SSID
-//    NSString * ssid = [MSDKDnsInfoTool wifiSSID];
-//    [params setValue:ssid forKey:kMSDKDnsSSID];
     
     //domain
     NSString * domain_string = HTTP_DNS_UNKNOWN_STR;

@@ -72,6 +72,7 @@ static AttaReport * _sharedInstance = nil;
     NSString * carrier = [AttaReport getOperatorsType];
     NSString * networkType = [[MSDKDnsNetworkManager shareInstance] networkType];
     int dnsId = [[MSDKDnsParamsManager shareInstance] msdkDnsGetMDnsId];
+    NSString *appId = @"";
     int encryptType = [[MSDKDnsParamsManager shareInstance] msdkDnsGetEncryptType];
     unsigned long eventTime = [[NSNumber numberWithDouble:[[NSDate date] timeIntervalSince1970] * 1000] unsignedIntegerValue];
     NSString *deviceName = [[UIDevice currentDevice] name];
@@ -93,10 +94,15 @@ static AttaReport * _sharedInstance = nil;
         dnsId = _DNSID;
     }
     
+    if ([[MSDKDnsParamsManager shareInstance] msdkDnsGetMAppId]) {
+        appId = [[MSDKDnsParamsManager shareInstance] msdkDnsGetMAppId];
+    }
+    
     [dic addEntriesFromDictionary:@{
         @"carrier": carrier,
         @"networkType": networkType,
         @"dnsId": [NSNumber numberWithInt:dnsId],
+        @"appId": appId,
         @"encryptType": encryptType == 0 ? @"DesHttp" : (encryptType == 1 ? @"AesHttp" : @"Https"),
         @"eventTime": [NSNumber numberWithLong:eventTime],
         @"deviceName": deviceName,
