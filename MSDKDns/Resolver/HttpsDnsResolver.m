@@ -43,7 +43,7 @@ static NSURLSession *_resolveHOSTSession = nil;
     id<MSDKDnsResolverDelegate> delegate = self.delegate;
     self.errorCode = MSDKDns_UnResolve;
     if (!domainStr || domainStr.length == 0) {
-        MSDKDNSLOG(@"HttpDns Domain is must needed!");
+        MSDKDNSLOG(@"HttpDns Domain is must needed!"); 
         self.domainInfo = nil;
         self.isFinished = YES;
         self.isSucceed = NO;
@@ -265,6 +265,10 @@ static NSURLSession *_resolveHOSTSession = nil;
                         [bothIPDict setObject:result forKey:@"ipv6"];
                     }
                    
+                }
+                // 当双栈解析请求中ipv4和ipv6的结果都不符合预期，就返回ni走getDomainError逻辑
+                if (bothIPDict.count == 0){
+                    return nil;
                 }
                 return bothIPDict;
             } else {
