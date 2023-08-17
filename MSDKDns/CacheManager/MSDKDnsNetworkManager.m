@@ -81,7 +81,7 @@ static MSDKDnsNetworkManager *manager = nil;
                 [[MSDKDnsManager shareInstance] switchToMainServer];
                 
                 BOOL enableDetectHostServer = [[MSDKDnsParamsManager shareInstance] msdkDnsGetEnableDetectHostServer];
-                if (!enableDetectHostServer) {
+                if (enableDetectHostServer) {
                     MSDKDNSLOG(@"Network did changed, detect HttpDns servers");
                     // 探测dnsIp
                     [[MSDKDnsManager shareInstance] detectHttpDnsServers];
@@ -114,7 +114,7 @@ static MSDKDnsNetworkManager *manager = nil;
                 [self getHostsByKeepAliveDomains];
                 
                 BOOL enableDetectHostServer = [[MSDKDnsParamsManager shareInstance] msdkDnsGetEnableDetectHostServer];
-                if (!enableDetectHostServer) {
+                if (enableDetectHostServer) {
                     // 探测dnsIp
                     [[MSDKDnsManager shareInstance] detectHttpDnsServers];
                 }
