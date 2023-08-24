@@ -63,6 +63,7 @@ static MSDKDnsParamsManager * _sharedInstance = nil;
         _msdkAddressType = HttpDnsAddressTypeAuto;
         _enableKeepDomainsAlive = YES;
         _expiredIPEnabled = NO;
+        _persistCacheIPEnabled = NO;
         _enableDetectHostServer = NO;
     }
     return self;

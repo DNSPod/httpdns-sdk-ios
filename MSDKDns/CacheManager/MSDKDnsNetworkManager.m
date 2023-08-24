@@ -81,7 +81,7 @@ static MSDKDnsNetworkManager *manager = nil;
                 [[MSDKDnsManager shareInstance] switchToMainServer];
                 
                 BOOL enableDetectHostServer = [[MSDKDnsParamsManager shareInstance] msdkDnsGetEnableDetectHostServer];
-                if (!enableDetectHostServer) {
+                if (enableDetectHostServer) {
                     MSDKDNSLOG(@"Network did changed, detect HttpDns servers");
                     // 探测dnsIp
                     [[MSDKDnsManager shareInstance] detectHttpDnsServers];
@@ -95,11 +95,13 @@ static MSDKDnsNetworkManager *manager = nil;
                                                         usingBlock:^(NSNotification *note)
              {
                 BOOL expiredIPEnabled = [[MSDKDnsParamsManager shareInstance] msdkDnsGetExpiredIPEnabled];
-                if (!expiredIPEnabled) {
+                BOOL persistCacheIPEnabled = [[MSDKDnsParamsManager shareInstance] msdkDnsGetPersistCacheIPEnabled];
+                if (!expiredIPEnabled && !persistCacheIPEnabled) {
                     MSDKDNSLOG(@"Application did enter background,clear MSDKDns cache");
-                    //进入后台时清除缓存，暂停网络监测
+                    //进入后台时清除缓存，排除开启了持久化缓存或者开启了使用过期缓存IP的情况
                     [[MSDKDnsManager shareInstance] clearAllCache];
                 }
+                //进入后台时，暂停网络监测
                 [self.reachability stopNotifier];
             }];
             
@@ -114,7 +116,7 @@ static MSDKDnsNetworkManager *manager = nil;
                 [self getHostsByKeepAliveDomains];
                 
                 BOOL enableDetectHostServer = [[MSDKDnsParamsManager shareInstance] msdkDnsGetEnableDetectHostServer];
-                if (!enableDetectHostServer) {
+                if (enableDetectHostServer) {
                     // 探测dnsIp
                     [[MSDKDnsManager shareInstance] detectHttpDnsServers];
                 }

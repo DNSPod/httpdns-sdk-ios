@@ -1155,14 +1155,9 @@ static MSDKDnsManager * _sharedInstance = nil;
 }
 
 - (NSString *)currentDnsServer {
-    // int index = self.serverIndex;
-    // if (index < [[[MSDKDnsParamsManager shareInstance] msdkDnsGetServerIps] count]) {
-    //     return  [[[MSDKDnsParamsManager shareInstance] msdkDnsGetServerIps] objectAtIndex:index];
-    // }
-    // return  [[MSDKDnsParamsManager shareInstance] msdkDnsGetMDnsIp];
     int index = self.serverIndex;
-    if (index < [self.dnsServers count]) {
-        return  [self.dnsServers objectAtIndex:index];
+    if (self.dnsServers != nil && [self.dnsServers count] > 0 && index >= 0 && index < [self.dnsServers count]) {
+        return self.dnsServers[index];
     }
     return  [[self defaultServers] firstObject];
 }
