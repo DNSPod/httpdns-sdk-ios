@@ -135,7 +135,9 @@
     }
     
     BOOL httpOnly = [[MSDKDnsParamsManager shareInstance] msdkDnsGetHttpOnly];
-    if (!httpOnly) {
+    BOOL expiredIPEnabled = [[MSDKDnsParamsManager shareInstance] msdkDnsGetExpiredIPEnabled];
+    // 设置httpOnly为YES，或者开启了expiredIPEnabled过期IP的情况下，就不下发LocalDns请求
+    if (!httpOnly && !expiredIPEnabled) {
         dispatch_async([MSDKDnsInfoTool msdkdns_resolver_queue], ^{
             [self startLocalDns:timeOut DnsId:dnsId DnsKey:dnsKey];
         });
