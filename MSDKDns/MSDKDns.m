@@ -85,7 +85,7 @@ static MSDKDns * _sharedInstance = nil;
     conf->minutesBeforeSwitchToMain = [[config objectForKey:@"minutesBeforeSwitchToMain"] intValue];
     conf->enableReport = [[config objectForKey:@"enableReport"] boolValue];
     conf->addressType = (HttpDnsAddressType)[[config objectForKey:@"addressType"] intValue];
-   return [self initConfig:conf];
+    return [self initConfig:conf];
 }
 
 #pragma mark - setting
@@ -406,6 +406,14 @@ static MSDKDns * _sharedInstance = nil;
 
 - (void)clearCache {
     [[MSDKDnsManager shareInstance] clearAllCache];
+}
+
+- (void)clearHostCache:(NSArray *)hostArray {
+    if (hostArray == nil || ([hostArray isKindOfClass:[NSArray class]] && hostArray.count == 0)) {
+        [[MSDKDnsManager shareInstance] clearAllCache];
+    }else if ([hostArray isKindOfClass:[NSArray class]] && hostArray.count > 0){
+        [[MSDKDnsManager shareInstance] clearCacheForDomains:hostArray];
+    }
 }
 
 @end

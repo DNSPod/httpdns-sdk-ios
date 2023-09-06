@@ -192,6 +192,11 @@ typedef struct DnsConfigStruct {
 */
 - (void)clearCache;
 
+/**
+ 需要清除的host域名数组。如果需要清空全部数据，传nil或者空数组即可
+*/
+- (void)clearHostCache:(NSArray *)hostArray;
+
 #pragma mark-查询网络栈支持情况
 /**
  查询网络栈支持情况

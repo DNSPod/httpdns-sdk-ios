@@ -566,14 +566,16 @@ static MSDKDnsManager * _sharedInstance = nil;
 
 - (void)clearCacheForDomains:(NSArray *)domains {
     for(int i = 0; i < [domains count]; i++) {
-        NSString* domain = [domains objectAtIndex:i];
-        [self clearCacheForDomain:domain];
+        if ([[domains objectAtIndex:i] isKindOfClass:[NSString class]]) {
+            NSString* domain = [domains objectAtIndex:i];
+            [self clearCacheForDomain:domain];
+        }
     }
 }
 
 - (void)clearAllCache {
     dispatch_async([MSDKDnsInfoTool msdkdns_queue], ^{
-        MSDKDNSLOG(@"MSDKDns clearCache");
+        MSDKDNSLOG(@"MSDKDns cleared all caches!");
         if (self.domainDict) {
             [self.domainDict removeAllObjects];
             self.domainDict = nil;
