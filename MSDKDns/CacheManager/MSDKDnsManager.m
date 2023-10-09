@@ -1239,7 +1239,7 @@ static MSDKDnsManager * _sharedInstance = nil;
 
 - (void)resetDnsServers:(NSArray *)servers {
     self.waitToSwitch = YES;
-    dispatch_async([MSDKDnsInfoTool msdkdns_queue], ^{
+    dispatch_barrier_async([MSDKDnsInfoTool msdkdns_resolver_queue], ^{
         NSMutableArray *array = [[NSMutableArray alloc] init];
         if (servers && [servers count] > 0) {
             [array addObjectsFromArray: servers];
