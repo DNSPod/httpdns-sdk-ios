@@ -235,22 +235,25 @@ static MSDKDnsManager * _sharedInstance = nil;
             }
         }
     }
-    if (needReport) {
-        [[AttaReport sharedInstance] reportEvent:@{
-            MSDKDns_ErrorCode: MSDKDns_NoData,
-            @"eventName": MSDKDnsEventHttpDnsCached,
-            @"dnsIp": [[MSDKDnsManager shareInstance] currentDnsServer],
-            @"req_dn": [domains componentsJoinedByString:@","],
-            @"req_type": @"a",
-            @"req_timeout": @0,
-            @"req_ttl": @0,
-            @"req_query": @0,
-            @"req_ip": @"",
-            @"spend": @0,
-            @"statusCode": @0,
-            @"count": @1,
-            @"isCache": @1,
-        }];
+    if (needReport && domains) {
+        for (int i = 0; i < [domains count]; i++) {
+            NSString *domain = [domains objectAtIndex:i];
+            [[AttaReport sharedInstance] reportEvent:@{
+                MSDKDns_ErrorCode: MSDKDns_NoData,
+                @"eventName": MSDKDnsEventHttpDnsCached,
+                @"dnsIp": [[MSDKDnsManager shareInstance] currentDnsServer],
+                @"req_dn": domain,
+                @"req_type": @"a",
+                @"req_timeout": @0,
+                @"req_ttl": @0,
+                @"req_query": @0,
+                @"req_ip": @"",
+                @"spend": @0,
+                @"statusCode": @0,
+                @"count": @1,
+                @"isCache": @1,
+            }];
+        }
     }
     return result;
 }
