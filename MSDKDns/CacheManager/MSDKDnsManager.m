@@ -206,7 +206,7 @@ static MSDKDnsManager * _sharedInstance = nil;
     NSDictionary * result = verbose?
         [self fullResultDictionaryEnableExpired:domains fromCache:cacheDomainDict toEmpty:toEmptyDomains] :
         [self resultDictionaryEnableExpired:domains fromCache:cacheDomainDict toEmpty:toEmptyDomains];
-    // 当开启乐观DNS之后，如果结果为0则上报errorCode=3
+    // 当开启乐观DNS之后，如果结果为0则上报errorCode=3，要所有结果都为0
     BOOL needReport = NO;
     if (verbose) {
         for (int i = 0; i < [domains count]; i++) {
@@ -236,7 +236,21 @@ static MSDKDnsManager * _sharedInstance = nil;
         }
     }
     if (needReport) {
-        NSLog(@"++++++++++needReport+++++++++++++");
+        [[AttaReport sharedInstance] reportEvent:@{
+            MSDKDns_ErrorCode: MSDKDns_NoData,
+            @"eventName": MSDKDnsEventHttpDnsCached,
+            @"dnsIp": [[MSDKDnsManager shareInstance] currentDnsServer],
+            @"req_dn": [domains componentsJoinedByString:@","],
+            @"req_type": @"a",
+            @"req_timeout": @0,
+            @"req_ttl": @0,
+            @"req_query": @0,
+            @"req_ip": @"",
+            @"spend": @0,
+            @"statusCode": @0,
+            @"count": @1,
+            @"isCache": @1,
+        }];
     }
     return result;
 }
@@ -623,6 +637,7 @@ static MSDKDnsManager * _sharedInstance = nil;
 
 #pragma mark - uploadReport
 - (void)hitCacheAttaUploadReport:(NSString *)domain {
+    // 检查控制台解析监控上报开关是否开启
     if ([[MSDKDnsParamsManager shareInstance] msdkDnsGetEnableReport]) {
         if (self.cacheDomainCountDict) {
             NSNumber *num = self.cacheDomainCountDict[domain];
