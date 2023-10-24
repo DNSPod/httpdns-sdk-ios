@@ -29,6 +29,7 @@
 @property (nonatomic, assign, readwrite) HttpDnsSdkStatus sdkStatus;
 @property (nonatomic, strong, readwrite) NSArray * dnsServers;
 @property (strong, nonatomic) NSMutableURLRequest *request;
+@property (strong, nonatomic, readwrite) NSMutableDictionary * cacheDomainCountDict;
 
 @end
 
@@ -42,6 +43,10 @@
     if (_serviceArray) {
         [self.serviceArray removeAllObjects];
         [self setServiceArray:nil];
+    }
+    if (_cacheDomainCountDict) {
+        [self.cacheDomainCountDict removeAllObjects];
+        [self setCacheDomainCountDict:nil];
     }
 }
 
@@ -64,6 +69,7 @@ static MSDKDnsManager * _sharedInstance = nil;
         _serviceArray = [[NSMutableArray alloc] init];
         _sdkStatus = net_undetected;
         _dnsServers = [self defaultServers];
+        _cacheDomainCountDict = [[NSMutableDictionary alloc] init];
     }
     return self;
 }
@@ -617,26 +623,42 @@ static MSDKDnsManager * _sharedInstance = nil;
 
 #pragma mark - uploadReport
 - (void)hitCacheAttaUploadReport:(NSString *)domain {
-    static int count = 0;
-    count ++;
-    if ([[MSDKDnsParamsManager shareInstance] msdkDnsGetEnableReport] && [[AttaReport sharedInstance] shoulReportDnsSpend]) {
-        [[AttaReport sharedInstance] reportEvent:@{
-            MSDKDns_ErrorCode: MSDKDns_Success,
-            @"eventName": MSDKDnsEventHttpDnsCached,
-            @"dnsIp": [[MSDKDnsManager shareInstance] currentDnsServer],
-            @"req_dn": domain,
-            @"req_type": @"a",
-            @"req_timeout": @0,
-            @"req_ttl": @0,
-            @"req_query": @0,
-            @"req_ip": @"",
-            @"spend": @0,
-            @"statusCode": @0,
-            @"count":[NSString stringWithFormat:@"%d", count],
-            @"isCache": @1,
-        }];
-        count = 0;
-     }
+    if ([[MSDKDnsParamsManager shareInstance] msdkDnsGetEnableReport]) {
+        if (self.cacheDomainCountDict) {
+            NSNumber *num = self.cacheDomainCountDict[domain];
+            if (num) {
+                int numInt = num.intValue + 1;
+                [self.cacheDomainCountDict setValue:[NSNumber numberWithInt:numInt] forKey:domain];
+            } else {
+                [self.cacheDomainCountDict setValue:[NSNumber numberWithInt:1] forKey:domain];
+            }
+        
+            if ([[AttaReport sharedInstance] shoulReportDnsSpend]) {
+                NSArray *dictKey = [self.cacheDomainCountDict allKeys];
+                NSInteger length = [dictKey count];
+                for (int i = 0; i < length; i++) {
+                    id domainKey = [dictKey objectAtIndex:i];
+                    NSNumber *cacheCount = [self.cacheDomainCountDict objectForKey:domainKey];
+                    [[AttaReport sharedInstance] reportEvent:@{
+                        MSDKDns_ErrorCode: MSDKDns_Success,
+                        @"eventName": MSDKDnsEventHttpDnsCached,
+                        @"dnsIp": [[MSDKDnsManager shareInstance] currentDnsServer],
+                        @"req_dn": domainKey,
+                        @"req_type": @"a",
+                        @"req_timeout": @0,
+                        @"req_ttl": @0,
+                        @"req_query": @0,
+                        @"req_ip": @"",
+                        @"spend": @0,
+                        @"statusCode": @0,
+                        @"count": cacheCount,
+                        @"isCache": @1,
+                    }];
+                }
+                [self.cacheDomainCountDict removeAllObjects];
+             }
+        }
+    }
 }
 
 - (void)uploadReport:(BOOL)isFromCache Domain:(NSString *)domain NetStack:(msdkdns::MSDKDNS_TLocalIPStack)netStack {
