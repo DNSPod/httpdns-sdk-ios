@@ -30,7 +30,7 @@ typedef enum {
 - (void)dnsHasDone:(MSDKDnsService *)service;
 - (void)cacheDomainInfo:(NSDictionary *)domainInfo Domain:(NSString *)domain;
 - (void)clearCacheForDomain:(NSString *)domain;
-- (void)clearCacheForDomains:(NSArray *)domains;
+- (void)clearCacheForDomains:(NSArray<NSString *> *)domains;
 - (void)clearAllCache;
 - (NSDictionary *)getDnsDetail:(NSString *)domain;
 

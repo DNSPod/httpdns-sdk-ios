@@ -29,6 +29,7 @@
 @property (nonatomic, assign, readwrite) HttpDnsSdkStatus sdkStatus;
 @property (nonatomic, strong, readwrite) NSArray * dnsServers;
 @property (strong, nonatomic) NSMutableURLRequest *request;
+@property (strong, nonatomic, readwrite) NSMutableDictionary * cacheDomainCountDict;
 
 @end
 
@@ -42,6 +43,10 @@
     if (_serviceArray) {
         [self.serviceArray removeAllObjects];
         [self setServiceArray:nil];
+    }
+    if (_cacheDomainCountDict) {
+        [self.cacheDomainCountDict removeAllObjects];
+        [self setCacheDomainCountDict:nil];
     }
 }
 
@@ -64,6 +69,7 @@ static MSDKDnsManager * _sharedInstance = nil;
         _serviceArray = [[NSMutableArray alloc] init];
         _sdkStatus = net_undetected;
         _dnsServers = [self defaultServers];
+        _cacheDomainCountDict = [[NSMutableDictionary alloc] init];
     }
     return self;
 }
@@ -200,6 +206,55 @@ static MSDKDnsManager * _sharedInstance = nil;
     NSDictionary * result = verbose?
         [self fullResultDictionaryEnableExpired:domains fromCache:cacheDomainDict toEmpty:toEmptyDomains] :
         [self resultDictionaryEnableExpired:domains fromCache:cacheDomainDict toEmpty:toEmptyDomains];
+    // 当开启乐观DNS之后，如果结果为0则上报errorCode=3，要所有结果都为0
+    BOOL needReport = NO;
+    if (verbose) {
+        for (int i = 0; i < [domains count]; i++) {
+            NSString *domain = [domains objectAtIndex:i];
+            NSDictionary *domainData = result[domain];
+            if (domainData && domainData.count > 0) {
+                needReport = NO;
+                break;
+            } else {
+                needReport = YES;
+            }
+        }
+    } else {
+        for (int i = 0; i < [domains count]; i++) {
+            NSString *domain = [domains objectAtIndex:i];
+            NSArray *domainResArray = result[domain];
+            if (domainResArray && domainResArray.count > 0) {
+                if ([domainResArray[0] isEqualToString:@"0"] && [domainResArray[1] isEqualToString:@"0"]) {
+                    needReport = YES;
+                } else {
+                    needReport = NO;
+                    break;
+                }
+            } else {
+                needReport = YES;
+            }
+        }
+    }
+    if (needReport && domains) {
+        for (int i = 0; i < [domains count]; i++) {
+            NSString *domain = [domains objectAtIndex:i];
+            [[AttaReport sharedInstance] reportEvent:@{
+                MSDKDns_ErrorCode: MSDKDns_NoData,
+                @"eventName": MSDKDnsEventHttpDnsCached,
+                @"dnsIp": [[MSDKDnsManager shareInstance] currentDnsServer],
+                @"req_dn": domain,
+                @"req_type": @"a",
+                @"req_timeout": @0,
+                @"req_ttl": @0,
+                @"req_query": @0,
+                @"req_ip": @"",
+                @"spend": @0,
+                @"statusCode": @0,
+                @"count": @1,
+                @"isCache": @1,
+            }];
+        }
+    }
     return result;
 }
 
@@ -566,14 +621,16 @@ static MSDKDnsManager * _sharedInstance = nil;
 
 - (void)clearCacheForDomains:(NSArray *)domains {
     for(int i = 0; i < [domains count]; i++) {
-        NSString* domain = [domains objectAtIndex:i];
-        [self clearCacheForDomain:domain];
+        if ([[domains objectAtIndex:i] isKindOfClass:[NSString class]]) {
+            NSString* domain = [domains objectAtIndex:i];
+            [self clearCacheForDomain:domain];
+        }
     }
 }
 
 - (void)clearAllCache {
     dispatch_async([MSDKDnsInfoTool msdkdns_queue], ^{
-        MSDKDNSLOG(@"MSDKDns clearCache");
+        MSDKDNSLOG(@"MSDKDns cleared all caches!");
         if (self.domainDict) {
             [self.domainDict removeAllObjects];
             self.domainDict = nil;
@@ -583,26 +640,43 @@ static MSDKDnsManager * _sharedInstance = nil;
 
 #pragma mark - uploadReport
 - (void)hitCacheAttaUploadReport:(NSString *)domain {
-    static int count = 0;
-    count ++;
-    if ([[MSDKDnsParamsManager shareInstance] msdkDnsGetEnableReport] && [[AttaReport sharedInstance] shoulReportDnsSpend]) {
-        [[AttaReport sharedInstance] reportEvent:@{
-            MSDKDns_ErrorCode: MSDKDns_Success,
-            @"eventName": MSDKDnsEventHttpDnsCached,
-            @"dnsIp": [[MSDKDnsManager shareInstance] currentDnsServer],
-            @"req_dn": domain,
-            @"req_type": @"a",
-            @"req_timeout": @0,
-            @"req_ttl": @0,
-            @"req_query": @0,
-            @"req_ip": @"",
-            @"spend": @0,
-            @"statusCode": @0,
-            @"count":[NSString stringWithFormat:@"%d", count],
-            @"isCache": @1,
-        }];
-        count = 0;
-     }
+    // 检查控制台解析监控上报开关是否开启
+    if ([[MSDKDnsParamsManager shareInstance] msdkDnsGetEnableReport]) {
+        if (self.cacheDomainCountDict) {
+            NSNumber *num = self.cacheDomainCountDict[domain];
+            if (num) {
+                int numInt = num.intValue + 1;
+                [self.cacheDomainCountDict setValue:[NSNumber numberWithInt:numInt] forKey:domain];
+            } else {
+                [self.cacheDomainCountDict setValue:[NSNumber numberWithInt:1] forKey:domain];
+            }
+        
+            if ([[AttaReport sharedInstance] shoulReportDnsSpend]) {
+                NSArray *dictKey = [self.cacheDomainCountDict allKeys];
+                NSInteger length = [dictKey count];
+                for (int i = 0; i < length; i++) {
+                    id domainKey = [dictKey objectAtIndex:i];
+                    NSNumber *cacheCount = [self.cacheDomainCountDict objectForKey:domainKey];
+                    [[AttaReport sharedInstance] reportEvent:@{
+                        MSDKDns_ErrorCode: MSDKDns_Success,
+                        @"eventName": MSDKDnsEventHttpDnsCached,
+                        @"dnsIp": [[MSDKDnsManager shareInstance] currentDnsServer],
+                        @"req_dn": domainKey,
+                        @"req_type": @"a",
+                        @"req_timeout": @0,
+                        @"req_ttl": @0,
+                        @"req_query": @0,
+                        @"req_ip": @"",
+                        @"spend": @0,
+                        @"statusCode": @0,
+                        @"count": cacheCount,
+                        @"isCache": @1,
+                    }];
+                }
+                [self.cacheDomainCountDict removeAllObjects];
+             }
+        }
+    }
 }
 
 - (void)uploadReport:(BOOL)isFromCache Domain:(NSString *)domain NetStack:(msdkdns::MSDKDNS_TLocalIPStack)netStack {
@@ -1205,7 +1279,7 @@ static MSDKDnsManager * _sharedInstance = nil;
 
 - (void)resetDnsServers:(NSArray *)servers {
     self.waitToSwitch = YES;
-    dispatch_async([MSDKDnsInfoTool msdkdns_queue], ^{
+    dispatch_barrier_async([MSDKDnsInfoTool msdkdns_resolver_queue], ^{
         NSMutableArray *array = [[NSMutableArray alloc] init];
         if (servers && [servers count] > 0) {
             [array addObjectsFromArray: servers];
