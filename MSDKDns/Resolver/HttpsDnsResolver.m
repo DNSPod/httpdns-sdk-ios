@@ -5,6 +5,7 @@
 #import <Foundation/Foundation.h>
 #import "HttpsDnsResolver.h"
 #import "MSDKDnsService.h"
+#import "MSDKDnsManager.h"
 #import "MSDKDnsLog.h"
 #import "MSDKDnsInfoTool.h"
 #import "MSDKDns.h"
@@ -86,6 +87,7 @@ static NSURLSession *_resolveHOSTSession = nil;
                     [delegate resolver:self getDomainError:self.errorInfo retry:YES];
                 }
             } else {
+                BOOL openOptimismCache = [[MSDKDnsManager shareInstance] isOpenOptimismCache];
                 MSDKDNSLOG(@"HttpDns didReceiveData!");
                 NSString * errorInfo = @"";
                 NSHTTPURLResponse *httpResponse = (NSHTTPURLResponse*)response;
@@ -110,15 +112,38 @@ static NSURLSession *_resolveHOSTSession = nil;
                         self.isFinished = YES;
                         self.errorCode = MSDKDns_Success;
                         self.isSucceed = YES;
+                        if (openOptimismCache) {
+                            // 当开启了乐观DNS，将解析请求中部分数据为空的domains，执行清除缓存
+                            NSArray *successDomains = [self.domainInfo allKeys];
+                            NSMutableArray *needClearDomains = [[NSMutableArray alloc] init];;
+                            for (NSString *domain in domains) {
+                                if (![successDomains containsObject:domain]){
+                                    //不包含成功的数据进行清除
+                                    [needClearDomains addObject:domain];
+                                }
+                            }
+                            if (needClearDomains && needClearDomains.count > 0) {
+                                [[MSDKDnsManager shareInstance] clearCacheForDomains:needClearDomains];
+                            }
+                        }
                         if (delegate && [delegate respondsToSelector:@selector(resolver:didGetDomainInfo:)]) {
                             [delegate resolver:self didGetDomainInfo:self.domainInfo];
                         }
                         return;
                     } else {
                         errorInfo = @"HttpDns Failed, responseStr is not format.";
+                        if (openOptimismCache) {
+                            // 当开启了乐观DNS 并且 解析请求返回的所有数据都为空，对domains执行清除缓存
+                            [[MSDKDnsManager shareInstance] clearCacheForDomains:domains];
+                        }
                     }
                 } else {
                     errorInfo = @"HttpDns response data error!";
+                }
+                
+                if (openOptimismCache && self.statusCode == 401) {
+                    // 当开启了乐观DNS 并且 底层解析接口返回401时，清除此解析请求涉及到的域名的本地缓存和持久化缓存
+                    [[MSDKDnsManager shareInstance] clearCacheForDomains:domains];
                 }
                 self.domainInfo = nil;
                 self.isFinished = YES;

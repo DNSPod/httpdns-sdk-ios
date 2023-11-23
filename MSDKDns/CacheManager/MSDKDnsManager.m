@@ -620,7 +620,7 @@ static MSDKDnsManager * _sharedInstance = nil;
 }
 
 - (void)clearCacheForDomains:(NSArray *)domains {
-    dispatch_barrier_async([MSDKDnsInfoTool msdkdns_resolver_queue], ^{
+    dispatch_async([MSDKDnsInfoTool msdkdns_queue], ^{
         for(int i = 0; i < [domains count]; i++) {
             if ([[domains objectAtIndex:i] isKindOfClass:[NSString class]]) {
                 NSString* domain = [domains objectAtIndex:i];
@@ -629,14 +629,14 @@ static MSDKDnsManager * _sharedInstance = nil;
         }
         BOOL persistCacheIPEnabled = [[MSDKDnsParamsManager shareInstance] msdkDnsGetPersistCacheIPEnabled];
         // 当持久化缓存开启的情况下，同时删除本地持久化缓存中的缓存
-        if (persistCacheIPEnabled && domains && domains.count > 0){
+        if (persistCacheIPEnabled && domains && domains.count > 0) {
             [[MSDKDnsDB shareInstance] deleteDBData:domains];
         }
     });
 }
 
 - (void)clearAllCache {
-    dispatch_barrier_async([MSDKDnsInfoTool msdkdns_resolver_queue], ^{
+    dispatch_async([MSDKDnsInfoTool msdkdns_queue], ^{
         MSDKDNSLOG(@"MSDKDns cleared all caches!");
         if (self.domainDict) {
             [self.domainDict removeAllObjects];
