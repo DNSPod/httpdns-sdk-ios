@@ -95,8 +95,12 @@
 - (void)startCheck:(float)timeOut DnsId:(int)dnsId DnsKey:(NSString *)dnsKey encryptType:(NSInteger)encryptType
 {
     MSDKDNSLOG(@"%@, MSDKDns startCheck", self.toCheckDomains);
-    //查询前清除缓存
-    [[MSDKDnsManager shareInstance] clearCacheForDomains:self.toCheckDomains];
+    BOOL expiredIPEnabled = [[MSDKDnsParamsManager shareInstance] msdkDnsGetExpiredIPEnabled];
+    // 当过期缓存expiredIPEnabled未开启的情况下，才清除缓存
+    if (!expiredIPEnabled) {
+        //查询前清除缓存
+        [[MSDKDnsManager shareInstance] clearCacheForDomains:self.toCheckDomains];
+    }
     
     //无网络直接返回
     if (![[MSDKDnsNetworkManager shareInstance] networkAvailable]) {
@@ -135,7 +139,6 @@
     }
     
     BOOL httpOnly = [[MSDKDnsParamsManager shareInstance] msdkDnsGetHttpOnly];
-    BOOL expiredIPEnabled = [[MSDKDnsParamsManager shareInstance] msdkDnsGetExpiredIPEnabled];
     // 设置httpOnly为YES，或者开启了expiredIPEnabled过期IP的情况下，就不下发LocalDns请求
     if (!httpOnly && !expiredIPEnabled) {
         dispatch_async([MSDKDnsInfoTool msdkdns_resolver_queue], ^{
@@ -152,8 +155,12 @@
 
 - (void)startCheck {
     MSDKDNSLOG(@"%@, MSDKDns startCheck", self.toCheckDomains);
-    //查询前清除缓存
-    [[MSDKDnsManager shareInstance] clearCacheForDomains:self.toCheckDomains];
+    BOOL expiredIPEnabled = [[MSDKDnsParamsManager shareInstance] msdkDnsGetExpiredIPEnabled];
+    // 当过期缓存expiredIPEnabled未开启的情况下，才清除缓存
+    if (!expiredIPEnabled) {
+        //查询前清除缓存
+        [[MSDKDnsManager shareInstance] clearCacheForDomains:self.toCheckDomains];
+    }
     
     //无网络直接返回
     if (![[MSDKDnsNetworkManager shareInstance] networkAvailable]) {
@@ -624,8 +631,9 @@
             [self callNotify];
         }
     }
-    //LocalHttp 和 HttpDns均完成，则返回结果
-    if (httpOnly || self.localDnsResolver.isFinished) {
+    //LocalHttp 和 HttpDns均完成，则返回结果，如果开启了httpOnly或者使用过期缓存IP则只等待HttpDns完成就立即返回
+    BOOL expiredIPEnabled = [[MSDKDnsParamsManager shareInstance] msdkDnsGetExpiredIPEnabled];
+    if (httpOnly || expiredIPEnabled || self.localDnsResolver.isFinished) {
         if (self.httpDnsResolver_A && self.httpDnsResolver_4A) {
             if (self.httpDnsResolver_A.isFinished && self.httpDnsResolver_4A.isFinished) {
                 [self reportDataTransform];
