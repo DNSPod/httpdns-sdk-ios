@@ -32,6 +32,7 @@ typedef enum {
 - (void)clearCacheForDomain:(NSString *)domain;
 - (void)clearCacheForDomains:(NSArray<NSString *> *)domains;
 - (void)clearAllCache;
+- (BOOL)isOpenOptimismCache;
 - (NSDictionary *)getDnsDetail:(NSString *)domain;
 
 - (NSString *)currentDnsServer;

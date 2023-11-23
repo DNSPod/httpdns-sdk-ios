@@ -265,6 +265,21 @@ static MSDKDnsDB * _sharedInstance = nil;
     }
 }
 
+- (void)deleteAllData {
+    @try {
+        NSString *sql = @"DELETE FROM HttpDNSTable";
+        if (sqlite3_exec(_db, [sql UTF8String], NULL, NULL, &_error) == SQLITE_OK) {
+            MSDKDNSLOG(@"Successfully delete all data into database.");
+        } else {
+            MSDKDNSLOG(@"Failed to delete all data into database. error:%s", _error);
+            // 每次使用完毕清空 error 字符串，提供给下一次使用
+            sqlite3_free(_error);
+        }
+    } @catch (NSException *exception) {
+        MSDKDNSLOG(@"Failed to delete data into database");
+    }
+}
+
 // 判断数据是否存在并且不为空
 - (BOOL)isExist: (NSString *)value {
     if(value && ![value isEqual:@""]){

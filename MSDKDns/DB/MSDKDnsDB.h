@@ -16,5 +16,7 @@
 
 - (void)deleteDBData: (NSArray *)domains;
 
+- (void)deleteAllData;
+
 @end
 

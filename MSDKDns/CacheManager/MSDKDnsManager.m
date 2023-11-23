@@ -113,7 +113,7 @@ static MSDKDnsManager * _sharedInstance = nil;
     }
     dispatch_semaphore_t sema = dispatch_semaphore_create(0);
     dispatch_async([MSDKDnsInfoTool msdkdns_queue], ^{
-        if (!_serviceArray) {
+        if (!self.serviceArray) {
             self.serviceArray = [[NSMutableArray alloc] init];
         }
         int dnsId = [[MSDKDnsParamsManager shareInstance] msdkDnsGetMDnsId];
@@ -182,7 +182,7 @@ static MSDKDnsManager * _sharedInstance = nil;
     // 当待查询数组中存在数据的时候，就开启异步线程执行解析操作，并且更新缓存
     if (toCheckDomains && [toCheckDomains count] != 0) {
         dispatch_async([MSDKDnsInfoTool msdkdns_queue], ^{
-            if (!_serviceArray) {
+            if (!self.serviceArray) {
                 self.serviceArray = [[NSMutableArray alloc] init];
             }
             int dnsId = [[MSDKDnsParamsManager shareInstance] msdkDnsGetMDnsId];
@@ -305,7 +305,7 @@ static MSDKDnsManager * _sharedInstance = nil;
         return;
     }
     dispatch_async([MSDKDnsInfoTool msdkdns_queue], ^{
-        if (!_serviceArray) {
+        if (!self.serviceArray) {
             self.serviceArray = [[NSMutableArray alloc] init];
         }
         int dnsId = [[MSDKDnsParamsManager shareInstance] msdkDnsGetMDnsId];
@@ -323,8 +323,8 @@ static MSDKDnsManager * _sharedInstance = nil;
                 }];
                 [strongSelf dnsHasDone:dnsService];
                 NSDictionary * result = verbose ?
-                    [strongSelf fullResultDictionary:domains fromCache:_domainDict] :
-                    [strongSelf resultDictionary:domains fromCache:_domainDict];
+                    [strongSelf fullResultDictionary:domains fromCache:self.domainDict] :
+                    [strongSelf resultDictionary:domains fromCache:self.domainDict];
                 if (handler) {
                     handler(result);
                 }
@@ -620,22 +620,44 @@ static MSDKDnsManager * _sharedInstance = nil;
 }
 
 - (void)clearCacheForDomains:(NSArray *)domains {
-    for(int i = 0; i < [domains count]; i++) {
-        if ([[domains objectAtIndex:i] isKindOfClass:[NSString class]]) {
-            NSString* domain = [domains objectAtIndex:i];
-            [self clearCacheForDomain:domain];
+    dispatch_barrier_async([MSDKDnsInfoTool msdkdns_resolver_queue], ^{
+        for(int i = 0; i < [domains count]; i++) {
+            if ([[domains objectAtIndex:i] isKindOfClass:[NSString class]]) {
+                NSString* domain = [domains objectAtIndex:i];
+                [self clearCacheForDomain:domain];
+            }
         }
-    }
+        BOOL persistCacheIPEnabled = [[MSDKDnsParamsManager shareInstance] msdkDnsGetPersistCacheIPEnabled];
+        // 当持久化缓存开启的情况下，同时删除本地持久化缓存中的缓存
+        if (persistCacheIPEnabled && domains && domains.count > 0){
+            [[MSDKDnsDB shareInstance] deleteDBData:domains];
+        }
+    });
 }
 
 - (void)clearAllCache {
-    dispatch_async([MSDKDnsInfoTool msdkdns_queue], ^{
+    dispatch_barrier_async([MSDKDnsInfoTool msdkdns_resolver_queue], ^{
         MSDKDNSLOG(@"MSDKDns cleared all caches!");
         if (self.domainDict) {
             [self.domainDict removeAllObjects];
             self.domainDict = nil;
         }
+        BOOL persistCacheIPEnabled = [[MSDKDnsParamsManager shareInstance] msdkDnsGetPersistCacheIPEnabled];
+        // 当持久化缓存开启的情况下，清除持久化缓存中的数据
+        if (persistCacheIPEnabled) {
+            //查询前清除缓存
+            [[MSDKDnsDB shareInstance] deleteAllData];
+        }
     });
+}
+
+- (BOOL)isOpenOptimismCache {
+    BOOL persistCacheIPEnabled = [[MSDKDnsParamsManager shareInstance] msdkDnsGetPersistCacheIPEnabled];
+    BOOL expiredIPEnabled = [[MSDKDnsParamsManager shareInstance] msdkDnsGetExpiredIPEnabled];
+    if (persistCacheIPEnabled && expiredIPEnabled) {
+        return YES;
+    }
+    return NO;
 }
 
 #pragma mark - uploadReport
