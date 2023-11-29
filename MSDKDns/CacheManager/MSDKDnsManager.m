@@ -206,7 +206,7 @@ static MSDKDnsManager * _sharedInstance = nil;
     NSDictionary * result = verbose?
         [self fullResultDictionaryEnableExpired:domains fromCache:cacheDomainDict toEmpty:toEmptyDomains] :
         [self resultDictionaryEnableExpired:domains fromCache:cacheDomainDict toEmpty:toEmptyDomains];
-    // 当开启乐观DNS之后，如果结果为0则上报errorCode=3，要所有结果都为0
+    // 当开启乐观DNS之后，如果结果为0则上报errorCode=3，要所有域名解析的结果都为0
     BOOL needReport = NO;
     if (verbose) {
         for (int i = 0; i < [domains count]; i++) {
