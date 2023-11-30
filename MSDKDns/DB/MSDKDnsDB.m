@@ -123,7 +123,10 @@ static MSDKDnsDB * gSharedInstance = nil;
         }
         NSString *sql = @"INSERT OR REPLACE into HttpDNSTable ";
         NSString *param = @"(domain, httpDnsIPV4Channel, httpDnsIPV4ClientIP, httpDnsIPV4IPs, httpDnsIPV4TimeConsuming, httpDnsIPV4TTL, httpDnsIPV4TTLExpried, httpDnsIPV6ClientIP, httpDnsIPV6IPs, httpDnsIPV6TimeConsuming, httpDnsIPV6TTL, httpDnsIPV6TTLExpried)";
-        NSString *data = [NSString stringWithFormat:@" values('%@','%@','%@','%@','%@','%@','%@','%@','%@','%@','%@','%@')",[domain copy],hresultDict_A_kChannel,hresultDict_A_kClientIP,hresultDict_A_kIP,hresultDict_A_kDnsTimeConsuming,hresultDict_A_kTTL,hresultDict_A_kTTLExpired,hresultDict_4A_kClientIP,hresultDict_4A_kIP,hresultDict_4A_kDnsTimeConsuming,hresultDict_4A_kTTL,hresultDict_4A_kTTLExpired];
+        NSString *data = [NSString stringWithFormat:@" values('%@','%@','%@','%@','%@','%@','%@','%@','%@','%@','%@','%@')",
+                          [domain copy],hresultDict_A_kChannel,hresultDict_A_kClientIP,hresultDict_A_kIP,
+                          hresultDict_A_kDnsTimeConsuming,hresultDict_A_kTTL,hresultDict_A_kTTLExpired,hresultDict_4A_kClientIP,
+                          hresultDict_4A_kIP,hresultDict_4A_kDnsTimeConsuming,hresultDict_4A_kTTL,hresultDict_4A_kTTLExpired];
         NSString *insertSql = [NSString stringWithFormat:@"%@%@%@",sql, param, data];
         
         if (sqlite3_exec(_db, [insertSql UTF8String], NULL, NULL, &_error) == SQLITE_OK) {
