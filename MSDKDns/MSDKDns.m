@@ -333,7 +333,7 @@ static MSDKDns * gSharedInstance = nil;
                                              userInfo:nil];
             return;
         }
-        MSDKDNSLOG(@"GetHostByNameAsync:%@",domains);
+        MSDKDNSLOG(@"GetAllHostsByNamesAsync:%@",domains);
         if (!domains || [domains count] == 0) {
             //请求域名为空，返回空
             MSDKDNSLOG(@"MSDKDns Result is Empty!");
@@ -349,7 +349,7 @@ static MSDKDns * gSharedInstance = nil;
         NSDate * date = [NSDate date];
         [[MSDKDnsManager shareInstance] getHostsByNames:domains verbose:YES returnIps:^(NSDictionary *ipsDict) {
             NSTimeInterval time_consume = [[NSDate date] timeIntervalSinceDate:date] * 1000;
-            MSDKDNSLOG(@"MSDKDns WGGetHostByNameAsync Total Time Consume is %.1fms", time_consume);
+            MSDKDNSLOG(@"MSDKDns WGGetAllHostsByNamesAsync Total Time Consume is %.1fms", time_consume);
             if (ipsDict) {
                 NSDictionary * dnsResult = [[NSDictionary alloc] initWithDictionary:ipsDict];
                 MSDKDNSLOG(@"%@, MSDKDns Result is:%@",domains, ipsDict);
