@@ -387,26 +387,26 @@ char MSDKDnsHexCharToChar(char high, char low) {
     return newData;
 }
 
-+ (NSURL *) httpsUrlWithDomain:(NSString *)domain DnsId:(int)dnsId DnsKey:(NSString *)dnsKey IPType:(HttpDnsIPType)ipType
++ (NSURL *) httpsUrlWithDomain:(NSString *)domain dnsId:(int)dnsId dnsKey:(NSString *)dnsKey ipType:(HttpDnsIPType)ipType
 {
-    return [self httpsUrlWithDomain:domain DnsId:dnsId DnsKey:dnsKey IPType:ipType encryptType:HttpDnsEncryptTypeDES];
+    return [self httpsUrlWithDomain:domain dnsId:dnsId dnsKey:dnsKey ipType:ipType encryptType:HttpDnsEncryptTypeDES];
 }
 
-+ (NSURL *) httpsUrlWithDomain:(NSString *)domain DnsId:(int)dnsId DnsKey:(NSString *)dnsKey IPType:(HttpDnsIPType)ipType encryptType:(NSInteger)encryptType
++ (NSURL *) httpsUrlWithDomain:(NSString *)domain dnsId:(int)dnsId dnsKey:(NSString *)dnsKey ipType:(HttpDnsIPType)ipType encryptType:(NSInteger)encryptType
 {
     if (!domain || domain.length == 0) {
-        MSDKDNSLOG(@"HttpDns Domain cannot be empty!");
+        MSDKDNSLOG(@"HttpDns domain cannot be empty!");
         return nil;
     }
     
     if (!dnsId) {
-        MSDKDNSLOG(@"DnsId cannot be empty! Please check your dns config params.");
+        MSDKDNSLOG(@"dnsId cannot be empty! Please check your dns config params.");
         return nil;
     }
         
     NSString *token =  [[MSDKDnsParamsManager shareInstance] msdkDnsGetMToken];
     if (encryptType != HttpDnsEncryptTypeHTTPS && (!dnsKey || dnsKey.length == 0)) {
-        MSDKDNSLOG(@"DnsKey cannot be empty! Please check your dns config params");
+        MSDKDNSLOG(@"dnsKey cannot be empty! Please check your dns config params");
         return nil;
     } else if (encryptType == HttpDnsEncryptTypeHTTPS && (!token || token.length == 0)) {
         MSDKDNSLOG(@"Token cannot be empty! Please check your dns config params");
@@ -468,7 +468,7 @@ char MSDKDnsHexCharToChar(char high, char low) {
         MSDKDNSLOG(@"httpdns service url: %@",url);
         return url;
     } else {
-        MSDKDNSLOG(@"HttpDns Domain Crypt Error!");
+        MSDKDNSLOG(@"HttpDns domain Crypt Error!");
     }
     return nil;
 }

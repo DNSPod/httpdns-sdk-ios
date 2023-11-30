@@ -51,8 +51,8 @@ static MSDKDns * gSharedInstance = nil;
     }
 #endif
     [[MSDKDnsLog sharedInstance] setEnableLog:config->debug];
-    [[MSDKDnsParamsManager shareInstance] msdkDnsSetMAppId:config->appId MTimeOut:config->timeout MEncryptType:config->encryptType];
-    [[MSDKDnsParamsManager shareInstance] msdkDnsSetMDnsId:config->dnsId MDnsKey:config->dnsKey MToken:config->token];
+    [[MSDKDnsParamsManager shareInstance] msdkDnsSetMAppId:config->appId timeOut:config->timeout encryptType:config->encryptType];
+    [[MSDKDnsParamsManager shareInstance] msdkDnsSetMDnsId:config->dnsId dnsKey:config->dnsKey token:config->token];
     [[MSDKDnsParamsManager shareInstance] msdkDnsSetAddressType:config->addressType];
     [[MSDKDnsParamsManager shareInstance] msdkDnsSetMDnsIp:config->dnsIp];
     [[MSDKDnsParamsManager shareInstance] msdkDnsSetRouteIp: config->routeIp];
@@ -64,7 +64,7 @@ static MSDKDns * gSharedInstance = nil;
         [[MSDKDnsParamsManager shareInstance] msdkDnsSetMinutesBeforeSwitchToMain:config->minutesBeforeSwitchToMain];
     }
     [[MSDKDnsParamsManager shareInstance] msdkDnsSetEnableReport:config->enableReport];
-    [[MSDKDnsManager shareInstance] fetchConfig:config->dnsId MEncryptType:config->encryptType MDnsKey:config->dnsKey MToken:config->token];
+    [[MSDKDnsManager shareInstance] fetchConfig:config->dnsId encryptType:config->encryptType dnsKey:config->dnsKey token:config->token];
     MSDKDNSLOG(@"MSDKDns init success.");
     return YES;
 }

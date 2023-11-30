@@ -14,8 +14,8 @@
 
 - (void)msdkDnsSetMDnsIp:(NSString *) mdnsIp;
 - (void)msdkDnsSetMOpenId:(NSString *) mdnsOpenId;
-- (void)msdkDnsSetMAppId:(NSString *) mdnsAppId MTimeOut:(int)mdnsTimeOut MEncryptType:(HttpDnsEncryptType)mdnsEncryptType;
-- (void)msdkDnsSetMDnsId:(int) mdnsId MDnsKey:(NSString *)mdnsKey MToken:(NSString* )mdnsToken;
+- (void)msdkDnsSetMAppId:(NSString *) mdnsAppId timeOut:(int)mdnsTimeOut encryptType:(HttpDnsEncryptType)mdnsEncryptType;
+- (void)msdkDnsSetMDnsId:(int) mdnsId dnsKey:(NSString *)mdnsKey token:(NSString* )mdnsToken;
 - (void)msdkDnsSetRouteIp:(NSString *)routeIp;
 - (void)msdkDnsSetHttpOnly:(BOOL)httpOnly;
 // 设置切换ip之前重试次数

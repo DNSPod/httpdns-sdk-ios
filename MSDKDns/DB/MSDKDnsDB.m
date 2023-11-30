@@ -61,7 +61,7 @@ static MSDKDnsDB * gSharedInstance = nil;
     return self;
 }
 
-- (void)insertOrReplaceDomainInfo:(NSDictionary *)domainInfo Domain:(NSString *)domain {
+- (void)insertOrReplaceDomainInfo:(NSDictionary *)domainInfo domain:(NSString *)domain {
     
     @try {
         NSDictionary * hresultDict_A = domainInfo[kMSDKHttpDnsCache_A];

@@ -37,14 +37,14 @@ static NSURLSession *_resolveHOSTSession = nil;
     MSDKDNSLOG(@"HttpDnsResolver dealloc!");
 }
 
-- (void)startWithDomains:(NSArray *)domains TimeOut:(float)timeOut DnsId:(int)dnsId DnsKey:(NSString *)dnsKey NetStack:(msdkdns::MSDKDNS_TLocalIPStack)netStack encryptType:(NSInteger)encryptType
+- (void)startWithDomains:(NSArray *)domains timeOut:(float)timeOut dnsId:(int)dnsId dnsKey:(NSString *)dnsKey netStack:(msdkdns::MSDKDNS_TLocalIPStack)netStack encryptType:(NSInteger)encryptType
 {
-    [super startWithDomains:domains TimeOut:timeOut DnsId:dnsId DnsKey:dnsKey NetStack:netStack];
+    [super startWithDomains:domains timeOut:timeOut dnsId:dnsId dnsKey:dnsKey netStack:netStack];
     NSString *domainStr = [domains componentsJoinedByString:@","];
     id<MSDKDnsResolverDelegate> delegate = self.delegate;
     self.errorCode = MSDKDns_UnResolve;
     if (!domainStr || domainStr.length == 0) {
-        MSDKDNSLOG(@"HttpDns Domain is must needed!"); 
+        MSDKDNSLOG(@"HttpDns domain is must needed!"); 
         self.domainInfo = nil;
         self.isFinished = YES;
         self.isSucceed = NO;
@@ -68,7 +68,7 @@ static NSURLSession *_resolveHOSTSession = nil;
         self.ipType = HttpDnsTypeDual;
     }
     
-    NSURL * httpDnsUrl = [MSDKDnsInfoTool httpsUrlWithDomain:domainStr DnsId:dnsId DnsKey:_dnsKey IPType:self.ipType encryptType:_encryptType];
+    NSURL * httpDnsUrl = [MSDKDnsInfoTool httpsUrlWithDomain:domainStr dnsId:dnsId dnsKey:self.dnsKey ipType:self.ipType encryptType:_encryptType];
     
     if (httpDnsUrl) {
         MSDKDNSLOG("HttpDns Request URL: %@", httpDnsUrl);
@@ -263,8 +263,8 @@ static NSURLSession *_resolveHOSTSession = nil;
     return resultDic;
 }
 
-- (NSDictionary *)parseAllIPString:(NSString *)iPstring {
-    NSArray *array = [iPstring componentsSeparatedByString:@"|"];
+- (NSDictionary *)parseAllIPString:(NSString *)ipString {
+    NSArray *array = [ipString componentsSeparatedByString:@"|"];
     if (array && array.count == 2) {
         NSString * clientIP = array[1];
         NSString * tmp = array[0];
@@ -279,13 +279,13 @@ static NSURLSession *_resolveHOSTSession = nil;
                     ipv6 = tmpArr[1];
                 }
                 if (ipv4) {
-                    NSDictionary *result = [self parseIPString:ipv4 ClientIP:clientIP Use4A:false];
+                    NSDictionary *result = [self parseIPString:ipv4 ClientIP:clientIP use4A:false];
                     if (result) {
                         [bothIPDict setObject:result forKey:@"ipv4"];
                     }
                 }
                 if (ipv6) {
-                    NSDictionary *result = [self parseIPString:ipv6 ClientIP:clientIP Use4A:true];
+                    NSDictionary *result = [self parseIPString:ipv6 ClientIP:clientIP use4A:true];
                     if (result) {
                         [bothIPDict setObject:result forKey:@"ipv6"];
                     }
@@ -301,17 +301,17 @@ static NSURLSession *_resolveHOSTSession = nil;
                 if (self.ipType == HttpDnsTypeIPv6) {
                     use4A = true;
                 }
-                return [self parseIPString:tmp ClientIP:clientIP Use4A:use4A];
+                return [self parseIPString:tmp ClientIP:clientIP use4A:use4A];
             }
         }
     }
     return nil;
 }
 
--(NSDictionary *)parseIPString:(NSString *)iPstring ClientIP:(NSString *)clientIP Use4A:(BOOL)use4A {
+-(NSDictionary *)parseIPString:(NSString *)ipString ClientIP:(NSString *)clientIP use4A:(BOOL)use4A {
     NSString *ipsStr = nil;
     NSString *ttl = nil;
-    NSArray * tmpArr = [iPstring componentsSeparatedByString:@","];
+    NSArray * tmpArr = [ipString componentsSeparatedByString:@","];
     if (tmpArr && [tmpArr count] == 2) {
         ipsStr = tmpArr[0];
         ttl = tmpArr[1];
@@ -322,7 +322,7 @@ static NSURLSession *_resolveHOSTSession = nil;
     }
     NSArray *ipsArray = [ipsStr componentsSeparatedByString:@";"];
     //校验ip合法性
-    BOOL isIPLegal = [self isIPLegal:ipsArray Use4A:use4A];
+    BOOL isIPLegal = [self isIPLegal:ipsArray use4A:use4A];
     
     if (isIPLegal) {
         double timeInterval = [[NSDate date] timeIntervalSince1970];

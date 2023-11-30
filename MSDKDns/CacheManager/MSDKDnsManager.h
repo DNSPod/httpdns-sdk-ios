@@ -28,7 +28,7 @@ typedef enum {
 - (void)refreshCacheDelay:(NSArray *)domains clearDispatchTag:(BOOL)needClear;
 - (void)preResolveDomains;
 - (void)dnsHasDone:(MSDKDnsService *)service;
-- (void)cacheDomainInfo:(NSDictionary *)domainInfo Domain:(NSString *)domain;
+- (void)cacheDomainInfo:(NSDictionary *)domainInfo domain:(NSString *)domain;
 - (void)clearCacheForDomain:(NSString *)domain;
 - (void)clearCacheForDomains:(NSArray<NSString *> *)domains;
 - (void)clearAllCache;
@@ -49,7 +49,7 @@ typedef enum {
 /*
  * 获取底层配置
  */
-- (void)fetchConfig:(int) mdnsId MEncryptType:(HttpDnsEncryptType)mdnsEncryptType MDnsKey:(NSString *)mdnsKey MToken:(NSString* )mdnsToken;
+- (void)fetchConfig:(int) mdnsId encryptType:(HttpDnsEncryptType)mdnsEncryptType dnsKey:(NSString *)mdnsKey token:(NSString* )mdnsToken;
 /*
  * 获取三网域名解析IP
  */

@@ -102,7 +102,7 @@ static MSDKDnsParamsManager * gSharedInstance = nil;
     });
 }
 
-- (void)msdkDnsSetMAppId:(NSString *) mdnsAppId MTimeOut:(int)mdnsTimeOut MEncryptType:(HttpDnsEncryptType)mdnsEncryptType
+- (void)msdkDnsSetMAppId:(NSString *) mdnsAppId timeOut:(int)mdnsTimeOut encryptType:(HttpDnsEncryptType)mdnsEncryptType
 {
     dispatch_async([MSDKDnsInfoTool msdkdns_queue], ^{
         self.msdkDnsAppId = mdnsAppId;
@@ -112,7 +112,7 @@ static MSDKDnsParamsManager * gSharedInstance = nil;
 }
 
 
-- (void)msdkDnsSetMDnsId:(int) mdnsId MDnsKey:(NSString *)mdnsKey MToken:(NSString* )mdnsToken{
+- (void)msdkDnsSetMDnsId:(int) mdnsId dnsKey:(NSString *)mdnsKey token:(NSString* )mdnsToken{
     dispatch_async([MSDKDnsInfoTool msdkdns_queue], ^{
         self.msdkDnsId = mdnsId;
         self.msdkDnsKey = mdnsKey;

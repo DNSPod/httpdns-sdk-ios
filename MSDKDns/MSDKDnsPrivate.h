@@ -2,8 +2,8 @@
  * Copyright (c) Tencent. All rights reserved.
  */
 
-#ifndef MSDKDns_MSDKDnsPrivate_h
-#define MSDKDns_MSDKDnsPrivate_h
+#ifndef HTTPDNS_SDK_IOS_MSDKDNS_MSDKDNSPRIVATE_H_
+#define HTTPDNS_SDK_IOS_MSDKDNS_MSDKDNSPRIVATE_H_
 
 static NSString * const HTTP_DNS_UNKNOWN_STR = @"UNKNOWN";
 
@@ -94,4 +94,4 @@ static NSString * const DB_HttpDNS_IPV4_TTLExpired = [kMSDKHttpDnsCache_A string
 
 
 
-#endif // HTTPDNS_SDK_IOS_MSDKDNS_MSDKDNSPRIVATE_H_
+#endif  // HTTPDNS_SDK_IOS_MSDKDNS_MSDKDNSPRIVATE_H_

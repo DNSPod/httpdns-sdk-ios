@@ -10,8 +10,8 @@
 // either express or implied. See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef MSDKDNS_NETWORK_LOCAL_IP_STACK
-#define MSDKDNS_NETWORK_LOCAL_IP_STACK
+#ifndef HTTPDNS_SDK_IOS_MSDKDNS_NETWORK_MSDKDNS_LOCAL_IP_STACK_H_
+#define HTTPDNS_SDK_IOS_MSDKDNS_NETWORK_MSDKDNS_LOCAL_IP_STACK_H_
 
 #include <netinet/in.h>
 #include <sys/socket.h>
@@ -44,11 +44,11 @@ namespace msdkdns {
     };
 
     MSDKDNS_TLocalIPStack msdkdns_detect_local_ip_stack();
-} // namespace msdkdns
+}  // namespace msdkdns
 
 #ifdef __cplusplus
 }
 #endif
 
 
-#endif // HTTPDNS_SDK_IOS_MSDKDNS_NETWORK_MSDKDNS_LOCAL_IP_STACK_H_
+#endif  // HTTPDNS_SDK_IOS_MSDKDNS_NETWORK_MSDKDNS_LOCAL_IP_STACK_H_

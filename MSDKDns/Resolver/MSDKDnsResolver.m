@@ -16,11 +16,11 @@
     [self setDelegate:nil];
 }
 
-- (void)startWithDomains:(NSArray *)domains TimeOut:(float)timeOut DnsId:(int)dnsId DnsKey:(NSString *)dnsKey NetStack:(msdkdns::MSDKDNS_TLocalIPStack)netStack {
+- (void)startWithDomains:(NSArray *)domains timeOut:(float)timeOut dnsId:(int)dnsId dnsKey:(NSString *)dnsKey netStack:(msdkdns::MSDKDNS_TLocalIPStack)netStack {
     self.startDate = [NSDate date];
 }
 
-- (BOOL)isIPLegal:(NSArray *)ipsArray Use4A:(BOOL)use4A {
+- (BOOL)isIPLegal:(NSArray *)ipsArray use4A:(BOOL)use4A {
     BOOL isIPLegal = YES;
     
     if (ipsArray && ipsArray.count > 0) {
