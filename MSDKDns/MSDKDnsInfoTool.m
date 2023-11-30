@@ -543,4 +543,19 @@ char MSDKDnsHexCharToChar(char high, char low) {
     return lowerCaseArray;
 }
 
++ (NSString *)getIPsStringFromIPsArray:(NSArray *)ipsArray {
+    NSMutableString *ipsStr = [NSMutableString stringWithString:@""];
+    if (ipsArray && [ipsArray isKindOfClass:[NSArray class]] && ipsArray.count > 0) {
+        for (int i = 0; i < ipsArray.count; i++) {
+            NSString *ip = ipsArray[i];
+            if (i != ipsArray.count - 1) {
+                [ipsStr appendFormat:@"%@,",ip];
+            } else {
+                [ipsStr appendString:ip];
+            }
+        }
+    }
+    return ipsStr;
+}
+
 @end

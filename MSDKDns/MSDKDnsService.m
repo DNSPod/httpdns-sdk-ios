@@ -370,9 +370,9 @@
                     NSArray * ipsArray = localDnsCache[kIP];
                     if (ipsArray && [ipsArray count] == 2) {
                         if ([localDnsIPs length] > 0) {
-                            localDnsIPs = [NSString stringWithFormat:@"%@,%@", localDnsIPs, [self getIPsStringFromIPsArray:ipsArray]];
+                            localDnsIPs = [NSString stringWithFormat:@"%@,%@", localDnsIPs, [MSDKDnsInfoTool getIPsStringFromIPsArray:ipsArray]];
                         } else {
-                            localDnsIPs = [NSString stringWithFormat:@"%@", [self getIPsStringFromIPsArray:ipsArray]];
+                            localDnsIPs = [NSString stringWithFormat:@"%@", [MSDKDnsInfoTool getIPsStringFromIPsArray:ipsArray]];
                         }
                         
                     }
@@ -382,9 +382,9 @@
                     NSArray * ipsArray = httpDnsCache_A[kIP];
                     if (ipsArray && [ipsArray isKindOfClass:[NSArray class]] && ipsArray.count > 0) {
                         if ([httpDnsIP_A length] > 0) {
-                            httpDnsIP_A = [NSString stringWithFormat:@"%@,%@", httpDnsIP_A, [self getIPsStringFromIPsArray:ipsArray]];
+                            httpDnsIP_A = [NSString stringWithFormat:@"%@,%@", httpDnsIP_A, [MSDKDnsInfoTool getIPsStringFromIPsArray:ipsArray]];
                         } else {
-                            httpDnsIP_A = [NSString stringWithFormat:@"%@", [self getIPsStringFromIPsArray:ipsArray]];
+                            httpDnsIP_A = [NSString stringWithFormat:@"%@", [MSDKDnsInfoTool getIPsStringFromIPsArray:ipsArray]];
                         }
                     }
                 }
@@ -393,9 +393,9 @@
                     NSArray * ipsArray = httpDnsCache_4A[kIP];
                     if (ipsArray && [ipsArray isKindOfClass:[NSArray class]] && ipsArray.count > 0) {
                         if ([httpDnsIP_4A length] > 0) {
-                            httpDnsIP_4A = [NSString stringWithFormat:@"%@,%@", httpDnsIP_4A, [self getIPsStringFromIPsArray:ipsArray]];
+                            httpDnsIP_4A = [NSString stringWithFormat:@"%@,%@", httpDnsIP_4A, [MSDKDnsInfoTool getIPsStringFromIPsArray:ipsArray]];
                         } else {
-                            httpDnsIP_4A = [NSString stringWithFormat:@"%@", [self getIPsStringFromIPsArray:ipsArray]];
+                            httpDnsIP_4A = [NSString stringWithFormat:@"%@", [MSDKDnsInfoTool getIPsStringFromIPsArray:ipsArray]];
                         }
                     }
                 }
@@ -407,21 +407,6 @@
         kMSDKDns_4A_IP:httpDnsIP_4A,
         kMSDKDnsLDNS_IP: localDnsIPs
     };
-}
-
-- (NSString *)getIPsStringFromIPsArray:(NSArray *)ipsArray {
-    NSMutableString *ipsStr = [NSMutableString stringWithString:@""];
-    if (ipsArray && [ipsArray isKindOfClass:[NSArray class]] && ipsArray.count > 0) {
-        for (int i = 0; i < ipsArray.count; i++) {
-            NSString *ip = ipsArray[i];
-            if (i != ipsArray.count - 1) {
-                [ipsStr appendFormat:@"%@,",ip];
-            } else {
-                [ipsStr appendString:ip];
-            }
-        }
-    }
-    return ipsStr;
 }
 
 - (void)aysncUpdateIPRankingWithResult:(NSArray *)IPStrings forHost:(NSString *)host {

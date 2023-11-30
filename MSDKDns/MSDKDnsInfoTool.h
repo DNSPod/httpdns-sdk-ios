@@ -22,4 +22,5 @@
                                                     encryptType:(NSInteger)encryptType; //encryptType: 0 des,1 aes
 + (NSString *)generateSessionID;
 + (NSArray *)arrayTransLowercase:(NSArray *)data;
++ (NSString *)getIPsStringFromIPsArray:(NSArray *)ipsArray;
 @end

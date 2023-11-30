@@ -90,19 +90,7 @@ static MSDKDnsManager * gSharedInstance = nil;
         timeOut = [[MSDKDnsParamsManager shareInstance] msdkDnsGetMTimeOut];
     });
     // 待查询数组
-    NSMutableArray *toCheckDomains = [NSMutableArray array];
-    // 查找缓存，缓存中有HttpDns数据且ttl未超时则直接返回结果,不存在或者ttl超时则放入待查询数组
-    for (int i = 0; i < [domains count]; i++) {
-        NSString *domain = [domains objectAtIndex:i];
-        if (![self domianCache:cacheDomainDict hit:domain]) {
-            [toCheckDomains addObject:domain];
-        } else {
-            MSDKDNSLOG(@"%@ TTL has not expiried,return result from cache directly!", domain);
-            dispatch_async([MSDKDnsInfoTool msdkdns_queue], ^{
-                [self uploadReport:YES domain:domain netStack:netStack];
-            });
-        }
-    }
+    NSArray *toCheckDomains = [self getCheckDomains:domains dict:cacheDomainDict netStack:netStack];
     // 全部有缓存时，直接返回
     if([toCheckDomains count] == 0) {
         // NSLog(@"有缓存");
@@ -113,17 +101,15 @@ static MSDKDnsManager * gSharedInstance = nil;
     }
     dispatch_semaphore_t sema = dispatch_semaphore_create(0);
     dispatch_async([MSDKDnsInfoTool msdkdns_queue], ^{
+        int dnsId = [[MSDKDnsParamsManager shareInstance] msdkDnsGetMDnsId];
+        NSString * dnsKey = [[MSDKDnsParamsManager shareInstance] msdkDnsGetMDnsKey];
         if (!self.serviceArray) {
             self.serviceArray = [[NSMutableArray alloc] init];
         }
-        int dnsId = [[MSDKDnsParamsManager shareInstance] msdkDnsGetMDnsId];
-        NSString * dnsKey = [[MSDKDnsParamsManager shareInstance] msdkDnsGetMDnsKey];
         HttpDnsEncryptType encryptType = [[MSDKDnsParamsManager shareInstance] msdkDnsGetEncryptType];
-        //进行httpdns请求
         MSDKDnsService * dnsService = [[MSDKDnsService alloc] init];
         [self.serviceArray addObject:dnsService];
         __weak __typeof__(self) weakSelf = self;
-        // NSLog(@"%@, MSDKDns Result is toCheckDomains",toCheckDomains);
         [dnsService getHostsByNames:toCheckDomains timeOut:timeOut dnsId:dnsId dnsKey:dnsKey netStack:netStack encryptType:encryptType returnIps:^() {
             __strong __typeof(self) strongSelf = weakSelf;
             if (strongSelf) {
@@ -281,19 +267,7 @@ static MSDKDnsManager * gSharedInstance = nil;
         timeOut = [[MSDKDnsParamsManager shareInstance] msdkDnsGetMTimeOut];
     });
     // 待查询数组
-    NSMutableArray *toCheckDomains = [NSMutableArray array];
-    // 查找缓存，缓存中有HttpDns数据且ttl未超时则直接返回结果,不存在或者ttl超时则放入待查询数组
-    for (int i = 0; i < [domains count]; i++) {
-        NSString *domain = [domains objectAtIndex:i];
-        if (![self domianCache:cacheDomainDict hit:domain]) {
-            [toCheckDomains addObject:domain];
-        } else {
-            MSDKDNSLOG(@"%@ TTL has not expiried,return result from cache directly!", domain);
-            dispatch_async([MSDKDnsInfoTool msdkdns_queue], ^{
-                [self uploadReport:YES domain:domain netStack:netStack];
-            });
-        }
-    }
+    NSArray *toCheckDomains = [self getCheckDomains:domains dict:cacheDomainDict netStack:netStack];
     // 全部有缓存时，直接返回
     if([toCheckDomains count] == 0) {
         NSDictionary * result = verbose ?
@@ -332,6 +306,24 @@ static MSDKDnsManager * gSharedInstance = nil;
         }];
     });
     
+}
+
+- (NSArray *)getCheckDomains:(NSArray *)domains dict:(NSDictionary *)cacheDomainDict netStack:(msdkdns::MSDKDNS_TLocalIPStack)netStack {
+    // 待查询数组
+    NSMutableArray *toCheckDomains = [NSMutableArray array];
+    // 查找缓存，缓存中有HttpDns数据且ttl未超时则直接返回结果,不存在或者ttl超时则放入待查询数组
+    for (int i = 0; i < [domains count]; i++) {
+        NSString *domain = [domains objectAtIndex:i];
+        if (![[self domianCache:cacheDomainDict check:domain] isEqualToString:MSDKDnsDomainCacheHit]) {
+            [toCheckDomains addObject:domain];
+        } else {
+            MSDKDNSLOG(@"%@ TTL has not expiried,return result from cache directly!", domain);
+            dispatch_async([MSDKDnsInfoTool msdkdns_queue], ^{
+                [self uploadReport:YES domain:domain netStack:netStack];
+            });
+        }
+    }
+    return toCheckDomains;
 }
 
 #pragma mark 发送解析请求刷新缓存
@@ -374,21 +366,6 @@ static MSDKDnsManager * gSharedInstance = nil;
 }
 
 #pragma mark - dns resolve
-
-- (NSString *)getIPsStringFromIPsArray:(NSArray *)ipsArray {
-    NSMutableString *ipsStr = [NSMutableString stringWithString:@""];
-    if (ipsArray && [ipsArray isKindOfClass:[NSArray class]] && ipsArray.count > 0) {
-        for (int i = 0; i < ipsArray.count; i++) {
-            NSString *ip = ipsArray[i];
-            if (i != ipsArray.count - 1) {
-                [ipsStr appendFormat:@"%@,",ip];
-            } else {
-                [ipsStr appendString:ip];
-            }
-        }
-    }
-    return ipsStr;
-}
 
 - (NSArray *)resultArray: (NSString *)domain fromCache:(NSDictionary *)domainDict {
     NSMutableArray * ipResult = [@[@"0", @"0"] mutableCopy];
@@ -434,22 +411,20 @@ static MSDKDnsManager * gSharedInstance = nil;
 }
 
 - (NSDictionary *)fullResultDictionary: (NSArray *)domains fromCache:(NSDictionary *)domainDict {
+    BOOL httpOnly = [[MSDKDnsParamsManager shareInstance] msdkDnsGetHttpOnly];
     NSMutableDictionary *resultDict = [NSMutableDictionary dictionary];
     for (int i = 0; i < [domains count]; i++) {
         NSString *domain = [domains objectAtIndex:i];
         NSMutableDictionary * ipResult = [NSMutableDictionary dictionary];
-        BOOL httpOnly = [[MSDKDnsParamsManager shareInstance] msdkDnsGetHttpOnly];
         if (domainDict) {
             NSDictionary * cacheDict = domainDict[domain];
             if (cacheDict && [cacheDict isKindOfClass:[NSDictionary class]]) {
-                
                 NSDictionary * hresultDict_A = cacheDict[kMSDKHttpDnsCache_A];
                 NSDictionary * hresultDict_4A = cacheDict[kMSDKHttpDnsCache_4A];
-                
                 if (!httpOnly) {
-                    NSDictionary * lresultDict = cacheDict[kMSDKLocalDnsCache];
-                    if (lresultDict && [lresultDict isKindOfClass:[NSDictionary class]]) {
-                        NSArray *ipsArray = [lresultDict[kIP] mutableCopy];
+                    NSDictionary * localResultDict = cacheDict[kMSDKLocalDnsCache];
+                    if (localResultDict && [localResultDict isKindOfClass:[NSDictionary class]]) {
+                        NSArray *ipsArray = [localResultDict[kIP] mutableCopy];
                         if (ipsArray.count == 2) {
                             [ipResult setObject:@[ipsArray[0]] forKey:@"ipv4"];
                             [ipResult setObject:@[ipsArray[1]] forKey:@"ipv6"];
@@ -582,13 +557,13 @@ static MSDKDnsManager * gSharedInstance = nil;
         if (domainInfo && [domainInfo isKindOfClass:[NSDictionary class]]) {
             NSDictionary * cacheDict_A = domainInfo[kMSDKHttpDnsCache_A];
             if (cacheDict_A && [cacheDict_A isKindOfClass:[NSDictionary class]]) {
-                detailDict[@"v4_ips"] = [self getIPsStringFromIPsArray:cacheDict_A[kIP]];
+                detailDict[@"v4_ips"] = [MSDKDnsInfoTool getIPsStringFromIPsArray:cacheDict_A[kIP]];
                 detailDict[@"v4_ttl"] = cacheDict_A[kTTL];
                 detailDict[@"v4_client_ip"] = cacheDict_A[kClientIP];
             }
             NSDictionary * cacheDict_4A = domainInfo[kMSDKHttpDnsCache_4A];
             if (cacheDict_4A && [cacheDict_4A isKindOfClass:[NSDictionary class]]) {
-                detailDict[@"v6_ips"] = [self getIPsStringFromIPsArray:cacheDict_4A[kIP]];
+                detailDict[@"v6_ips"] = [MSDKDnsInfoTool getIPsStringFromIPsArray:cacheDict_4A[kIP]];
                 detailDict[@"v6_ttl"] = cacheDict_4A[kTTL];
                 detailDict[@"v6_client_ip"] = cacheDict_4A[kClientIP];
             }
@@ -803,7 +778,7 @@ static MSDKDnsManager * gSharedInstance = nil;
                 if (ipsArray && [ipsArray count] == 2) {
                     dns_A = ipsArray[0];
                     dns_4A = ipsArray[1];
-                    localDnsIPs = [self getIPsStringFromIPsArray:ipsArray];
+                    localDnsIPs = [MSDKDnsInfoTool getIPsStringFromIPsArray:ipsArray];
                 }
                 localDnsTimeConsuming = localDnsCache[kDnsTimeConsuming];
             }
@@ -815,7 +790,7 @@ static MSDKDnsManager * gSharedInstance = nil;
                 NSArray * ipsArray = httpDnsCache_A[kIP];
                 if (ipsArray && [ipsArray isKindOfClass:[NSArray class]] && ipsArray.count > 0) {
                     dns_A = ipsArray[0];
-                    httpDnsIP_A = [self getIPsStringFromIPsArray:ipsArray];
+                    httpDnsIP_A = [MSDKDnsInfoTool getIPsStringFromIPsArray:ipsArray];
                 }
                 
                 httpDnsTimeConsuming_A = httpDnsCache_A[kDnsTimeConsuming];
@@ -833,7 +808,7 @@ static MSDKDnsManager * gSharedInstance = nil;
                 NSArray * ipsArray = httpDnsCache_4A[kIP];
                 if (ipsArray && [ipsArray isKindOfClass:[NSArray class]] && ipsArray.count > 0) {
                     dns_4A = ipsArray[0];
-                    httpDnsIP_4A = [self getIPsStringFromIPsArray:ipsArray];
+                    httpDnsIP_4A = [MSDKDnsInfoTool getIPsStringFromIPsArray:ipsArray];
                 }
                 
                 httpDnsTimeConsuming_4A = httpDnsCache_4A[kDnsTimeConsuming];
@@ -915,24 +890,6 @@ static MSDKDnsManager * gSharedInstance = nil;
 }
 
 # pragma mark - check caches
-// 检查是否命中缓存
-- (BOOL) domianCache:(NSDictionary *)cache hit:(NSString *)domain {
-    NSDictionary * domainInfo = cache[domain];
-    if (domainInfo && [domainInfo isKindOfClass:[NSDictionary class]]) {
-        NSDictionary * cacheDict = domainInfo[kMSDKHttpDnsCache_A];
-        if (!cacheDict || ![cacheDict isKindOfClass:[NSDictionary class]]) {
-            cacheDict = domainInfo[kMSDKHttpDnsCache_4A];
-        }
-        if (cacheDict && [cacheDict isKindOfClass:[NSDictionary class]]) {
-            NSString * ttlExpried = cacheDict[kTTLExpired];
-            double timeInterval = [[NSDate date] timeIntervalSince1970];
-            if (timeInterval <= ttlExpried.doubleValue) {
-                return YES;
-            }
-        }
-    }
-    return NO;
-}
 
 // 检查缓存状态
 - (NSString *) domianCache:(NSDictionary *)cache check:(NSString *)domain {
@@ -1130,8 +1087,6 @@ static MSDKDnsManager * gSharedInstance = nil;
     } else {
         disposition = NSURLSessionAuthChallengePerformDefaultHandling;
     }
-
-    // 对于其他的 challenges 直接使用默认的验证方案
     completionHandler(disposition,credential);
 }
 
