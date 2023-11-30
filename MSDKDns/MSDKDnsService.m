@@ -661,20 +661,27 @@
     
     // 当开启上报服务时
     if ([[MSDKDnsParamsManager shareInstance] msdkDnsGetEnableReport]) {
-        NSDictionary *domainDic = [tempDict objectForKey:[self.toCheckDomains firstObject]];
         NSString* routeip = [[MSDKDnsParamsManager shareInstance] msdkDnsGetRouteIp];
         if (!routeip) {
             routeip = @"";
         }
         NSString *timeConsuming = @"";
-        if (domainDic) {
-            NSDictionary *ipv4CacheValue = [domainDic objectForKey:kMSDKHttpDnsCache_A];
-            NSDictionary *ipv6CacheValue = [domainDic objectForKey:kMSDKHttpDnsCache_4A];
-            if (ipv4CacheValue) {
-                timeConsuming = [ipv4CacheValue objectForKey:kDnsTimeConsuming];
+        for(int i = 0; i < [self.toCheckDomains count]; i++) {
+            NSString *domain = [self.toCheckDomains objectAtIndex:i];
+            NSDictionary * domainDic = [tempDict objectForKey:domain];
+            if (domainDic) {
+                NSDictionary *ipv4CacheValue = [domainDic objectForKey:kMSDKHttpDnsCache_A];
+                NSDictionary *ipv6CacheValue = [domainDic objectForKey:kMSDKHttpDnsCache_4A];
+                if (ipv4CacheValue && [ipv4CacheValue objectForKey:kDnsTimeConsuming]) {
+                    timeConsuming = [ipv4CacheValue objectForKey:kDnsTimeConsuming];
+                }
+                if (ipv6CacheValue && [ipv6CacheValue objectForKey:kDnsTimeConsuming]) {
+                    timeConsuming = [ipv6CacheValue objectForKey:kDnsTimeConsuming];
+                }
             }
-            if (ipv6CacheValue) {
-                timeConsuming = [ipv6CacheValue objectForKey:kDnsTimeConsuming];
+            // 当耗时有值的时候，取消遍历，因为批量解析耗时一致
+            if (![timeConsuming isEqualToString:@""]) {
+                break;
             }
         }
         NSString *req_type = @"a";
