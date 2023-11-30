@@ -1,7 +1,7 @@
 // Tencent is pleased to support the open source community by making Mars available.
 // Copyright (C) 2016 THL A29 Limited, a Tencent company. All rights reserved.
 
-// Licensed under the MIT License (the "License"); you may not use this file except in 
+// Licensed under the MIT License (the "License"); you may not use this file except in
 // compliance with the License. You may obtain a copy of the License at
 // http://opensource.org/licenses/MIT
 
@@ -12,11 +12,11 @@
 
 
 #include "msdkdns_local_ip_stack.h"
-#include "../MSDKDnsLog.h"
 #include <strings.h>
 #include <errno.h>
 #include <endian.h>
 #include <unistd.h>
+#include "../MSDKDnsLog.h"
 
 /*
  * Connect a UDP socket to a given unicast address. This will cause no network
@@ -34,7 +34,7 @@ static int msdkdns_test_connect(int pf, struct sockaddr * addr, size_t addrlen) 
     unsigned int loop_count = 0;
     do {
         ret = connect(s, addr, addrlen);
-    } while(ret < 0 && errno == EINTR && loop_count++ < kMaxLoopCount);
+    } while (ret < 0 && errno == EINTR && loop_count++ < kMaxLoopCount);
     if (loop_count >= kMaxLoopCount) {
         MSDKDNSLOG(@"connect error. loop_count = %d", loop_count);
     }
@@ -42,7 +42,7 @@ static int msdkdns_test_connect(int pf, struct sockaddr * addr, size_t addrlen) 
     loop_count = 0;
     do {
         ret = close(s);
-    } while(ret < 0 && errno == EINTR && loop_count++ < kMaxLoopCount);
+    } while (ret < 0 && errno == EINTR && loop_count++ < kMaxLoopCount);
     if (loop_count >= kMaxLoopCount) {
         MSDKDNSLOG(@"close error. loop_count = %d", loop_count);
     }
@@ -72,11 +72,10 @@ static int msdkdns_have_ipv6() {
 }
 
 static int msdkdns_have_ipv4() {
-
     static struct sockaddr_in sin_test = {0};
     sin_test.sin_family = AF_INET;
     sin_test.sin_port = 80;
-    sin_test.sin_addr.s_addr = htonl(0x08080808L); // 8.8.8.8
+    sin_test.sin_addr.s_addr = htonl(0x08080808L);  // 8.8.8.8
     // union
     msdkdns::msdkdns_sockaddr_union addr = {.msdkdns_in = sin_test};
     return msdkdns_test_connect(PF_INET, &addr.msdkdns_generic, sizeof(addr.msdkdns_in));

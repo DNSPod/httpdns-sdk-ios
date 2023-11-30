@@ -29,7 +29,7 @@
 - (void)msdkDnsSetPreResolvedDomains: (NSArray *)domains;
 - (void)msdkDnsSetAddressType: (HttpDnsAddressType)addressType;
 - (void)msdkDnsSetKeepAliveDomains: (NSArray *)domains;
-- (void)msdkDnsSetIPRankData: (NSDictionary *)IPRankData;
+- (void)msdkDnsSetIPRankData: (NSDictionary *)ipRankData;
 - (void)msdkDnsSetEnableKeepDomainsAlive: (BOOL)enableKeepDomainsAlive;
 - (void)msdkDnsSetExpiredIPEnabled: (BOOL)enable;
 - (void)msdkDnsSetPersistCacheIPEnabled: (BOOL)enable;

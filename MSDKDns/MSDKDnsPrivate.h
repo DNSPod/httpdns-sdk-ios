@@ -7,7 +7,7 @@
 
 static NSString * const HTTP_DNS_UNKNOWN_STR = @"UNKNOWN";
 
-//cacheDictionary
+// cacheDictionary
 static NSString * const kIP = @"ips";
 static NSString * const kClientIP = @"clientIP";
 static NSString * const kTTL = @"ttl";
@@ -24,7 +24,7 @@ static NSString * const kMSDKHttpDnsInfo_4A = @"httpDnsInfo_4A";
 static NSString * const kMSDKHttpDnsInfo_BOTH = @"httpDnsInfo_BOTH";
 static NSString * const kMSDKLocalDnsCache = @"localDnsCache";
 
-//HttpDns解析结果数据上报相关
+// HttpDns解析结果数据上报相关
 static NSString * const MSDKDnsEventName = @"HDNSGetHostByName";
 
 static NSString * const kMSDKDnsSDK_Version = @"sdk_Version";        // SDK版本号
@@ -38,7 +38,8 @@ static NSString * const kMSDKDnsSSID = @"ssid";                      //  WiFi SS
 static NSString * const kMSDKDnsDomain = @"domain";                  // 解析域名
 static NSString * const kMSDKDnsLDNS_IP = @"ldns_ip";                // LocalDns解析结果IP
 static NSString * const kMSDKDnsLDNS_Time = @"ldns_time";            // LocalDns解析耗时
-static NSString * const kMSDKDnsNet_Stack = @"net_stack";            // 域名解析发起时网络栈 - 0: 无网络/未知 - 1: IPv4 Only - 2: IPv6 Only - 3: Dual Stack
+// 域名解析发起时网络栈 - 0: 无网络/未知 - 1: IPv4 Only - 2: IPv6 Only - 3: Dual Stack
+static NSString * const kMSDKDnsNet_Stack = @"net_stack";
 static NSString * const kMSDKDns_A_IsCache = @"isCache";             // 域名解析A记录是否命中缓存
 static NSString * const kMSDKDns_A_ErrCode = @"hdns_a_err_code";     // 域名解析A记录解析错误码
 static NSString * const kMSDKDns_A_ErrMsg = @"hdns_a_err_msg";       // 域名解析A记录解析错误信息
@@ -52,7 +53,7 @@ static NSString * const kMSDKDns_4A_ErrCode = @"hdns_4a_err_code";   // 域名�
 static NSString * const kMSDKDns_4A_ErrMsg = @"hdns_4a_err_msg";     // 域名解析AAAA记录解析错误信息
 static NSString * const kMSDKDns_4A_IP = @"hdns_4a_ips";             // 域名解析AAAA记录解析结果IP，多个ip以“,”拼接
 static NSString * const kMSDKDns_4A_TTL = @"hdns_4a_ttl";            // 域名解析AAAA记录解析结果TTL(单位s)
-static NSString * const kMSDKDns_4A_ClientIP = @"hdns_4a_client_ip"; // 域名解析AAAA记录结果客户端IP
+static NSString * const kMSDKDns_4A_ClientIP = @"hdns_4a_client_ip";  // 域名解析AAAA记录结果客户端IP
 static NSString * const kMSDKDns_4A_Time = @"hdns_4a_time_ms";       // 域名解析AAAA记录耗时(单位ms)
 static NSString * const kMSDKDns_4A_Retry = @"hdns_4a_retry";        // 域名解析AAAA记录重试次数
 static NSString * const kMSDKDns_BOTH_Retry = @"hdns_both_retry";        // 双栈域名解析重试次数
@@ -62,29 +63,29 @@ static NSString * const kMSDKDns_DNS_A_IP = @"dns_ips";              // 域名�
 static NSString * const kMSDKDns_DNS_4A_IP = @"dns_4a_ips";          // 域名解析结果v6 IP，多个ip以“,”拼接
 
 /*** 域名解析错误码*/
-static NSString * const MSDKDns_Fail = @"-1";   // 失败
-static NSString * const MSDKDns_Success = @"0"; // 成功
-static NSString * const MSDKDns_UnResolve = @"1"; // 未解析
-static NSString * const MSDKDns_Timeout = @"2"; // 解析超时
-static NSString * const MSDKDns_NoData = @"3"; // 没有解析数据
+static NSString * const MSDKDns_Fail = @"-1";    // 失败
+static NSString * const MSDKDns_Success = @"0";  // 成功
+static NSString * const MSDKDns_UnResolve = @"1";  // 未解析
+static NSString * const MSDKDns_Timeout = @"2";  // 解析超时
+static NSString * const MSDKDns_NoData = @"3";   // 没有解析数据
 static NSString * const MSDKDns_ErrorCode = @"errorCode";
 
 /** 上报事件*/
 static NSString * const MSDKDnsEventHttpDnsfail = @"HttpDnsfail";
 static NSString * const MSDKDnsEventHttpDnsSpend = @"HttpDnsSpend";
-static NSString * const MSDKDnsEventHttpDnsCached = @"HDNSLookupCached";         //命中缓存
-static NSString * const MSDKDnsEventHttpDnsNormal = @"HDNSGetHostByName";        //常规解析请求
-static NSString * const MSDKDnsEventHttpDnsPreResolved = @"HDNSPreLookup";       //预解析请求
-static NSString * const MSDKDnsEventHttpDnsAutoRefresh = @"HDNSLookupAsync";     //缓存自动刷新
-static NSString * const MSDKDnsEventHttpDnsExpiredAsync = @"HDNSLookupExpiredAsync"; //乐观DNS中缓存异步刷新请求
-static NSString * const MSDKDnsEventHttpDnsGetHTTPDNSDomainIP = @"HDNSGetDomainIP"; //获取三网域名的IP
+static NSString * const MSDKDnsEventHttpDnsCached = @"HDNSLookupCached";         // 命中缓存
+static NSString * const MSDKDnsEventHttpDnsNormal = @"HDNSGetHostByName";        // 常规解析请求
+static NSString * const MSDKDnsEventHttpDnsPreResolved = @"HDNSPreLookup";       // 预解析请求
+static NSString * const MSDKDnsEventHttpDnsAutoRefresh = @"HDNSLookupAsync";     // 缓存自动刷新
+static NSString * const MSDKDnsEventHttpDnsExpiredAsync = @"HDNSLookupExpiredAsync";  // 乐观DNS中缓存异步刷新请求
+static NSString * const MSDKDnsEventHttpDnsGetHTTPDNSDomainIP = @"HDNSGetDomainIP";  // 获取三网域名的IP
 
-//命中缓存的状态
-static NSString * const MSDKDnsDomainCacheHit = @"domainCacheHit";         //命中缓存
-static NSString * const MSDKDnsDomainCacheExpired = @"domainCacheExpired"; //缓存过期
-static NSString * const MSDKDnsDomainCacheEmpty = @"domainCacheEmpty";     //没有缓存
+// 命中缓存的状态
+static NSString * const MSDKDnsDomainCacheHit = @"domainCacheHit";          // 命中缓存
+static NSString * const MSDKDnsDomainCacheExpired = @"domainCacheExpired";  // 缓存过期
+static NSString * const MSDKDnsDomainCacheEmpty = @"domainCacheEmpty";      // 没有缓存
 
-//本地DB存储字段
+// 本地DB存储字段
 static NSString * const DB_HttpDNS_IPV4_Channel = [kMSDKHttpDnsCache_A stringByAppendingString:kChannel];
 static NSString * const DB_HttpDNS_IPV4_ClientIP = [kMSDKHttpDnsCache_A stringByAppendingString:kClientIP];
 static NSString * const DB_HttpDNS_IPV4_TimeConsuming = [kMSDKHttpDnsCache_A stringByAppendingString:kDnsTimeConsuming];
@@ -93,4 +94,4 @@ static NSString * const DB_HttpDNS_IPV4_TTLExpired = [kMSDKHttpDnsCache_A string
 
 
 
-#endif
+#endif // HTTPDNS_SDK_IOS_MSDKDNS_MSDKDNSPRIVATE_H_

@@ -21,15 +21,15 @@
 
 @implementation MSDKDns
 
-static MSDKDns * _sharedInstance = nil;
+static MSDKDns * gSharedInstance = nil;
 
 #pragma mark - init
 + (instancetype) sharedInstance {
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
-        _sharedInstance = [[MSDKDns alloc] init];
+        gSharedInstance = [[MSDKDns alloc] init];
     });
-    return _sharedInstance;
+    return gSharedInstance;
 }
 
 - (instancetype) init {

@@ -228,8 +228,8 @@ static NSString *const kAnchorAlreadyAdded = @"AnchorAlreadyAdded";
                 MSDKDNSLOG(@"Get IP from HTTPDNS Successfully!");
                 NSRange hostFirstRange = [location rangeOfString:url.host];
                 if (NSNotFound != hostFirstRange.location) {
-                    NSString *Url = [location stringByReplacingCharactersInRange:hostFirstRange withString:ip];
-                    _curRequest.URL = [NSURL URLWithString:Url];
+                    NSString *urlString = [location stringByReplacingCharactersInRange:hostFirstRange withString:ip];
+                    _curRequest.URL = [NSURL URLWithString:urlString];
                     [_curRequest setValue:url.host forHTTPHeaderField:@"host"];
                 }
             }

@@ -20,14 +20,14 @@
 
 #pragma mark - init
 
-static MSDKDnsDB * _sharedInstance = nil;
+static MSDKDnsDB * gSharedInstance = nil;
 
 + (instancetype)shareInstance {
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
-        _sharedInstance = [[MSDKDnsDB alloc] init];
+        gSharedInstance = [[MSDKDnsDB alloc] init];
     });
-    return _sharedInstance;
+    return gSharedInstance;
 }
 
 - (instancetype) init {
@@ -62,7 +62,7 @@ static MSDKDnsDB * _sharedInstance = nil;
 }
 
 - (void)insertOrReplaceDomainInfo:(NSDictionary *)domainInfo Domain:(NSString *)domain {
-
+    
     @try {
         NSDictionary * hresultDict_A = domainInfo[kMSDKHttpDnsCache_A];
         NSDictionary * hresultDict_4A = domainInfo[kMSDKHttpDnsCache_4A];
@@ -241,7 +241,7 @@ static MSDKDnsDB * _sharedInstance = nil;
         } else {
             MSDKDNSLOG(@"Failed to select data from database, error: %s", _error);
         }
-    
+        
     } @catch (NSException *exception) {
         MSDKDNSLOG(@"Failed to select data from database, error: %@", exception);
     }

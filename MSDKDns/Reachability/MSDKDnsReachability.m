@@ -25,11 +25,11 @@ NSString *const kMSDKDnsReachabilityChangedNotification = @"MSDKDnsNetworkReacha
 
 #pragma mark - Supporting functions
 
-#define kShouldPrintReachabilityFlags 1
+#define ShouldPrintReachabilityFlags 1
 
-static void PrintReachabilityFlags(SCNetworkReachabilityFlags flags, const char* comment)
+static void printReachabilityFlags(SCNetworkReachabilityFlags flags, const char* comment)
 {
-#if kShouldPrintReachabilityFlags
+#if ShouldPrintReachabilityFlags
     
     MSDKDNSLOG(@"Reachability Flag Status: %c%c %c%c%c%c%c%c%c %s\n",
           (flags & kSCNetworkReachabilityFlagsIsWWAN)				? 'W' : '-',
@@ -47,11 +47,11 @@ static void PrintReachabilityFlags(SCNetworkReachabilityFlags flags, const char*
 #endif
 }
 
-static void ReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkReachabilityFlags flags, void* info)
+static void reachabilityCallback(SCNetworkReachabilityRef target, SCNetworkReachabilityFlags flags, void* info)
 {
 #pragma unused (target, flags)
-    NSCAssert(info != NULL, @"info was NULL in ReachabilityCallback");
-    NSCAssert([(__bridge NSObject*) info isKindOfClass: [MSDKDnsReachability class]], @"info was wrong class in ReachabilityCallback");
+    NSCAssert(info != NULL, @"info was NULL in reachabilityCallback");
+    NSCAssert([(__bridge NSObject*) info isKindOfClass: [MSDKDnsReachability class]], @"info was wrong class in reachabilityCallback");
     
     MSDKDnsReachability* noteObject = (__bridge MSDKDnsReachability *)info;
     // Post a notification to notify the client that the network reachability changed.
@@ -132,7 +132,7 @@ static void ReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkReach
     BOOL returnValue = NO;
     SCNetworkReachabilityContext context = {0, (__bridge void *)(self), NULL, NULL, NULL};
     
-    if (SCNetworkReachabilitySetCallback(_reachabilityRef, ReachabilityCallback, &context))
+    if (SCNetworkReachabilitySetCallback(_reachabilityRef, reachabilityCallback, &context))
     {
         if (SCNetworkReachabilityScheduleWithRunLoop(_reachabilityRef, CFRunLoopGetCurrent(), kCFRunLoopDefaultMode))
         {
@@ -167,7 +167,7 @@ static void ReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkReach
 
 - (MSDKDnsNetworkStatus)networkStatusForFlags:(SCNetworkReachabilityFlags)flags
 {
-    PrintReachabilityFlags(flags, "networkStatusForFlags");
+    printReachabilityFlags(flags, "networkStatusForFlags");
     if ((flags & kSCNetworkReachabilityFlagsReachable) == 0)
     {
         // The target host is not reachable.

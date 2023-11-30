@@ -435,8 +435,8 @@
     [self updateHostManagerDictWithIPs:sortedIps host:host];
 }
 
-- (void)updateHostManagerDictWithIPs:(NSArray *)IPs host:(NSString *)host {
-    if(!IPs){
+- (void)updateHostManagerDictWithIPs:(NSArray *)ips host:(NSString *)host {
+    if(!ips){
         return;
     }
     dispatch_async([MSDKDnsInfoTool msdkdns_queue], ^{
@@ -452,7 +452,7 @@
                 NSDictionary *cacheValue = [self.httpDnsResolver_A.domainInfo objectForKey:host];
                 if (cacheValue) {
                     NSMutableDictionary *newCacheValue = [NSMutableDictionary dictionaryWithDictionary:cacheValue];
-                    [newCacheValue setValue:IPs forKey:kIP];
+                    [newCacheValue setValue:ips forKey:kIP];
                     [cacheDict setObject:newCacheValue forKey:kMSDKHttpDnsCache_A];
                 }
                 
@@ -462,7 +462,7 @@
                     NSDictionary *ipv4CacheValue = [cacheValue objectForKey:@"ipv4"];
                     if (ipv4CacheValue) {
                         NSMutableDictionary *newCacheValue = [NSMutableDictionary dictionaryWithDictionary:ipv4CacheValue];
-                        [newCacheValue setValue:IPs forKey:kIP];
+                        [newCacheValue setValue:ips forKey:kIP];
                         [cacheDict setObject:newCacheValue forKey:kMSDKHttpDnsCache_A];
                     }
                 }

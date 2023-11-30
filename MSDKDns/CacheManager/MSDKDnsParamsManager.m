@@ -33,7 +33,7 @@
 @property (strong, nonatomic, readwrite) NSArray* preResolvedDomains;
 @property (assign, nonatomic, readwrite) HttpDnsAddressType msdkAddressType;
 @property (strong, nonatomic, readwrite) NSArray* keepAliveDomains;
-@property (strong, nonatomic, readwrite) NSDictionary* IPRankData;
+@property (strong, nonatomic, readwrite) NSDictionary* ipRankData;
 @property (assign, nonatomic, readwrite) BOOL enableKeepDomainsAlive;
 @property (assign, nonatomic, readwrite) BOOL expiredIPEnabled;
 @property (assign, nonatomic, readwrite) BOOL persistCacheIPEnabled;
@@ -43,14 +43,14 @@
 
 @implementation MSDKDnsParamsManager
 
-static MSDKDnsParamsManager * _sharedInstance = nil;
+static MSDKDnsParamsManager * gSharedInstance = nil;
 
 + (instancetype)shareInstance {
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
-        _sharedInstance = [[MSDKDnsParamsManager alloc] init];
+        gSharedInstance = [[MSDKDnsParamsManager alloc] init];
     });
-    return _sharedInstance;
+    return gSharedInstance;
 }
 
 - (id) init {
@@ -185,9 +185,9 @@ static MSDKDnsParamsManager * _sharedInstance = nil;
     });
 }
 
-- (void)msdkDnsSetIPRankData: (NSDictionary *)IPRankData {
+- (void)msdkDnsSetIPRankData: (NSDictionary *)ipRankData {
     dispatch_async([MSDKDnsInfoTool msdkdns_queue], ^{
-        self.IPRankData = [IPRankData copy];
+        self.ipRankData = [ipRankData copy];
     });
 }
 
@@ -291,7 +291,7 @@ static MSDKDnsParamsManager * _sharedInstance = nil;
 }
 
 - (NSDictionary *)msdkDnsGetIPRankData {
-    return _IPRankData;
+    return _ipRankData;
 }
 
 - (BOOL)msdkDnsGetEnableKeepDomainsAlive {

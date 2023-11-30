@@ -52,13 +52,13 @@
 
 #pragma mark - init
 
-static MSDKDnsManager * _sharedInstance = nil;
+static MSDKDnsManager * gSharedInstance = nil;
 + (instancetype)shareInstance {
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
-        _sharedInstance = [[MSDKDnsManager alloc] init];
+        gSharedInstance = [[MSDKDnsManager alloc] init];
     });
-    return _sharedInstance;
+    return gSharedInstance;
 }
 
 - (instancetype) init {
