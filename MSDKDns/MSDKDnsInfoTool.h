@@ -18,6 +18,7 @@
 
 + (NSString *)encryptUseAES:(NSString *)plainText key:(NSString *)key;
 + (NSString *)decryptUseAES:(NSString *)cipherString key:(NSString *)key;
-+ (NSURL *) httpsUrlWithDomain:(NSString *)domain dnsId:(int)dnsId dnsKey:(NSString *)dnsKey ipType:(HttpDnsIPType)ipType encryptType:(NSInteger)encryptType; //encryptType: 0 des,1 aes
++ (NSURL *) httpsUrlWithDomain:(NSString *)domain dnsId:(int)dnsId dnsKey:(NSString *)dnsKey ipType:(HttpDnsIPType)ipType
+                                                    encryptType:(NSInteger)encryptType; //encryptType: 0 des,1 aes
 + (NSString *)generateSessionID;
 @end

@@ -122,7 +122,8 @@ static MSDKDnsDB * gSharedInstance = nil;
             }
         }
         
-        NSString *insertSql = [NSString stringWithFormat:@"INSERT OR REPLACE into HttpDNSTable(domain, httpDnsIPV4Channel, httpDnsIPV4ClientIP, httpDnsIPV4IPs, httpDnsIPV4TimeConsuming, httpDnsIPV4TTL, httpDnsIPV4TTLExpried, httpDnsIPV6ClientIP, httpDnsIPV6IPs, httpDnsIPV6TimeConsuming, httpDnsIPV6TTL, httpDnsIPV6TTLExpried) values('%@','%@','%@','%@','%@','%@','%@','%@','%@','%@','%@','%@')",[domain copy],hresultDict_A_kChannel,hresultDict_A_kClientIP,hresultDict_A_kIP,hresultDict_A_kDnsTimeConsuming,hresultDict_A_kTTL,hresultDict_A_kTTLExpired,hresultDict_4A_kClientIP,hresultDict_4A_kIP,hresultDict_4A_kDnsTimeConsuming,hresultDict_4A_kTTL,hresultDict_4A_kTTLExpired];
+        NSString *insertSql = [NSString stringWithFormat:@"INSERT OR REPLACE into HttpDNSTable(domain, httpDnsIPV4Channel, httpDnsIPV4ClientIP, httpDnsIPV4IPs, httpDnsIPV4TimeConsuming, httpDnsIPV4TTL, httpDnsIPV4TTLExpried, httpDnsIPV6ClientIP, httpDnsIPV6IPs, httpDnsIPV6TimeConsuming, httpDnsIPV6TTL, httpDnsIPV6TTLExpried) values('%@','%@','%@','%@','%@','%@','%@','%@','%@','%@','%@','%@')",
+                               [domain copy],hresultDict_A_kChannel,hresultDict_A_kClientIP,hresultDict_A_kIP,hresultDict_A_kDnsTimeConsuming,hresultDict_A_kTTL,hresultDict_A_kTTLExpired,hresultDict_4A_kClientIP,hresultDict_4A_kIP,hresultDict_4A_kDnsTimeConsuming,hresultDict_4A_kTTL,hresultDict_4A_kTTLExpired];
         
         if (sqlite3_exec(_db, [insertSql UTF8String], NULL, NULL, &_error) == SQLITE_OK) {
             MSDKDNSLOG(@"Successfully insert data into database, domain = %@, domainInfo = %@", domain, domainInfo);
@@ -166,7 +167,8 @@ static MSDKDnsDB * gSharedInstance = nil;
                 NSString *httpDnsIPV4IPs = httpDnsIPV4IPs_char ? [NSString stringWithUTF8String:httpDnsIPV4IPs_char] : nil;
                 
                 char *httpDnsIPV4TimeConsuming_char = (char *)sqlite3_column_text(statement, 4);
-                NSString *httpDnsIPV4TimeConsuming = httpDnsIPV4TimeConsuming_char ? [NSString stringWithUTF8String:httpDnsIPV4TimeConsuming_char] : nil;
+                NSString *httpDnsIPV4TimeConsuming = httpDnsIPV4TimeConsuming_char ? 
+                                                        [NSString stringWithUTF8String:httpDnsIPV4TimeConsuming_char] : nil;
                 
                 char *httpDnsIPV4TTL_char = (char *)sqlite3_column_text(statement, 5);
                 NSString *httpDnsIPV4TTL = httpDnsIPV4TTL_char ? [NSString stringWithUTF8String:httpDnsIPV4TTL_char] : nil;
@@ -184,7 +186,8 @@ static MSDKDnsDB * gSharedInstance = nil;
                 NSString *httpDnsIPV6IPs = httpDnsIPV6IPs_char ? [NSString stringWithUTF8String:httpDnsIPV6IPs_char] : nil;
                 
                 char *httpDnsIPV6TimeConsuming_char = (char *)sqlite3_column_text(statement, 10);
-                NSString *httpDnsIPV6TimeConsuming = httpDnsIPV6TimeConsuming_char ? [NSString stringWithUTF8String:httpDnsIPV6TimeConsuming_char] : nil;
+                NSString *httpDnsIPV6TimeConsuming = httpDnsIPV6TimeConsuming_char ? 
+                                                        [NSString stringWithUTF8String:httpDnsIPV6TimeConsuming_char] : nil;
                 
                 char *httpDnsIPV6TTL_char = (char *)sqlite3_column_text(statement, 11);
                 NSString *httpDnsIPV6TTL = httpDnsIPV6TTL_char ? [NSString stringWithUTF8String:httpDnsIPV6TTL_char] : nil;

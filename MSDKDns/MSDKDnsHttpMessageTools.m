@@ -192,7 +192,8 @@ static NSString *const kAnchorAlreadyAdded = @"AnchorAlreadyAdded";
                 if (statusCode == 304) {
                     NSURL* url = (__bridge NSURL *) CFHTTPMessageCopyRequestURL(message);
                     NSString* httpVersion = (__bridge NSString *) CFHTTPMessageCopyVersion(message);
-                    NSHTTPURLResponse* response = [[NSHTTPURLResponse alloc] initWithURL:url statusCode:statusCode HTTPVersion:httpVersion headerFields:headDict];
+                    NSHTTPURLResponse* response = [[NSHTTPURLResponse alloc] initWithURL:url statusCode:statusCode
+                                                                             HTTPVersion:httpVersion headerFields:headDict];
                     [self.client URLProtocol:self didReceiveResponse:response cacheStoragePolicy:NSURLCacheStorageNotAllowed];
                 }
                 [self.client URLProtocolDidFinishLoading:self];
@@ -269,7 +270,8 @@ static NSString *const kAnchorAlreadyAdded = @"AnchorAlreadyAdded";
                 CFStringRef httpVersion = CFHTTPMessageCopyVersion(message);
                 // 获取响应头部的状态码
                 CFIndex statusCode = CFHTTPMessageGetResponseStatusCode(message);
-                NSHTTPURLResponse *response = [[NSHTTPURLResponse alloc] initWithURL:_curRequest.URL statusCode:statusCode HTTPVersion:(__bridge NSString *) httpVersion headerFields:headDict];
+                NSHTTPURLResponse *response = [[NSHTTPURLResponse alloc] initWithURL:_curRequest.URL statusCode:statusCode
+                                                                         HTTPVersion:(__bridge NSString *) httpVersion headerFields:headDict];
                 
                 [self.client URLProtocol:self didReceiveResponse:response cacheStoragePolicy:NSURLCacheStorageNotAllowed];
                 
