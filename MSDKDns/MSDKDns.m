@@ -188,14 +188,7 @@ static MSDKDns * gSharedInstance = nil;
             return dnsResult;
         }
         // 转换成小写
-        NSMutableArray *lowerCaseArray = [NSMutableArray array];
-        for(int i = 0; i < [domains count]; i++) {
-            NSString *d = [domains objectAtIndex:i];
-            if (d && d.length > 0) {
-                [lowerCaseArray addObject:[d lowercaseString]];
-            }
-        }
-        domains = lowerCaseArray;
+        domains = [MSDKDnsInfoTool arrayTransLowercase:domains];
         //进行httpdns请求
         NSDate * date = [NSDate date];
         //进行httpdns请求
@@ -222,14 +215,7 @@ static MSDKDns * gSharedInstance = nil;
             return dnsResult;
         }
         // 转换成小写
-        NSMutableArray *lowerCaseArray = [NSMutableArray array];
-        for(int i = 0; i < [domains count]; i++) {
-            NSString *d = [domains objectAtIndex:i];
-            if (d && d.length > 0) {
-                [lowerCaseArray addObject:[d lowercaseString]];
-            }
-        }
-        domains = lowerCaseArray;
+        domains = [MSDKDnsInfoTool arrayTransLowercase:domains];
         //进行httpdns请求
         NSDate * date = [NSDate date];
         //进行httpdns请求
@@ -316,14 +302,7 @@ static MSDKDns * gSharedInstance = nil;
             return;
         }
         // 转换成小写
-        NSMutableArray *lowerCaseArray = [NSMutableArray array];
-        for(int i = 0; i < [domains count]; i++) {
-            NSString *d = [domains objectAtIndex:i];
-            if (d && d.length > 0) {
-                [lowerCaseArray addObject:[d lowercaseString]];
-            }
-        }
-        domains = lowerCaseArray;
+        domains = [MSDKDnsInfoTool arrayTransLowercase:domains];
         NSDate * date = [NSDate date];
         [[MSDKDnsManager shareInstance] getHostsByNames:domains verbose:NO returnIps:^(NSDictionary *ipsDict) {
             NSTimeInterval time_consume = [[NSDate date] timeIntervalSinceDate:date] * 1000;
@@ -366,14 +345,7 @@ static MSDKDns * gSharedInstance = nil;
             return;
         }
         // 转换成小写
-        NSMutableArray *lowerCaseArray = [NSMutableArray array];
-        for(int i = 0; i < [domains count]; i++) {
-            NSString *d = [domains objectAtIndex:i];
-            if (d && d.length > 0) {
-                [lowerCaseArray addObject:[d lowercaseString]];
-            }
-        }
-        domains = lowerCaseArray;
+        domains = [MSDKDnsInfoTool arrayTransLowercase:domains];
         NSDate * date = [NSDate date];
         [[MSDKDnsManager shareInstance] getHostsByNames:domains verbose:YES returnIps:^(NSDictionary *ipsDict) {
             NSTimeInterval time_consume = [[NSDate date] timeIntervalSinceDate:date] * 1000;

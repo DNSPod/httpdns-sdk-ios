@@ -21,4 +21,5 @@
 + (NSURL *) httpsUrlWithDomain:(NSString *)domain dnsId:(int)dnsId dnsKey:(NSString *)dnsKey ipType:(HttpDnsIPType)ipType
                                                     encryptType:(NSInteger)encryptType; //encryptType: 0 des,1 aes
 + (NSString *)generateSessionID;
++ (NSArray *)arrayTransLowercase:(NSArray *)data;
 @end

@@ -532,4 +532,15 @@ char MSDKDnsHexCharToChar(char high, char low) {
     return YES;
 }
 
++ (NSArray *)arrayTransLowercase:(NSArray *)data {
+    NSMutableArray *lowerCaseArray = [NSMutableArray array];
+    for(int i = 0; i < [data count]; i++) {
+        NSString *d = [data objectAtIndex:i];
+        if (d && d.length > 0) {
+            [lowerCaseArray addObject:[d lowercaseString]];
+        }
+    }
+    return lowerCaseArray;
+}
+
 @end
