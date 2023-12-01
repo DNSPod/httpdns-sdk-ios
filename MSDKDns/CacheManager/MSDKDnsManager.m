@@ -153,9 +153,9 @@ static MSDKDnsManager * gSharedInstance = nil;
     // 查找缓存，不存在或者ttl超时则放入待查询数组，ttl超时还放入排除结果的数组以便如果禁用返回ttl过期的解析结果则进行排除结果
     for (int i = 0; i < [domains count]; i++) {
         NSString *domain = [domains objectAtIndex:i];
-        if ([[self domianCache:cacheDomainDict check:domain] isEqualToString:MSDKDnsDomainCacheEmpty]) {
+        if ([[self domainCache:cacheDomainDict check:domain] isEqualToString:MSDKDnsDomainCacheEmpty]) {
             [toCheckDomains addObject:domain];
-        } else if ([[self domianCache:cacheDomainDict check:domain] isEqualToString:MSDKDnsDomainCacheExpired]) {
+        } else if ([[self domainCache:cacheDomainDict check:domain] isEqualToString:MSDKDnsDomainCacheExpired]) {
             [toCheckDomains addObject:domain];
             [toEmptyDomains addObject:domain];
         } else {
@@ -192,6 +192,13 @@ static MSDKDnsManager * gSharedInstance = nil;
     NSDictionary * result = verbose?
         [self fullResultDictionaryEnableExpired:domains fromCache:cacheDomainDict toEmpty:toEmptyDomains] :
         [self resultDictionaryEnableExpired:domains fromCache:cacheDomainDict toEmpty:toEmptyDomains];
+    
+    [self excuteOptimismReport:domains result:result verbose:verbose];
+    
+    return result;
+}
+
+- (void)excuteOptimismReport:(NSArray *)domains result:(NSDictionary *)result verbose:(BOOL)verbose {
     // 当开启乐观DNS之后，如果结果为0则上报errorCode=3，要所有域名解析的结果都为0
     BOOL needReport = NO;
     if (verbose) {
@@ -241,7 +248,6 @@ static MSDKDnsManager * gSharedInstance = nil;
             }];
         }
     }
-    return result;
 }
 
 #pragma mark async
@@ -314,7 +320,7 @@ static MSDKDnsManager * gSharedInstance = nil;
     // 查找缓存，缓存中有HttpDns数据且ttl未超时则直接返回结果,不存在或者ttl超时则放入待查询数组
     for (int i = 0; i < [domains count]; i++) {
         NSString *domain = [domains objectAtIndex:i];
-        if (![[self domianCache:cacheDomainDict check:domain] isEqualToString:MSDKDnsDomainCacheHit]) {
+        if (![[self domainCache:cacheDomainDict check:domain] isEqualToString:MSDKDnsDomainCacheHit]) {
             [toCheckDomains addObject:domain];
         } else {
             MSDKDNSLOG(@"%@ TTL has not expiried,return result from cache directly!", domain);
@@ -470,21 +476,21 @@ static MSDKDnsManager * gSharedInstance = nil;
 - (NSDictionary *)fullResultDictionaryEnableExpired: (NSArray *)domains fromCache:(NSDictionary *)domainDict toEmpty:(NSArray *)emptyDomains {
     NSMutableDictionary *resultDict = [NSMutableDictionary dictionary];
     BOOL expiredIPEnabled = [[MSDKDnsParamsManager shareInstance] msdkDnsGetExpiredIPEnabled];
+    BOOL httpOnly = [[MSDKDnsParamsManager shareInstance] msdkDnsGetHttpOnly];
     for (int i = 0; i < [domains count]; i++) {
         NSString *domain = [domains objectAtIndex:i];
         BOOL domainNeedEmpty = [emptyDomains containsObject:domain];
         NSMutableDictionary * ipResult = [NSMutableDictionary dictionary];
-        BOOL httpOnly = [[MSDKDnsParamsManager shareInstance] msdkDnsGetHttpOnly];
         if (domainDict) {
             NSDictionary * cacheDict = domainDict[domain];
             if (cacheDict && [cacheDict isKindOfClass:[NSDictionary class]]) {
                 
                 NSDictionary * hresultDict_A = cacheDict[kMSDKHttpDnsCache_A];
                 NSDictionary * hresultDict_4A = cacheDict[kMSDKHttpDnsCache_4A];
-                
                 if (!httpOnly) {
                     NSDictionary * lresultDict = cacheDict[kMSDKLocalDnsCache];
-                    if (lresultDict && [lresultDict isKindOfClass:[NSDictionary class]]) {
+                    BOOL isExistLocalResult = lresultDict && [lresultDict isKindOfClass:[NSDictionary class]];
+                    if (isExistLocalResult) {
                         NSArray *ipsArray = [lresultDict[kIP] mutableCopy];
                         if (ipsArray.count == 2) {
                             // 缓存过期，并且没有开启使用过期缓存
@@ -498,9 +504,11 @@ static MSDKDnsManager * gSharedInstance = nil;
                         }
                     }
                 }
-                if (hresultDict_A && [hresultDict_A isKindOfClass:[NSDictionary class]]) {
+                BOOL isExistHttpResultA = hresultDict_A && [hresultDict_A isKindOfClass:[NSDictionary class]];
+                if (isExistHttpResultA) {
                     NSArray * ipsArray = hresultDict_A[kIP];
-                    if (ipsArray && [ipsArray isKindOfClass:[NSArray class]] && ipsArray.count > 0) {
+                    BOOL isExistIpsArray = ipsArray && [ipsArray isKindOfClass:[NSArray class]] && ipsArray.count > 0;
+                    if (isExistIpsArray) {
                         // 缓存过期，并且没有开启使用过期缓存
                         if (domainNeedEmpty && !expiredIPEnabled) {
                             [ipResult setObject:@[@0] forKey:@"ipv4"];
@@ -509,9 +517,11 @@ static MSDKDnsManager * gSharedInstance = nil;
                         }
                     }
                 }
-                if (hresultDict_4A && [hresultDict_4A isKindOfClass:[NSDictionary class]]) {
+                BOOL isExistHttpResult4A = hresultDict_4A && [hresultDict_4A isKindOfClass:[NSDictionary class]];
+                if (isExistHttpResult4A) {
                     NSArray * ipsArray = hresultDict_4A[kIP];
-                    if (ipsArray && [ipsArray isKindOfClass:[NSArray class]] && ipsArray.count > 0) {
+                    BOOL isExistIpsArray = ipsArray && [ipsArray isKindOfClass:[NSArray class]] && ipsArray.count > 0;
+                    if (isExistIpsArray) {
                         // 缓存过期，并且没有开启使用过期缓存
                         if (domainNeedEmpty && !expiredIPEnabled) {
                             [ipResult setObject:@[@0] forKey:@"ipv6"];
@@ -892,7 +902,7 @@ static MSDKDnsManager * gSharedInstance = nil;
 # pragma mark - check caches
 
 // 检查缓存状态
-- (NSString *) domianCache:(NSDictionary *)cache check:(NSString *)domain {
+- (NSString *) domainCache:(NSDictionary *)cache check:(NSString *)domain {
     NSDictionary * domainInfo = cache[domain];
     if (domainInfo && [domainInfo isKindOfClass:[NSDictionary class]]) {
         NSDictionary * cacheDict = domainInfo[kMSDKHttpDnsCache_A];
@@ -1048,13 +1058,7 @@ static MSDKDnsManager * gSharedInstance = nil;
                         [[MSDKDnsManager shareInstance] detectHttpDnsServers];
                     }
                     // MSDKDNSLOG(@"Successfully get configuration.config data is %@, %@",str,configDict);
-                }else{
-                //    MSDKDNSLOG(@"Failed to get configuration，error：%@",str);
                 }
-                
-                
-            }else {
-            // 数据为空暂时不做处理
             }
         } else {
             // 网络访问失败
