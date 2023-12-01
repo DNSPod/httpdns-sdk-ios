@@ -262,12 +262,9 @@
             [domainInfo enumerateKeysAndObjectsUsingBlock:^(id  _Nonnull domain, id  _Nonnull obj, BOOL * _Nonnull stop) {
                 // NSLog(@"domain = %@", domain);
                 // NSLog(@"domainInfo = %@", domainInfo);
-                
                 // 判断此次请求的域名中有多少属于保活域名，是则开启延时解析请求，自动刷新缓存
                 if (enableKeepDomainsAlive && keepAliveDomains && domain && [keepAliveDomains containsObject:domain]) {
-                    
                     NSMutableString * afterTime = [[NSMutableString alloc] init];
-                    
                     if(resolver == self.httpDnsResolver_BOTH){
                         NSDictionary *domainResult = domainInfo[domain];
                         if (domainResult) {
@@ -289,7 +286,6 @@
                             afterTime = [[NSMutableString alloc]initWithString:ttl];
                         }
                     }
-                    
                     //  NSLog(@"4444444延时更新请求等待，预计在%f秒后开始!请求域名为%@",afterTime.floatValue,domain);
                     if (!domainISOpenDelayDispatch[domain] && afterTime.floatValue > 0) {
                         // 使用静态字典来记录该域名是否开启了一个延迟解析请求，如果已经开启则忽略，没有则立马开启一个
@@ -303,57 +299,58 @@
                                 [[MSDKDnsManager shareInstance] refreshCacheDelay:@[domain] clearDispatchTag:YES];
                             }else {
                                 [[MSDKDnsManager shareInstance] msdkDnsClearDomainsOpenDelayDispatch:@[domain]];
-                                
                             }
                         });
                     }
-                    
                 }
             }];
-            
         }
-        
-        if (resolver == self.httpDnsResolver_A || resolver == self.httpDnsResolver_BOTH) {
-            NSDictionary *IPRankData = [[MSDKDnsParamsManager shareInstance] msdkDnsGetIPRankData];
-            if (IPRankData) {
-                [domainInfo enumerateKeysAndObjectsUsingBlock:^(id  _Nonnull domain, id  _Nonnull obj, BOOL * _Nonnull stop) {
-                    if (!domain) {
-                        return;
-                    }
-                    NSArray *allHost = [IPRankData allKeys];
-                    
-                    if (!allHost || allHost.count == 0) {
-                        return;
-                    }
-                    if (![allHost containsObject:domain]) {
-                        return;
-                    }
-                    @try {
-                        if(resolver == self.httpDnsResolver_BOTH){
-                            NSDictionary *domainResult = domainInfo[domain];
-                            if (domainResult) {
-                                NSDictionary *ipv4Value = [domainResult objectForKey:@"ipv4"];
-                                if (ipv4Value) {
-                                    NSArray *ips = [ipv4Value objectForKey:kIP];
-                                    if(ips){
-                                        [self aysncUpdateIPRankingWithResult:ips forHost:domain];
-                                    }
-                                }
-                            }
-                        }else{
-                            NSDictionary *domainResult = domainInfo[domain];
-                            if (domainResult) {
-                                NSArray *ips = [domainResult objectForKey:kIP];
+        // 处理IP优选逻辑
+        [self excuteIPRank:resolver didGetDomainInfo:domainInfo];
+    });
+}
+
+- (void)excuteIPRank:(MSDKDnsResolver *)resolver didGetDomainInfo:(NSDictionary *)domainInfo {
+    if (resolver == self.httpDnsResolver_A || resolver == self.httpDnsResolver_BOTH) {
+        NSDictionary *IPRankData = [[MSDKDnsParamsManager shareInstance] msdkDnsGetIPRankData];
+        if (IPRankData) {
+            [domainInfo enumerateKeysAndObjectsUsingBlock:^(id  _Nonnull domain, id  _Nonnull obj, BOOL * _Nonnull stop) {
+                if (!domain) {
+                    return;
+                }
+                NSArray *allHost = [IPRankData allKeys];
+                
+                if (!allHost || allHost.count == 0) {
+                    return;
+                }
+                if (![allHost containsObject:domain]) {
+                    return;
+                }
+                @try {
+                    if(resolver == self.httpDnsResolver_BOTH){
+                        NSDictionary *domainResult = domainInfo[domain];
+                        if (domainResult) {
+                            NSDictionary *ipv4Value = [domainResult objectForKey:@"ipv4"];
+                            if (ipv4Value) {
+                                NSArray *ips = [ipv4Value objectForKey:kIP];
                                 if(ips){
                                     [self aysncUpdateIPRankingWithResult:ips forHost:domain];
                                 }
                             }
                         }
-                    } @catch (NSException *exception) {}
-                }];
-            }
+                    }else{
+                        NSDictionary *domainResult = domainInfo[domain];
+                        if (domainResult) {
+                            NSArray *ips = [domainResult objectForKey:kIP];
+                            if(ips){
+                                [self aysncUpdateIPRankingWithResult:ips forHost:domain];
+                            }
+                        }
+                    }
+                } @catch (NSException *exception) {}
+            }];
         }
-    });
+    }
 }
 
 - (NSDictionary *)getDomainsDNSFromCache:(NSArray *)domains {
@@ -596,9 +593,7 @@
             [[MSDKDnsManager shareInstance] cacheDomainInfo:cacheDict domain:domain];
         }
     }
-    
     MSDKDNSLOG(@"callBack! :%@", self.toCheckDomains);
-    BOOL httpOnly = [[MSDKDnsParamsManager shareInstance] msdkDnsGetHttpOnly];
     if (self.httpDnsResolver_A && self.httpDnsResolver_4A) {
         if (self.httpDnsResolver_A.isFinished && self.httpDnsResolver_4A.isFinished) {
             [self callNotify];
@@ -616,7 +611,12 @@
             [self callNotify];
         }
     }
+    [self excuteReport];
+}
+
+- (void)excuteReport {
     //LocalHttp 和 HttpDns均完成，则返回结果，如果开启了httpOnly或者使用过期缓存IP则只等待HttpDns完成就立即返回
+    BOOL httpOnly = [[MSDKDnsParamsManager shareInstance] msdkDnsGetHttpOnly];
     BOOL expiredIPEnabled = [[MSDKDnsParamsManager shareInstance] msdkDnsGetExpiredIPEnabled];
     if (httpOnly || expiredIPEnabled || self.localDnsResolver.isFinished) {
         if (self.httpDnsResolver_A && self.httpDnsResolver_4A) {
@@ -650,25 +650,6 @@
         if (!routeip) {
             routeip = @"";
         }
-        NSString *timeConsuming = @"";
-        for(int i = 0; i < [self.toCheckDomains count]; i++) {
-            NSString *domain = [self.toCheckDomains objectAtIndex:i];
-            NSDictionary * domainDic = [tempDict objectForKey:domain];
-            if (domainDic) {
-                NSDictionary *ipv4CacheValue = [domainDic objectForKey:kMSDKHttpDnsCache_A];
-                NSDictionary *ipv6CacheValue = [domainDic objectForKey:kMSDKHttpDnsCache_4A];
-                if (ipv4CacheValue && [ipv4CacheValue objectForKey:kDnsTimeConsuming]) {
-                    timeConsuming = [ipv4CacheValue objectForKey:kDnsTimeConsuming];
-                }
-                if (ipv6CacheValue && [ipv6CacheValue objectForKey:kDnsTimeConsuming]) {
-                    timeConsuming = [ipv6CacheValue objectForKey:kDnsTimeConsuming];
-                }
-            }
-            // 当耗时有值的时候，取消遍历，因为批量解析耗时一致
-            if (![timeConsuming isEqualToString:@""]) {
-                break;
-            }
-        }
         NSString *req_type = @"a";
         NSNumber *status = @0;
         if (self.httpDnsResolver_A) {
@@ -694,16 +675,23 @@
         } else if ([httpDnsIP_4A length] > 0) {
             httpdnsIPs = [NSString stringWithFormat:@"%@", httpDnsIP_4A];
         }
-        
+        NSString *timeConsuming = @"";
         NSNumber *localDNSSpend = [NSNumber numberWithInt:-1];
         // 当httpOnly未开启时，对localDNS时延进行上报。否则上报-1来区分
-        if (!httpOnly) {
-            for(int i = 0; i < [self.toCheckDomains count]; i++) {
-                NSString *domain = [self.toCheckDomains objectAtIndex:i];
-                NSDictionary * domainData = [tempDict objectForKey:domain];
-
-                if (domainData) {
-                    NSDictionary *localDNSData = [domainData objectForKey:kMSDKLocalDnsCache];
+        for(int i = 0; i < [self.toCheckDomains count]; i++) {
+            NSString *domain = [self.toCheckDomains objectAtIndex:i];
+            NSDictionary * domainDic = [tempDict objectForKey:domain];
+            if (domainDic) {
+                NSDictionary *ipv4CacheValue = [domainDic objectForKey:kMSDKHttpDnsCache_A];
+                NSDictionary *ipv6CacheValue = [domainDic objectForKey:kMSDKHttpDnsCache_4A];
+                if (ipv4CacheValue && [ipv4CacheValue objectForKey:kDnsTimeConsuming]) {
+                    timeConsuming = [ipv4CacheValue objectForKey:kDnsTimeConsuming];
+                }
+                if (ipv6CacheValue && [ipv6CacheValue objectForKey:kDnsTimeConsuming]) {
+                    timeConsuming = [ipv6CacheValue objectForKey:kDnsTimeConsuming];
+                }
+                if (!httpOnly) {
+                    NSDictionary *localDNSData = [domainDic objectForKey:kMSDKLocalDnsCache];
                     if (localDNSData) {
                         int spend = [[localDNSData objectForKey:kDnsTimeConsuming] intValue];
                         // 针对批量解析，localDNS解析时延取最大值
@@ -711,6 +699,9 @@
                             localDNSSpend = @(spend);
                         }
                     }
+                } else if (![timeConsuming isEqualToString:@""]) {
+                    // 当耗时有值的时候，取消遍历，因为批量解析耗时一致，并且当开启httpOnly无需上报localDns时延的话，可以直接跳过
+                    break;
                 }
             }
         }
@@ -753,48 +744,40 @@
     for(int i = 0; i < [self.toCheckDomains count]; i++) {
         NSString *domain = [self.toCheckDomains objectAtIndex:i];
         NSDictionary * tempDict = [[[MSDKDnsManager shareInstance] domainDict] objectForKey:domain];
-        NSMutableDictionary *cacheDict;
-        
+        NSMutableDictionary *cacheDict = [[NSMutableDictionary alloc] init];
         if (tempDict) {
             cacheDict = [NSMutableDictionary dictionaryWithDictionary:tempDict];
-        } else {
-            cacheDict = [[NSMutableDictionary alloc] init];
         }
-        
-        if (resolver && (resolver == self.httpDnsResolver_A) && self.httpDnsResolver_A.domainInfo) {
-            
-            NSDictionary *cacheValue = [self.httpDnsResolver_A.domainInfo objectForKey:domain];
-            if (cacheValue) {
-                [cacheDict setObject:cacheValue forKey:kMSDKHttpDnsCache_A];
-            }
-            
-        } else if (resolver && (resolver == self.httpDnsResolver_4A) && self.httpDnsResolver_4A.domainInfo) {
-            
-            NSDictionary *cacheValue = [self.httpDnsResolver_4A.domainInfo objectForKey:domain];
-            if (cacheValue) {
-                [cacheDict setObject:cacheValue forKey:kMSDKHttpDnsCache_4A];
-            }
-            
-        } else if (resolver && (resolver == self.localDnsResolver) && self.localDnsResolver.domainInfo) {
-            
-            NSDictionary *cacheValue = [self.localDnsResolver.domainInfo objectForKey:domain];
-            if (cacheValue) {
-                [cacheDict setObject:cacheValue forKey:kMSDKLocalDnsCache];
-            }
-        } else if (resolver && (resolver == self.httpDnsResolver_BOTH) && self.httpDnsResolver_BOTH.domainInfo) {
-            NSDictionary *cacheValue = [self.httpDnsResolver_BOTH.domainInfo objectForKey:domain];
-            if (cacheValue) {
-                NSDictionary *ipv4CacheValue = [cacheValue objectForKey:@"ipv4"];
-                NSDictionary *ipv6CacheValue = [cacheValue objectForKey:@"ipv6"];
-                if (ipv4CacheValue) {
-                    [cacheDict setObject:ipv4CacheValue forKey:kMSDKHttpDnsCache_A];
+        if (resolver) {
+            if ((resolver == self.httpDnsResolver_A) && self.httpDnsResolver_A.domainInfo) {
+                NSDictionary *cacheValue = [self.httpDnsResolver_A.domainInfo objectForKey:domain];
+                if (cacheValue) {
+                    [cacheDict setObject:cacheValue forKey:kMSDKHttpDnsCache_A];
                 }
-                if (ipv6CacheValue) {
-                    [cacheDict setObject:ipv6CacheValue forKey:kMSDKHttpDnsCache_4A];
+            } else if ((resolver == self.httpDnsResolver_4A) && self.httpDnsResolver_4A.domainInfo) {
+                NSDictionary *cacheValue = [self.httpDnsResolver_4A.domainInfo objectForKey:domain];
+                if (cacheValue) {
+                    [cacheDict setObject:cacheValue forKey:kMSDKHttpDnsCache_4A];
+                }
+            } else if ((resolver == self.localDnsResolver) && self.localDnsResolver.domainInfo) {
+                NSDictionary *cacheValue = [self.localDnsResolver.domainInfo objectForKey:domain];
+                if (cacheValue) {
+                    [cacheDict setObject:cacheValue forKey:kMSDKLocalDnsCache];
+                }
+            } else if ((resolver == self.httpDnsResolver_BOTH) && self.httpDnsResolver_BOTH.domainInfo) {
+                NSDictionary *cacheValue = [self.httpDnsResolver_BOTH.domainInfo objectForKey:domain];
+                if (cacheValue) {
+                    NSDictionary *ipv4CacheValue = [cacheValue objectForKey:@"ipv4"];
+                    NSDictionary *ipv6CacheValue = [cacheValue objectForKey:@"ipv6"];
+                    if (ipv4CacheValue) {
+                        [cacheDict setObject:ipv4CacheValue forKey:kMSDKHttpDnsCache_A];
+                    }
+                    if (ipv6CacheValue) {
+                        [cacheDict setObject:ipv6CacheValue forKey:kMSDKHttpDnsCache_4A];
+                    }
                 }
             }
         }
-        
         if (cacheDict && domain) {
             [[MSDKDnsManager shareInstance] cacheDomainInfo:cacheDict domain:domain];
             BOOL persistCacheIPEnabled = [[MSDKDnsParamsManager shareInstance] msdkDnsGetPersistCacheIPEnabled];
