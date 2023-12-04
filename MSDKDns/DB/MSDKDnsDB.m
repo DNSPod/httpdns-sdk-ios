@@ -144,117 +144,85 @@ static MSDKDnsDB * gSharedInstance = nil;
 
 - (NSDictionary *)getDataFromDB {
     NSMutableDictionary *newResult = [[NSMutableDictionary alloc] init];
-    
     sqlite3_stmt *statement;
-    
-    // @"select * from myTable"  查询所有 key 值内容
-    //    NSString *selectSql = @"select id, name, age, address from myTable";
     NSString *selectSql = @"select domain, httpDnsIPV4Channel, httpDnsIPV4ClientIP, httpDnsIPV4IPs, httpDnsIPV4TimeConsuming, httpDnsIPV4TTL, httpDnsIPV4TTLExpried, httpDnsIPV6Channel, httpDnsIPV6ClientIP, httpDnsIPV6IPs, httpDnsIPV6TimeConsuming, httpDnsIPV6TTL, httpDnsIPV6TTLExpried from HttpDNSTable";
     
     @try {
         if (sqlite3_prepare_v2(_db, [selectSql UTF8String], -1, &statement, nil) == SQLITE_OK) {
-            
-            while(sqlite3_step(statement) == SQLITE_ROW) {
+            while (sqlite3_step(statement) == SQLITE_ROW) {
                 NSMutableDictionary *domainInfo = [[NSMutableDictionary alloc] init];
                 NSMutableDictionary *httpDnsIPV4Info = [[NSMutableDictionary alloc] init];
                 NSMutableDictionary *httpDnsIPV6Info = [[NSMutableDictionary alloc] init];
                 
                 NSString *domain = [NSString stringWithUTF8String:(char *)sqlite3_column_text(statement, 0)];
                 
-                char *httpDnsIPV4Channel_char = (char *)sqlite3_column_text(statement, 1);
-                NSString *httpDnsIPV4Channel = httpDnsIPV4Channel_char ? [NSString stringWithUTF8String:httpDnsIPV4Channel_char] : nil;
+                NSArray *httpDnsIPV4InfoArray = [self getHttpDnsIPV4InfoArrayWithStatement:statement];
+                NSArray *httpDnsIPV6InfoArray = [self getHttpDnsIPV6InfoArrayWithStatement:statement];
                 
-                char *httpDnsIPV4ClientIP_char = (char *)sqlite3_column_text(statement, 2);
-                NSString *httpDnsIPV4ClientIP = httpDnsIPV4ClientIP_char ? [NSString stringWithUTF8String:httpDnsIPV4ClientIP_char] : nil;
+                [self fillHttpDnsIPV4Info:httpDnsIPV4Info withArray:httpDnsIPV4InfoArray];
+                [self fillHttpDnsIPV6Info:httpDnsIPV6Info withArray:httpDnsIPV6InfoArray];
                 
-                char *httpDnsIPV4IPs_char = (char *)sqlite3_column_text(statement, 3);
-                NSString *httpDnsIPV4IPs = httpDnsIPV4IPs_char ? [NSString stringWithUTF8String:httpDnsIPV4IPs_char] : nil;
-                
-                char *httpDnsIPV4TimeConsuming_char = (char *)sqlite3_column_text(statement, 4);
-                NSString *httpDnsIPV4TimeConsuming = httpDnsIPV4TimeConsuming_char ? 
-                                                        [NSString stringWithUTF8String:httpDnsIPV4TimeConsuming_char] : nil;
-                
-                char *httpDnsIPV4TTL_char = (char *)sqlite3_column_text(statement, 5);
-                NSString *httpDnsIPV4TTL = httpDnsIPV4TTL_char ? [NSString stringWithUTF8String:httpDnsIPV4TTL_char] : nil;
-                
-                char *httpDnsIPV4TTLExpried_char = (char *)sqlite3_column_text(statement, 6);
-                NSString *httpDnsIPV4TTLExpried = httpDnsIPV4TTLExpried_char ? [NSString stringWithUTF8String:httpDnsIPV4TTLExpried_char] : nil;
-                
-                char *httpDnsIPV6Channel_char = (char *)sqlite3_column_text(statement, 7);
-                NSString *httpDnsIPV6Channel = httpDnsIPV6Channel_char ? [NSString stringWithUTF8String:httpDnsIPV6Channel_char] : nil;
-                
-                char *httpDnsIPV6ClientIP_char = (char *)sqlite3_column_text(statement, 8);
-                NSString *httpDnsIPV6ClientIP = httpDnsIPV6ClientIP_char ? [NSString stringWithUTF8String:httpDnsIPV6ClientIP_char] : nil;
-                
-                char *httpDnsIPV6IPs_char = (char *)sqlite3_column_text(statement, 9);
-                NSString *httpDnsIPV6IPs = httpDnsIPV6IPs_char ? [NSString stringWithUTF8String:httpDnsIPV6IPs_char] : nil;
-                
-                char *httpDnsIPV6TimeConsuming_char = (char *)sqlite3_column_text(statement, 10);
-                NSString *httpDnsIPV6TimeConsuming = httpDnsIPV6TimeConsuming_char ? 
-                                                        [NSString stringWithUTF8String:httpDnsIPV6TimeConsuming_char] : nil;
-                
-                char *httpDnsIPV6TTL_char = (char *)sqlite3_column_text(statement, 11);
-                NSString *httpDnsIPV6TTL = httpDnsIPV6TTL_char ? [NSString stringWithUTF8String:httpDnsIPV6TTL_char] : nil;
-                
-                char *httpDnsIPV6TTLExpried_char = (char *)sqlite3_column_text(statement, 12);
-                NSString *httpDnsIPV6TTLExpried = httpDnsIPV6TTLExpried_char ? [NSString stringWithUTF8String:httpDnsIPV6TTLExpried_char] : nil;
-                
-                @try {
-                    if([self isExist:httpDnsIPV4Channel]){
-                        [httpDnsIPV4Info setObject:httpDnsIPV4Channel forKey:kChannel];
-                    }
-                    if([self isExist:httpDnsIPV4ClientIP]){
-                        [httpDnsIPV4Info setObject:httpDnsIPV4ClientIP forKey:kClientIP];
-                    }
-                    if([self isExist:httpDnsIPV4IPs]){
-                        [httpDnsIPV4Info setObject:[httpDnsIPV4IPs componentsSeparatedByString:@","] forKey:kIP];
-                    }
-                    if([self isExist:httpDnsIPV4TimeConsuming]){
-                        [httpDnsIPV4Info setObject:httpDnsIPV4TimeConsuming forKey:kDnsTimeConsuming];
-                    }
-                    if([self isExist:httpDnsIPV4TTL]){
-                        [httpDnsIPV4Info setObject:httpDnsIPV4TTL forKey:kTTL];
-                    }
-                    if([self isExist:httpDnsIPV4TTLExpried]){
-                        [httpDnsIPV4Info setObject:httpDnsIPV4TTLExpried forKey:kTTLExpired];
-                    }
-                    
-                    if([self isExist:httpDnsIPV6Channel]){
-                        [httpDnsIPV6Info setObject:httpDnsIPV6Channel forKey:kChannel];
-                    }
-                    if([self isExist:httpDnsIPV6ClientIP]){
-                        [httpDnsIPV6Info setObject:httpDnsIPV6ClientIP forKey:kClientIP];
-                    }
-                    if([self isExist:httpDnsIPV6IPs]){
-                        [httpDnsIPV6Info setObject:[httpDnsIPV6IPs componentsSeparatedByString:@","] forKey:kIP];
-                    }
-                    if([self isExist:httpDnsIPV6TimeConsuming]){
-                        [httpDnsIPV6Info setObject:httpDnsIPV6TimeConsuming forKey:kDnsTimeConsuming];
-                    }
-                    if([self isExist:httpDnsIPV6TTL]){
-                        [httpDnsIPV6Info setObject:httpDnsIPV6TTL forKey:kTTL];
-                    }
-                    if([self isExist:httpDnsIPV6TTLExpried]){
-                        [httpDnsIPV6Info setObject:httpDnsIPV6TTLExpried forKey:kTTLExpired];
-                    }
-                    
-                } @catch (NSException *exception) {}
                 [domainInfo setObject:httpDnsIPV4Info forKey:kMSDKHttpDnsCache_A];
                 [domainInfo setObject:httpDnsIPV6Info forKey:kMSDKHttpDnsCache_4A];
                 
                 [newResult setObject:domainInfo forKey:domain];
             }
-            MSDKDNSLOG(@"Successfully select data from database, result = %@",newResult);
+            MSDKDNSLOG(@"Successfully select data from database, result = %@", newResult);
         } else {
             MSDKDNSLOG(@"Failed to select data from database, error: %s", _error);
         }
-        
     } @catch (NSException *exception) {
         MSDKDNSLOG(@"Failed to select data from database, error: %@", exception);
     }
     
     sqlite3_finalize(statement);
     return newResult;
+}
+
+- (NSArray *)getHttpDnsIPV4InfoArrayWithStatement:(sqlite3_stmt *)statement {
+    NSMutableArray *httpDnsIPV4InfoArray = [[NSMutableArray alloc] init];
+    for (int i = 1; i <= 6; i++) {
+        char *infoChar = (char *)sqlite3_column_text(statement, i);
+        NSString *info = infoChar ? [NSString stringWithUTF8String:infoChar] : @"";
+        [httpDnsIPV4InfoArray addObject:info];
+    }
+    return httpDnsIPV4InfoArray;
+}
+
+- (NSArray *)getHttpDnsIPV6InfoArrayWithStatement:(sqlite3_stmt *)statement {
+    NSMutableArray *httpDnsIPV6InfoArray = [[NSMutableArray alloc] init];
+    for (int i = 7; i <= 12; i++) {
+        char *infoChar = (char *)sqlite3_column_text(statement, i);
+        NSString *info = infoChar ? [NSString stringWithUTF8String:infoChar] : @"";
+        [httpDnsIPV6InfoArray addObject:info];
+    }
+    return httpDnsIPV6InfoArray;
+}
+
+- (void)fillHttpDnsIPV4Info:(NSMutableDictionary *)httpDnsIPV4Info withArray:(NSArray *)httpDnsIPV4InfoArray {
+    NSArray *keys = @[kChannel, kClientIP, kIP, kDnsTimeConsuming, kTTL, kTTLExpired];
+    for (int i = 0; i < keys.count; i++) {
+        if ([MSDKDnsInfoTool isExist:httpDnsIPV4InfoArray[i]]) {
+            if ([keys[i] isEqualToString:kIP]) {
+                [httpDnsIPV4Info setObject:[httpDnsIPV4InfoArray[i] componentsSeparatedByString:@","] forKey:keys[i]];
+            } else {
+                [httpDnsIPV4Info setObject:httpDnsIPV4InfoArray[i] forKey:keys[i]];
+            }
+        }
+    }
+}
+
+- (void)fillHttpDnsIPV6Info:(NSMutableDictionary *)httpDnsIPV6Info withArray:(NSArray *)httpDnsIPV6InfoArray {
+    NSArray *keys = @[kChannel, kClientIP, kIP, kDnsTimeConsuming, kTTL, kTTLExpired];
+    for (int i = 0; i < keys.count; i++) {
+        if ([MSDKDnsInfoTool isExist:httpDnsIPV6InfoArray[i]]) {
+            if ([keys[i] isEqualToString:kIP]) {
+                [httpDnsIPV6Info setObject:[httpDnsIPV6InfoArray[i] componentsSeparatedByString:@","] forKey:keys[i]];
+            } else {
+                [httpDnsIPV6Info setObject:httpDnsIPV6InfoArray[i] forKey:keys[i]];
+            }
+        }
+    }
 }
 
 - (void)deleteDBData: (NSArray *)domains {
@@ -285,14 +253,6 @@ static MSDKDnsDB * gSharedInstance = nil;
     } @catch (NSException *exception) {
         MSDKDNSLOG(@"Failed to delete data into database");
     }
-}
-
-// 判断数据是否存在并且不为空
-- (BOOL)isExist: (NSString *)value {
-    if(value && ![value isEqual:@""]){
-        return YES;
-    }
-    return NO;
 }
 
 // 关闭数据库

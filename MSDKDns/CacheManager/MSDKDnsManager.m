@@ -489,8 +489,7 @@ static MSDKDnsManager * gSharedInstance = nil;
                 NSDictionary * hresultDict_4A = cacheDict[kMSDKHttpDnsCache_4A];
                 if (!httpOnly) {
                     NSDictionary * lresultDict = cacheDict[kMSDKLocalDnsCache];
-                    BOOL isExistLocalResult = lresultDict && [lresultDict isKindOfClass:[NSDictionary class]];
-                    if (isExistLocalResult) {
+                    if (lresultDict && [lresultDict isKindOfClass:[NSDictionary class]]) {
                         NSArray *ipsArray = [lresultDict[kIP] mutableCopy];
                         if (ipsArray.count == 2) {
                             // 缓存过期，并且没有开启使用过期缓存
@@ -504,11 +503,9 @@ static MSDKDnsManager * gSharedInstance = nil;
                         }
                     }
                 }
-                BOOL isExistHttpResultA = hresultDict_A && [hresultDict_A isKindOfClass:[NSDictionary class]];
-                if (isExistHttpResultA) {
+                if (hresultDict_A && [hresultDict_A isKindOfClass:[NSDictionary class]]) {
                     NSArray * ipsArray = hresultDict_A[kIP];
-                    BOOL isExistIpsArray = ipsArray && [ipsArray isKindOfClass:[NSArray class]] && ipsArray.count > 0;
-                    if (isExistIpsArray) {
+                    if (ipsArray && [ipsArray isKindOfClass:[NSArray class]] && ipsArray.count > 0) {
                         // 缓存过期，并且没有开启使用过期缓存
                         if (domainNeedEmpty && !expiredIPEnabled) {
                             [ipResult setObject:@[@0] forKey:@"ipv4"];
@@ -517,11 +514,9 @@ static MSDKDnsManager * gSharedInstance = nil;
                         }
                     }
                 }
-                BOOL isExistHttpResult4A = hresultDict_4A && [hresultDict_4A isKindOfClass:[NSDictionary class]];
-                if (isExistHttpResult4A) {
+                if (hresultDict_4A && [hresultDict_4A isKindOfClass:[NSDictionary class]]) {
                     NSArray * ipsArray = hresultDict_4A[kIP];
-                    BOOL isExistIpsArray = ipsArray && [ipsArray isKindOfClass:[NSArray class]] && ipsArray.count > 0;
-                    if (isExistIpsArray) {
+                    if (ipsArray && [ipsArray isKindOfClass:[NSArray class]] && ipsArray.count > 0) {
                         // 缓存过期，并且没有开启使用过期缓存
                         if (domainNeedEmpty && !expiredIPEnabled) {
                             [ipResult setObject:@[@0] forKey:@"ipv6"];
@@ -991,7 +986,7 @@ static MSDKDnsManager * gSharedInstance = nil;
 
 # pragma mark - servers
 
-- (void)fetchConfig:(int) mdnsId encryptType:(HttpDnsEncryptType)mdnsEncryptType dnsKey:(NSString *)mdnsKey token:(NSString* )mdnsToken {
+- (NSString *)getFetchConfigUrlStr:(int)mdnsId mdnsEncryptType:(HttpDnsEncryptType)mdnsEncryptType mdnsToken:(NSString *)mdnsToken {
     
     NSString *ipAddress = @"";
 #ifdef httpdnsIps_h
@@ -1022,9 +1017,12 @@ static MSDKDnsManager * gSharedInstance = nil;
     if (mdnsEncryptType == HttpDnsEncryptTypeHTTPS) {
         urlStr = [NSString stringWithFormat:@"%@://%@/conf?token=%@", protocol, ipAddress, mdnsToken];
     }
-    
+    return urlStr;
+}
+
+- (void)fetchConfig:(int) mdnsId encryptType:(HttpDnsEncryptType)mdnsEncryptType dnsKey:(NSString *)mdnsKey token:(NSString* )mdnsToken {
+    NSString *urlStr = [self getFetchConfigUrlStr:mdnsId mdnsEncryptType:mdnsEncryptType mdnsToken:mdnsToken];
 //    NSLog(@"urlStr ==== %@", urlStr);
-    //    NSURL *url = [NSURL URLWithString:@"http://182.254.60.40/conf?id=96157&alg=des"];
     NSURL *url = [NSURL URLWithString:urlStr];
     self.request = [NSMutableURLRequest requestWithURL:url];
     NSURLSessionDataTask *dataTask = [[NSURLSession sharedSession] dataTaskWithRequest:self.request completionHandler:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {

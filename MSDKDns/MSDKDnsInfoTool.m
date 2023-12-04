@@ -558,4 +558,9 @@ char MSDKDnsHexCharToChar(char high, char low) {
     return ipsStr;
 }
 
+// 判断数据是否存在并且不为空
++ (BOOL)isExist: (NSString *)value {
+    return string != nil && ![string isEqualToString:@""];
+}
+
 @end

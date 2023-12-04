@@ -23,4 +23,5 @@
 + (NSString *)generateSessionID;
 + (NSArray *)arrayTransLowercase:(NSArray *)data;
 + (NSString *)getIPsStringFromIPsArray:(NSArray *)ipsArray;
++ (BOOL)isExist: (NSString *)value;
 @end
