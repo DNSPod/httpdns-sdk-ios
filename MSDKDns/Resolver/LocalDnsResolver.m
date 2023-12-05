@@ -137,6 +137,10 @@
         freeaddrinfo(res0);
     }
     //只返回解析到的第一个ipv4地址，及第一个ipv6地址（如存在）
+    return [self getIpResult:result result4:result4];
+}
+
+- (NSArray *)getIpResult:(NSMutableArray *)result result4:(NSMutableArray *)result4 {
     if (result && [result count] > 0) {
         NSString* ipv6 = @"0";
         for (int i = 0; i < [result count]; i++) {

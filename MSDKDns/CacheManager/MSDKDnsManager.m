@@ -682,54 +682,8 @@ static MSDKDnsManager * gSharedInstance = nil;
     MSDKDNSLOG(@"domain:%@",domain);
     //dns结束时上报结果
     NSMutableDictionary * params = [NSMutableDictionary new];
-    
-    //SDKVersion
-    [params setValue:MSDKDns_Version forKey:kMSDKDnsSDK_Version];
-    
-    //appId
-    NSString * appID = [[MSDKDnsParamsManager shareInstance] msdkDnsGetMAppId];
-    if (appID) {
-        [params setValue:appID forKey:kMSDKDnsAppID];
-    } else {
-        [params setValue:HTTP_DNS_UNKNOWN_STR forKey:kMSDKDnsAppID];
-    }
-    
-    //id & key
-    int dnsID = [[MSDKDnsParamsManager shareInstance] msdkDnsGetMDnsId];
-    [params setValue:[NSString stringWithFormat:@"%d", dnsID] forKey:kMSDKDnsID];
-    NSString * dnsKeyStr = [[MSDKDnsParamsManager shareInstance] msdkDnsGetMDnsKey];
-    if (dnsKeyStr) {
-        [params setValue:dnsKeyStr forKey:kMSDKDnsKEY];
-    } else {
-        [params setValue:HTTP_DNS_UNKNOWN_STR forKey:kMSDKDnsKEY];
-    }
-    
-    //userId
-    NSString * uuidStr = [[MSDKDnsParamsManager shareInstance] msdkDnsGetMOpenId];
-    if (uuidStr) {
-        [params setValue:uuidStr forKey:kMSDKDnsUserID];
-    } else {
-        [params setValue:HTTP_DNS_UNKNOWN_STR forKey:kMSDKDnsUserID];
-    }
-    
-    //netType
-    NSString * networkType = [[MSDKDnsNetworkManager shareInstance] networkType];
-    [params setValue:networkType forKey:kMSDKDnsNetType];
-    
-    //domain
-    NSString * domain_string = HTTP_DNS_UNKNOWN_STR;
-    if (domain) {
-        domain_string = domain;
-    }
-    [params setValue:domain_string forKey:kMSDKDnsDomain];
-    
-    //netStack
-    [params setValue:@(netStack) forKey:kMSDKDnsNet_Stack];
-    
-    //isCache
-    [params setValue:[NSNumber numberWithBool:NO] forKey:kMSDKDns_A_IsCache];
-    [params setValue:[NSNumber numberWithBool:NO] forKey:kMSDKDns_4A_IsCache];
-    
+    [self addBasicParams:params domain:domain netStack:netStack];
+
     NSString * clientIP_A = @"";
     NSString * clientIP_4A = @"";
     NSString * httpDnsIP_A = @"";
@@ -875,6 +829,55 @@ static MSDKDnsManager * gSharedInstance = nil;
     [params setValue:dns_4A forKey:kMSDKDns_DNS_4A_IP];
 
     return params;
+}
+
+- (void)addBasicParams:(NSMutableDictionary *)params domain:(NSString *)domain netStack:(msdkdns::MSDKDNS_TLocalIPStack)netStack {
+    //SDKVersion
+    [params setValue:MSDKDns_Version forKey:kMSDKDnsSDK_Version];
+    
+    //appId
+    NSString * appID = [[MSDKDnsParamsManager shareInstance] msdkDnsGetMAppId];
+    if (appID) {
+        [params setValue:appID forKey:kMSDKDnsAppID];
+    } else {
+        [params setValue:HTTP_DNS_UNKNOWN_STR forKey:kMSDKDnsAppID];
+    }
+    
+    //id & key
+    int dnsID = [[MSDKDnsParamsManager shareInstance] msdkDnsGetMDnsId];
+    [params setValue:[NSString stringWithFormat:@"%d", dnsID] forKey:kMSDKDnsID];
+    NSString * dnsKeyStr = [[MSDKDnsParamsManager shareInstance] msdkDnsGetMDnsKey];
+    if (dnsKeyStr) {
+        [params setValue:dnsKeyStr forKey:kMSDKDnsKEY];
+    } else {
+        [params setValue:HTTP_DNS_UNKNOWN_STR forKey:kMSDKDnsKEY];
+    }
+    
+    //userId
+    NSString * uuidStr = [[MSDKDnsParamsManager shareInstance] msdkDnsGetMOpenId];
+    if (uuidStr) {
+        [params setValue:uuidStr forKey:kMSDKDnsUserID];
+    } else {
+        [params setValue:HTTP_DNS_UNKNOWN_STR forKey:kMSDKDnsUserID];
+    }
+    
+    //netType
+    NSString * networkType = [[MSDKDnsNetworkManager shareInstance] networkType];
+    [params setValue:networkType forKey:kMSDKDnsNetType];
+    
+    //domain
+    NSString * domain_string = HTTP_DNS_UNKNOWN_STR;
+    if (domain) {
+        domain_string = domain;
+    }
+    [params setValue:domain_string forKey:kMSDKDnsDomain];
+    
+    //netStack
+    [params setValue:@(netStack) forKey:kMSDKDnsNet_Stack];
+    
+    //isCache
+    [params setValue:[NSNumber numberWithBool:NO] forKey:kMSDKDns_A_IsCache];
+    [params setValue:[NSNumber numberWithBool:NO] forKey:kMSDKDns_4A_IsCache];
 }
 
 # pragma mark - check caches

@@ -207,7 +207,7 @@ static SCNetworkConnectionFlags gConnectionFlags;
             } else if ([networkModel isEqualToString:CTRadioAccessTechnologyGPRS] ||
                        [networkModel isEqualToString:CTRadioAccessTechnologyEdge]) {
                 networkType = @"2G";
-            } else if ([self is3gNetWork]){
+            } else if ([self is3gNetWork:networkModel]){
                 networkType = @"3G";
             }
         }
@@ -224,7 +224,7 @@ static SCNetworkConnectionFlags gConnectionFlags;
 #endif
 }
 
-- (BOOL)is3gNetWork {
+- (BOOL)is3gNetWork:(NSString *)networkModel {
     return [networkModel isEqualToString:CTRadioAccessTechnologyWCDMA] ||
     [networkModel isEqualToString:CTRadioAccessTechnologyEdge] ||
     [networkModel isEqualToString:CTRadioAccessTechnologyHSDPA] ||
