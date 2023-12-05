@@ -207,15 +207,7 @@ static SCNetworkConnectionFlags gConnectionFlags;
             } else if ([networkModel isEqualToString:CTRadioAccessTechnologyGPRS] ||
                        [networkModel isEqualToString:CTRadioAccessTechnologyEdge]) {
                 networkType = @"2G";
-            } else if ([networkModel isEqualToString:CTRadioAccessTechnologyWCDMA] ||
-                       [networkModel isEqualToString:CTRadioAccessTechnologyEdge] ||
-                       [networkModel isEqualToString:CTRadioAccessTechnologyHSDPA] ||
-                       [networkModel isEqualToString:CTRadioAccessTechnologyHSUPA] ||
-                       [networkModel isEqualToString:CTRadioAccessTechnologyCDMA1x] ||
-                       [networkModel isEqualToString:CTRadioAccessTechnologyCDMAEVDORev0] ||
-                       [networkModel isEqualToString:CTRadioAccessTechnologyCDMAEVDORevA] ||
-                       [networkModel isEqualToString:CTRadioAccessTechnologyCDMAEVDORevB] ||
-                       [networkModel isEqualToString:CTRadioAccessTechnologyeHRPD]){
+            } else if ([self is3gNetWork]){
                 networkType = @"3G";
             }
         }
@@ -230,6 +222,18 @@ static SCNetworkConnectionFlags gConnectionFlags;
     }
     return networkType;
 #endif
+}
+
+- (BOOL)is3gNetWork {
+    return [networkModel isEqualToString:CTRadioAccessTechnologyWCDMA] ||
+    [networkModel isEqualToString:CTRadioAccessTechnologyEdge] ||
+    [networkModel isEqualToString:CTRadioAccessTechnologyHSDPA] ||
+    [networkModel isEqualToString:CTRadioAccessTechnologyHSUPA] ||
+    [networkModel isEqualToString:CTRadioAccessTechnologyCDMA1x] ||
+    [networkModel isEqualToString:CTRadioAccessTechnologyCDMAEVDORev0] ||
+    [networkModel isEqualToString:CTRadioAccessTechnologyCDMAEVDORevA] ||
+    [networkModel isEqualToString:CTRadioAccessTechnologyCDMAEVDORevB] ||
+    [networkModel isEqualToString:CTRadioAccessTechnologyeHRPD];
 }
 
 -(BOOL) activeWLAN {

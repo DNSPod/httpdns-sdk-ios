@@ -392,41 +392,60 @@ char MSDKDnsHexCharToChar(char high, char low) {
     return [self httpsUrlWithDomain:domain dnsId:dnsId dnsKey:dnsKey ipType:ipType encryptType:HttpDnsEncryptTypeDES];
 }
 
-+ (NSURL *) httpsUrlWithDomain:(NSString *)domain dnsId:(int)dnsId dnsKey:(NSString *)dnsKey ipType:(HttpDnsIPType)ipType encryptType:(NSInteger)encryptType
-{
-    if (!domain || domain.length == 0) {
-        MSDKDNSLOG(@"HttpDns domain cannot be empty!");
++ (NSURL *)httpsUrlWithDomain:(NSString *)domain dnsId:(int)dnsId dnsKey:(NSString *)dnsKey ipType:(HttpDnsIPType)ipType encryptType:(NSInteger)encryptType {
+    if (![self validateParams:domain dnsId:dnsId dnsKey:dnsKey encryptType:encryptType]) {
         return nil;
     }
     
-    if (!dnsId) {
-        MSDKDNSLOG(@"dnsId cannot be empty! Please check your dns config params.");
+    NSString *domainEncrypStr = [self getEncryptedDomain:domain withDnsKey:dnsKey encryptType:encryptType];
+    if (!domainEncrypStr || domainEncrypStr.length == 0) {
+        MSDKDNSLOG(@"HttpDns domain Crypt Error!");
         return nil;
     }
-        
+    NSString *urlStr = [self buildUrlStringWithDomain:domainEncrypStr domain:domain dnsId:dnsId ipType:ipType encryptType:encryptType];
+    NSURL *url = [NSURL URLWithString:urlStr];
+    MSDKDNSLOG(@"httpdns service url: %@",url);
+    return url;
+}
+
++ (BOOL)validateParams:(NSString *)domain dnsId:(int)dnsId dnsKey:(NSString *)dnsKey encryptType:(NSInteger)encryptType {
+    if (!domain || domain.length == 0) {
+        MSDKDNSLOG(@"HttpDns domain cannot be empty!");
+        return NO;
+    }
+    if (!dnsId) {
+        MSDKDNSLOG(@"dnsId cannot be empty! Please check your dns config params.");
+        return NO;
+    }
     NSString *token =  [[MSDKDnsParamsManager shareInstance] msdkDnsGetMToken];
     if (encryptType != HttpDnsEncryptTypeHTTPS && (!dnsKey || dnsKey.length == 0)) {
         MSDKDNSLOG(@"dnsKey cannot be empty! Please check your dns config params");
-        return nil;
+        return NO;
     } else if (encryptType == HttpDnsEncryptTypeHTTPS && (!token || token.length == 0)) {
         MSDKDNSLOG(@"Token cannot be empty! Please check your dns config params");
-        return nil;
+        return NO;
     }
-    
-    //域名需加密，内外部加密秘钥以及url字段需要区分
+    return YES;
+}
+
++ (NSString *)getEncryptedDomain:(NSString *)domain withDnsKey:(NSString *)dnsKey encryptType:(NSInteger)encryptType {
+    // 域名需加密，内外部加密秘钥以及url字段需要区分
     NSString *domainEncrypStr = nil;
-    NSString *protocol = @"http";
     if (encryptType == HttpDnsEncryptTypeDES) {
         domainEncrypStr = [self encryptUseDES:domain key:dnsKey];
     } else if (encryptType == HttpDnsEncryptTypeAES) {
         domainEncrypStr = [self encryptUseAES:domain key:dnsKey];
     } else if (encryptType == HttpDnsEncryptTypeHTTPS) {
         domainEncrypStr = [domain copy];
-        protocol = @"https";
     }
+    return domainEncrypStr;
+}
 
++ (NSString *)buildUrlStringWithDomain:(NSString *)domainEncrypStr domain:(NSString *)domain dnsId:(int)dnsId ipType:(HttpDnsIPType)ipType encryptType:(NSInteger)encryptType {
+    // 构建 URL 字符串的代码
     NSString *serviceIp = [[MSDKDnsManager shareInstance] currentDnsServer];
     NSString *routeIp = [[MSDKDnsParamsManager shareInstance] msdkDnsGetRouteIp];
+    NSString *protocol = encryptType == HttpDnsEncryptTypeHTTPS ? @"https" : @"http";
     
     BOOL isHTTPDNSDomain = NO;
     
@@ -442,35 +461,29 @@ char MSDKDnsHexCharToChar(char high, char low) {
 #endif
 #endif
     
-    if (domainEncrypStr && domainEncrypStr.length > 0) {
-        NSString * httpServer = [self getIPv6:[serviceIp UTF8String]];
-        if (!httpServer || httpServer.length == 0) {
-            httpServer = serviceIp;
-        }
-        NSString * urlStr = [NSString stringWithFormat:@"%@://%@/d?dn=%@&clientip=1&ttl=1&query=1&id=%d", protocol, httpServer, domainEncrypStr, dnsId];
-        if (ipType == HttpDnsTypeIPv6) {
-            urlStr = [urlStr stringByAppendingString:@"&type=aaaa"];
-        }else if (ipType == HttpDnsTypeDual) {
-            urlStr = [urlStr stringByAppendingString:@"&type=addrs"];
-        }
-        if (encryptType == HttpDnsEncryptTypeAES) {
-            urlStr = [urlStr stringByAppendingFormat:@"&alg=aes"];
-        } else if (encryptType == HttpDnsEncryptTypeHTTPS) {
-            urlStr = [urlStr stringByAppendingFormat:@"&token=%@", token];
-        } else if (encryptType == HttpDnsEncryptTypeDES){
-            urlStr = [urlStr stringByAppendingFormat:@"&alg=des"];
-        }
-        // 当解析域名为三网域名的时候，默认为是SDK默认解析行为，不加入routeIp参数
-        if (routeIp && routeIp.length > 0 && !isHTTPDNSDomain) {
-            urlStr = [urlStr stringByAppendingFormat:@"&ip=%@", routeIp];
-        }
-        NSURL * url = [NSURL URLWithString:urlStr];
-        MSDKDNSLOG(@"httpdns service url: %@",url);
-        return url;
-    } else {
-        MSDKDNSLOG(@"HttpDns domain Crypt Error!");
+    NSString *httpServer = [self getIPv6:[serviceIp UTF8String]];
+    if (!httpServer || httpServer.length == 0) {
+        httpServer = serviceIp;
     }
-    return nil;
+    NSString *urlStr = [NSString stringWithFormat:@"%@://%@/d?dn=%@&clientip=1&ttl=1&query=1&id=%d", protocol, httpServer, domainEncrypStr, dnsId];
+    if (ipType == HttpDnsTypeIPv6) {
+        urlStr = [urlStr stringByAppendingString:@"&type=aaaa"];
+    }else if (ipType == HttpDnsTypeDual) {
+        urlStr = [urlStr stringByAppendingString:@"&type=addrs"];
+    }
+    if (encryptType == HttpDnsEncryptTypeAES) {
+        urlStr = [urlStr stringByAppendingFormat:@"&alg=aes"];
+    } else if (encryptType == HttpDnsEncryptTypeHTTPS) {
+        NSString *token =  [[MSDKDnsParamsManager shareInstance] msdkDnsGetMToken];
+        urlStr = [urlStr stringByAppendingFormat:@"&token=%@", token];
+    } else if (encryptType == HttpDnsEncryptTypeDES){
+        urlStr = [urlStr stringByAppendingFormat:@"&alg=des"];
+    }
+    // 当解析域名为三网域名的时候，默认为是SDK默认解析行为，不加入routeIp参数
+    if (routeIp && routeIp.length > 0 && !isHTTPDNSDomain) {
+        urlStr = [urlStr stringByAppendingFormat:@"&ip=%@", routeIp];
+    }
+    return urlStr;
 }
 
 + (NSString *) wifiSSID {
@@ -560,7 +573,7 @@ char MSDKDnsHexCharToChar(char high, char low) {
 
 // 判断数据是否存在并且不为空
 + (BOOL)isExist: (NSString *)value {
-    return string != nil && ![string isEqualToString:@""];
+    return value != nil && ![value isEqualToString:@""];
 }
 
 @end

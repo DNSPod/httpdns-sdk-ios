@@ -4,6 +4,7 @@
 
 #import "MSDKDnsDB.h"
 #import "MSDKDnsLog.h"
+#import "MSDKDnsInfoTool.h"
 #import "MSDKDnsPrivate.h"
 #import <sqlite3.h>
 
