@@ -484,25 +484,8 @@ static MSDKDnsManager * gSharedInstance = nil;
         if (domainDict) {
             NSDictionary * cacheDict = domainDict[domain];
             if (cacheDict && [cacheDict isKindOfClass:[NSDictionary class]]) {
-                
                 NSDictionary * hresultDict_A = cacheDict[kMSDKHttpDnsCache_A];
                 NSDictionary * hresultDict_4A = cacheDict[kMSDKHttpDnsCache_4A];
-                if (!httpOnly) {
-                    NSDictionary * lresultDict = cacheDict[kMSDKLocalDnsCache];
-                    if (lresultDict && [lresultDict isKindOfClass:[NSDictionary class]]) {
-                        NSArray *ipsArray = [lresultDict[kIP] mutableCopy];
-                        if (ipsArray.count == 2) {
-                            // 缓存过期，并且没有开启使用过期缓存
-                            if (domainNeedEmpty && !expiredIPEnabled) {
-                                [ipResult setObject:@[@0] forKey:@"ipv4"];
-                                [ipResult setObject:@[@0] forKey:@"ipv6"];
-                            } else {
-                                [ipResult setObject:@[ipsArray[0]] forKey:@"ipv4"];
-                                [ipResult setObject:@[ipsArray[1]] forKey:@"ipv6"];
-                            }
-                        }
-                    }
-                }
                 if (hresultDict_A && [hresultDict_A isKindOfClass:[NSDictionary class]]) {
                     NSArray * ipsArray = hresultDict_A[kIP];
                     if (ipsArray && [ipsArray isKindOfClass:[NSArray class]] && ipsArray.count > 0) {
