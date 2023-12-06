@@ -655,6 +655,7 @@
     NSString *httpdnsIPs = [self getHttpDnsIPsWithA:httpDnsIP_A and4A:httpDnsIP_4A];
     NSNumber *localDNSSpend = [NSNumber numberWithInt:-1];
     NSString *timeConsuming = @"";
+    NSString *errorCode = MSDKDns_Success;
 
     for (int i = 0; i < [self.toCheckDomains count]; i++) {
         NSString *domain = [self.toCheckDomains objectAtIndex:i];
@@ -671,16 +672,19 @@
     
     if (self.httpDnsResolver_A) {
         status = @(self.httpDnsResolver_A.statusCode);
+        errorCode = self.httpDnsResolver_A.errorCode;
     } else if (self.httpDnsResolver_4A) {
         req_type = @"aaaa";
         status = @(self.httpDnsResolver_4A.statusCode);
+        errorCode = self.httpDnsResolver_4A.errorCode;
     } else if (self.httpDnsResolver_BOTH) {
         req_type = @"addrs";
         status = @(self.httpDnsResolver_BOTH.statusCode);
+        errorCode = self.httpDnsResolver_BOTH.errorCode;
     }
 
     return @{
-        MSDKDns_ErrorCode: MSDKDns_Success,
+        MSDKDns_ErrorCode: errorCode ? errorCode : MSDKDns_Success,
         @"eventName": self.origin,
         @"dnsIp": [[MSDKDnsManager shareInstance] currentDnsServer],
         @"req_dn": [self.toCheckDomains componentsJoinedByString:@","],
