@@ -309,9 +309,21 @@ static NSString *const kAnchorAlreadyAdded = @"AnchorAlreadyAdded";
                         buf = buffer;
                         length = amount;
                     }
-                    NSData *data = [[NSData alloc] initWithBytes:buf length:length];
-                    
-                    [self.client URLProtocol:self didLoadData:data];
+                    if ((NSInteger)length >= 0) {
+                        NSData *data = [[NSData alloc] initWithBytes:buf length:length];
+                        [self.client URLProtocol:self didLoadData:data];
+                    } else {
+                        NSError *error = inputstream.streamError;
+                        if (!error) {
+                            error = [[NSError alloc] initWithDomain:@"inputstream length is invalid"
+                                                                code:-2
+                                                            userInfo:nil];
+                        }
+                        [aStream removeFromRunLoop:_curRunLoop forMode:NSRunLoopCommonModes];
+                        [aStream setDelegate:nil];
+                        [aStream close];
+                        [self.client URLProtocol:self didFailWithError:error];
+                    }
                 }
             } else {
                 // 证书已验证过，返回数据
@@ -320,9 +332,21 @@ static NSString *const kAnchorAlreadyAdded = @"AnchorAlreadyAdded";
                     buf = buffer;
                     length = amount;
                 }
-                NSData *data = [[NSData alloc] initWithBytes:buf length:length];
-                
-                [self.client URLProtocol:self didLoadData:data];
+                if ((NSInteger)length >= 0) {
+                    NSData *data = [[NSData alloc] initWithBytes:buf length:length];
+                    [self.client URLProtocol:self didLoadData:data];
+                } else {
+                    NSError *error = inputstream.streamError;
+                    if (!error) {
+                        error = [[NSError alloc] initWithDomain:@"inputstream length is invalid"
+                                                                    code:-2
+                                                                userInfo:nil];
+                    }
+                    [aStream removeFromRunLoop:_curRunLoop forMode:NSRunLoopCommonModes];
+                    [aStream setDelegate:nil];
+                    [aStream close];
+                    [self.client URLProtocol:self didFailWithError:error];
+                }
             }
         }
     } else if (eventCode == NSStreamEventErrorOccurred) {
