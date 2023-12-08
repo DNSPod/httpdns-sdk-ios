@@ -767,11 +767,13 @@
                 NSDictionary *cacheValue = [self.httpDnsResolver_A.domainInfo objectForKey:domain];
                 if (cacheValue) {
                     [cacheDict setObject:cacheValue forKey:kMSDKHttpDnsCache_A];
+                    [cacheDict removeObjectForKey:kMSDKHttpDnsCache_4A];
                 }
             } else if ((resolver == self.httpDnsResolver_4A) && self.httpDnsResolver_4A.domainInfo) {
                 NSDictionary *cacheValue = [self.httpDnsResolver_4A.domainInfo objectForKey:domain];
                 if (cacheValue) {
                     [cacheDict setObject:cacheValue forKey:kMSDKHttpDnsCache_4A];
+                    [cacheDict removeObjectForKey:kMSDKHttpDnsCache_A];
                 }
             } else if ((resolver == self.localDnsResolver) && self.localDnsResolver.domainInfo) {
                 NSDictionary *cacheValue = [self.localDnsResolver.domainInfo objectForKey:domain];
