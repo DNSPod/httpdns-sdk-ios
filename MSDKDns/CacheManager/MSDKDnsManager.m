@@ -199,17 +199,14 @@ static MSDKDnsManager * gSharedInstance = nil;
 }
 
 - (void)excuteOptimismReport:(NSArray *)domains result:(NSDictionary *)result verbose:(BOOL)verbose {
-    // 当开启乐观DNS之后，如果结果为0则上报errorCode=3，要所有域名解析的结果都为0
-    BOOL needReport = NO;
+    // 当开启乐观DNS之后，对域名结果为0或者结果为空则上报errorCode=3
+    NSMutableArray *needReportDomains = [[NSMutableArray alloc] init];
     if (verbose) {
         for (int i = 0; i < [domains count]; i++) {
             NSString *domain = [domains objectAtIndex:i];
             NSDictionary *domainData = result[domain];
-            if (domainData && domainData.count > 0) {
-                needReport = NO;
-                break;
-            } else {
-                needReport = YES;
+            if (!domainData || domainData.count == 0) {
+                [needReportDomains addObject:domain];
             }
         }
     } else {
@@ -218,19 +215,16 @@ static MSDKDnsManager * gSharedInstance = nil;
             NSArray *domainResArray = result[domain];
             if (domainResArray && domainResArray.count > 0) {
                 if ([domainResArray[0] isEqualToString:@"0"] && [domainResArray[1] isEqualToString:@"0"]) {
-                    needReport = YES;
-                } else {
-                    needReport = NO;
-                    break;
+                    [needReportDomains addObject:domain];
                 }
             } else {
-                needReport = YES;
+                [needReportDomains addObject:domain];
             }
         }
     }
-    if (needReport && domains) {
-        for (int i = 0; i < [domains count]; i++) {
-            NSString *domain = [domains objectAtIndex:i];
+    if (needReportDomains && needReportDomains.count > 0) {
+        for (int i = 0; i < [needReportDomains count]; i++) {
+            NSString *domain = [needReportDomains objectAtIndex:i];
             [[AttaReport sharedInstance] reportEvent:@{
                 MSDKDns_ErrorCode: MSDKDns_NoData,
                 @"eventName": MSDKDnsEventHttpDnsCached,
