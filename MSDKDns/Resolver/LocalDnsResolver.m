@@ -18,9 +18,9 @@
 
 @implementation LocalDnsResolver
 
-- (void)startWithDomains:(NSArray *)domains TimeOut:(float)timeOut DnsId:(int)dnsId DnsKey:(NSString *)dnsKey NetStack:(msdkdns::MSDKDNS_TLocalIPStack)netStack {
-    [super startWithDomains:domains TimeOut:timeOut DnsId:dnsId DnsKey:dnsKey NetStack:netStack];
-    MSDKDNSLOG(@"LocalDns domain is %@, TimeOut is %f", domains, timeOut);
+- (void)startWithDomains:(NSArray *)domains timeOut:(float)timeOut dnsId:(int)dnsId dnsKey:(NSString *)dnsKey netStack:(msdkdns::MSDKDNS_TLocalIPStack)netStack {
+    [super startWithDomains:domains timeOut:timeOut dnsId:dnsId dnsKey:dnsKey netStack:netStack];
+    MSDKDNSLOG(@"LocalDns domain is %@, timeOut is %f", domains, timeOut);
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, timeOut * NSEC_PER_SEC), [MSDKDnsInfoTool msdkdns_local_queue], ^{
         [self localDnsTimeout];
     });
@@ -28,15 +28,15 @@
     self.isFinished = NO;
     self.isSucceed = NO;
     self.hasDelegated = NO;
-    [self getLocalDnsWithDomains:domains NetStack:netStack];
+    [self getLocalDnsWithDomains:domains netStack:netStack];
 }
 
-- (void)getLocalDnsWithDomains:(NSArray *)domains NetStack:(msdkdns::MSDKDNS_TLocalIPStack)netStack {
+- (void)getLocalDnsWithDomains:(NSArray *)domains netStack:(msdkdns::MSDKDNS_TLocalIPStack)netStack {
     MSDKDNSLOG(@"getLocalDnsWithDomains: %@", domains);
     NSMutableDictionary *domainInfo = [NSMutableDictionary dictionary];
     for(int i = 0; i < [domains count]; i++) {
         NSString *domain = [domains objectAtIndex:i];
-        NSArray * ipsArray = [self addressesForHostname:domain NetStack:netStack];
+        NSArray * ipsArray = [self addressesForHostname:domain netStack:netStack];
         NSString *timeConsuming = [NSString stringWithFormat:@"%d", [self dnsTimeConsuming]];
         [domainInfo setObject:@{kIP:ipsArray, kDnsTimeConsuming:timeConsuming} forKey:domain];
     }
@@ -70,7 +70,7 @@
     }
 }
 
-- (NSArray *)addressesForHostname:(NSString *)hostname NetStack:(msdkdns::MSDKDNS_TLocalIPStack)netStack {
+- (NSArray *)addressesForHostname:(NSString *)hostname netStack:(msdkdns::MSDKDNS_TLocalIPStack)netStack {
     const char * hostnameC = [hostname UTF8String];
     
     struct addrinfo hints, * res, * res0;
@@ -137,6 +137,10 @@
         freeaddrinfo(res0);
     }
     //只返回解析到的第一个ipv4地址，及第一个ipv6地址（如存在）
+    return [self getIpResult:result result4:result4];
+}
+
+- (NSArray *)getIpResult:(NSMutableArray *)result result4:(NSMutableArray *)result4 {
     if (result && [result count] > 0) {
         NSString* ipv6 = @"0";
         for (int i = 0; i < [result count]; i++) {

@@ -9,14 +9,14 @@
 
 @implementation MSDKDnsLog
 
-static MSDKDnsLog * _sharedInstance = nil;
+static MSDKDnsLog * gSharedInstance = nil;
 //方法实现
 + (MSDKDnsLog *) sharedInstance {
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
-        _sharedInstance = [[MSDKDnsLog alloc] init];
+        gSharedInstance = [[MSDKDnsLog alloc] init];
     });
-    return _sharedInstance;
+    return gSharedInstance;
 }
 
 - (id)init {

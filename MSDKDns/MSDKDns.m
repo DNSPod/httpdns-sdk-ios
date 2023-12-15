@@ -21,15 +21,15 @@
 
 @implementation MSDKDns
 
-static MSDKDns * _sharedInstance = nil;
+static MSDKDns * gSharedInstance = nil;
 
 #pragma mark - init
 + (instancetype) sharedInstance {
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
-        _sharedInstance = [[MSDKDns alloc] init];
+        gSharedInstance = [[MSDKDns alloc] init];
     });
-    return _sharedInstance;
+    return gSharedInstance;
 }
 
 - (instancetype) init {
@@ -51,8 +51,8 @@ static MSDKDns * _sharedInstance = nil;
     }
 #endif
     [[MSDKDnsLog sharedInstance] setEnableLog:config->debug];
-    [[MSDKDnsParamsManager shareInstance] msdkDnsSetMAppId:config->appId MTimeOut:config->timeout MEncryptType:config->encryptType];
-    [[MSDKDnsParamsManager shareInstance] msdkDnsSetMDnsId:config->dnsId MDnsKey:config->dnsKey MToken:config->token];
+    [[MSDKDnsParamsManager shareInstance] msdkDnsSetMAppId:config->appId timeOut:config->timeout encryptType:config->encryptType];
+    [[MSDKDnsParamsManager shareInstance] msdkDnsSetMDnsId:config->dnsId dnsKey:config->dnsKey token:config->token];
     [[MSDKDnsParamsManager shareInstance] msdkDnsSetAddressType:config->addressType];
     [[MSDKDnsParamsManager shareInstance] msdkDnsSetMDnsIp:config->dnsIp];
     [[MSDKDnsParamsManager shareInstance] msdkDnsSetRouteIp: config->routeIp];
@@ -64,7 +64,7 @@ static MSDKDns * _sharedInstance = nil;
         [[MSDKDnsParamsManager shareInstance] msdkDnsSetMinutesBeforeSwitchToMain:config->minutesBeforeSwitchToMain];
     }
     [[MSDKDnsParamsManager shareInstance] msdkDnsSetEnableReport:config->enableReport];
-    [[MSDKDnsManager shareInstance] fetchConfig:config->dnsId MEncryptType:config->encryptType MDnsKey:config->dnsKey MToken:config->token];
+    [[MSDKDnsManager shareInstance] fetchConfig:config->dnsId encryptType:config->encryptType dnsKey:config->dnsKey token:config->token];
     MSDKDNSLOG(@"MSDKDns init success.");
     return YES;
 }
@@ -188,14 +188,7 @@ static MSDKDns * _sharedInstance = nil;
             return dnsResult;
         }
         // 转换成小写
-        NSMutableArray *lowerCaseArray = [NSMutableArray array];
-        for(int i = 0; i < [domains count]; i++) {
-            NSString *d = [domains objectAtIndex:i];
-            if (d && d.length > 0) {
-                [lowerCaseArray addObject:[d lowercaseString]];
-            }
-        }
-        domains = lowerCaseArray;
+        domains = [MSDKDnsInfoTool arrayTransLowercase:domains];
         //进行httpdns请求
         NSDate * date = [NSDate date];
         //进行httpdns请求
@@ -222,14 +215,7 @@ static MSDKDns * _sharedInstance = nil;
             return dnsResult;
         }
         // 转换成小写
-        NSMutableArray *lowerCaseArray = [NSMutableArray array];
-        for(int i = 0; i < [domains count]; i++) {
-            NSString *d = [domains objectAtIndex:i];
-            if (d && d.length > 0) {
-                [lowerCaseArray addObject:[d lowercaseString]];
-            }
-        }
-        domains = lowerCaseArray;
+        domains = [MSDKDnsInfoTool arrayTransLowercase:domains];
         //进行httpdns请求
         NSDate * date = [NSDate date];
         //进行httpdns请求
@@ -316,14 +302,7 @@ static MSDKDns * _sharedInstance = nil;
             return;
         }
         // 转换成小写
-        NSMutableArray *lowerCaseArray = [NSMutableArray array];
-        for(int i = 0; i < [domains count]; i++) {
-            NSString *d = [domains objectAtIndex:i];
-            if (d && d.length > 0) {
-                [lowerCaseArray addObject:[d lowercaseString]];
-            }
-        }
-        domains = lowerCaseArray;
+        domains = [MSDKDnsInfoTool arrayTransLowercase:domains];
         NSDate * date = [NSDate date];
         [[MSDKDnsManager shareInstance] getHostsByNames:domains verbose:NO returnIps:^(NSDictionary *ipsDict) {
             NSTimeInterval time_consume = [[NSDate date] timeIntervalSinceDate:date] * 1000;
@@ -354,7 +333,7 @@ static MSDKDns * _sharedInstance = nil;
                                              userInfo:nil];
             return;
         }
-        MSDKDNSLOG(@"GetHostByNameAsync:%@",domains);
+        MSDKDNSLOG(@"GetAllHostsByNamesAsync:%@",domains);
         if (!domains || [domains count] == 0) {
             //请求域名为空，返回空
             MSDKDNSLOG(@"MSDKDns Result is Empty!");
@@ -366,18 +345,11 @@ static MSDKDns * _sharedInstance = nil;
             return;
         }
         // 转换成小写
-        NSMutableArray *lowerCaseArray = [NSMutableArray array];
-        for(int i = 0; i < [domains count]; i++) {
-            NSString *d = [domains objectAtIndex:i];
-            if (d && d.length > 0) {
-                [lowerCaseArray addObject:[d lowercaseString]];
-            }
-        }
-        domains = lowerCaseArray;
+        domains = [MSDKDnsInfoTool arrayTransLowercase:domains];
         NSDate * date = [NSDate date];
         [[MSDKDnsManager shareInstance] getHostsByNames:domains verbose:YES returnIps:^(NSDictionary *ipsDict) {
             NSTimeInterval time_consume = [[NSDate date] timeIntervalSinceDate:date] * 1000;
-            MSDKDNSLOG(@"MSDKDns WGGetHostByNameAsync Total Time Consume is %.1fms", time_consume);
+            MSDKDNSLOG(@"MSDKDns WGGetAllHostsByNamesAsync Total Time Consume is %.1fms", time_consume);
             if (ipsDict) {
                 NSDictionary * dnsResult = [[NSDictionary alloc] initWithDictionary:ipsDict];
                 MSDKDNSLOG(@"%@, MSDKDns Result is:%@",domains, ipsDict);

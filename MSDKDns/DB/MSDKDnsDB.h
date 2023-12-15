@@ -10,11 +10,13 @@
 
 + (instancetype)shareInstance;
 
-- (void)insertOrReplaceDomainInfo:(NSDictionary *)domainInfo Domain:(NSString *)domain;
+- (void)insertOrReplaceDomainInfo:(NSDictionary *)domainInfo domain:(NSString *)domain;
 
 - (NSDictionary *)getDataFromDB;
 
 - (void)deleteDBData: (NSArray *)domains;
+
+- (void)deleteAllData;
 
 @end
 

@@ -22,11 +22,11 @@ static NSString *const ipKey = @"ip";
  - IP池在2个到9个范围内，才进行测速逻辑。
  -
  */
-- (NSArray<NSString *> *)ipRankingWithIPs:(NSArray<NSString *> *)IPs host:(NSString *)host {
-    if (!IPs || !host) {
+- (NSArray<NSString *> *)ipRankingWithIPs:(NSArray<NSString *> *)ips host:(NSString *)host {
+    if (!ips || !host) {
         return nil;
     }
-    if (IPs.count < 2 || IPs.count > 9) {
+    if (ips.count < 2 || ips.count > 9) {
         return nil;
     }
     
@@ -45,39 +45,39 @@ static NSString *const ipKey = @"ip";
         port = [port_ integerValue];
     } @catch (NSException *exception) {}
     
-    NSMutableArray<NSDictionary *> *IPSpeeds = [NSMutableArray arrayWithCapacity:IPs.count];
-    for (NSString *ip in IPs) {
+    NSMutableArray<NSDictionary *> *ipSpeeds = [NSMutableArray arrayWithCapacity:ips.count];
+    for (NSString *ip in ips) {
         float testSpeed =  [self testSpeedOf:ip port:port];
         MSDKDNSLOG(@"%@:%hd speed is %f",ip,port,testSpeed);
         if (testSpeed == 0) {
-            testSpeed = MSDKDns_SOCKET_CONNECT_TIMEOUT_RTT;
+            testSpeed = MSDKDNS_SOCKET_CONNECT_TIMEOUT_RTT;
         }
-        NSMutableDictionary *IPSpeed = [NSMutableDictionary dictionaryWithCapacity:2];
-        [IPSpeed setObject:@(testSpeed) forKey:testSpeedKey];
-        [IPSpeed setObject:ip forKey:ipKey];
-        [IPSpeeds addObject:IPSpeed];
+        NSMutableDictionary *ipSpeed = [NSMutableDictionary dictionaryWithCapacity:2];
+        [ipSpeed setObject:@(testSpeed) forKey:testSpeedKey];
+        [ipSpeed setObject:ip forKey:ipKey];
+        [ipSpeeds addObject:ipSpeed];
     }
     
-    NSArray *sortedIPSpeedsArray = [IPSpeeds sortedArrayUsingComparator:^NSComparisonResult(id obj1, id obj2) {
+    NSArray *sortedIPSpeedsArray = [ipSpeeds sortedArrayUsingComparator:^NSComparisonResult(id obj1, id obj2) {
         NSNumber *data1 = [NSNumber numberWithFloat:[[obj1 valueForKey:testSpeedKey] floatValue]];
         NSNumber *data2 = [NSNumber numberWithFloat:[[obj2 valueForKey:testSpeedKey] floatValue]];
         return [data1 compare:data2];
     }];
     
-    NSMutableArray<NSString *> *sortedArrayIPs = [NSMutableArray arrayWithCapacity:IPs.count];
+    NSMutableArray<NSString *> *sortedArrayIPs = [NSMutableArray arrayWithCapacity:ips.count];
     for (NSDictionary *dict in sortedIPSpeedsArray) {
        NSString *ip = [dict objectForKey:ipKey];
         [sortedArrayIPs addObject:ip];
     }
     //保证数量一致，
-    if (sortedArrayIPs.count == IPs.count) {
+    if (sortedArrayIPs.count == ips.count) {
         return [sortedArrayIPs copy];
     }
     return nil;
 }
 
 /**
- *  @return 测速结果，单位时毫秒，MSDKDns_SOCKET_CONNECT_TIMEOUT_RTT 代表超时。
+ *  @return 测速结果，单位时毫秒，MSDKDNS_SOCKET_CONNECT_TIMEOUT_RTT 代表超时。
  */
 - (float)testSpeedOf:(NSString *)ip port:(int16_t)port {
     NSString *oldIp = ip;
@@ -107,7 +107,7 @@ static NSString *const ipKey = @"ip";
     struct timeval tv;
     int valopt;
     socklen_t lon;
-    tv.tv_sec = MSDKDns_SOCKET_CONNECT_TIMEOUT;
+    tv.tv_sec = MSDKDNS_SOCKET_CONNECT_TIMEOUT;
     tv.tv_usec = 0;
     
     fd_set myset;
@@ -125,7 +125,7 @@ static NSString *const ipKey = @"ip";
     
     if (j == 0) {
         MSDKDNSLOG(@"INFO:%s:%d, test rtt of (%@) timeout.",__FUNCTION__,__LINE__, oldIp);
-        rtt = MSDKDns_SOCKET_CONNECT_TIMEOUT_RTT;
+        rtt = MSDKDNS_SOCKET_CONNECT_TIMEOUT_RTT;
         close(s);
         return rtt;
     }

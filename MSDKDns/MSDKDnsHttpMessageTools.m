@@ -192,7 +192,8 @@ static NSString *const kAnchorAlreadyAdded = @"AnchorAlreadyAdded";
                 if (statusCode == 304) {
                     NSURL* url = (__bridge NSURL *) CFHTTPMessageCopyRequestURL(message);
                     NSString* httpVersion = (__bridge NSString *) CFHTTPMessageCopyVersion(message);
-                    NSHTTPURLResponse* response = [[NSHTTPURLResponse alloc] initWithURL:url statusCode:statusCode HTTPVersion:httpVersion headerFields:headDict];
+                    NSHTTPURLResponse* response = [[NSHTTPURLResponse alloc] initWithURL:url statusCode:statusCode
+                                                                             HTTPVersion:httpVersion headerFields:headDict];
                     [self.client URLProtocol:self didReceiveResponse:response cacheStoragePolicy:NSURLCacheStorageNotAllowed];
                 }
                 [self.client URLProtocolDidFinishLoading:self];
@@ -228,8 +229,8 @@ static NSString *const kAnchorAlreadyAdded = @"AnchorAlreadyAdded";
                 MSDKDNSLOG(@"Get IP from HTTPDNS Successfully!");
                 NSRange hostFirstRange = [location rangeOfString:url.host];
                 if (NSNotFound != hostFirstRange.location) {
-                    NSString *Url = [location stringByReplacingCharactersInRange:hostFirstRange withString:ip];
-                    _curRequest.URL = [NSURL URLWithString:Url];
+                    NSString *urlString = [location stringByReplacingCharactersInRange:hostFirstRange withString:ip];
+                    _curRequest.URL = [NSURL URLWithString:urlString];
                     [_curRequest setValue:url.host forHTTPHeaderField:@"host"];
                 }
             }
@@ -269,7 +270,8 @@ static NSString *const kAnchorAlreadyAdded = @"AnchorAlreadyAdded";
                 CFStringRef httpVersion = CFHTTPMessageCopyVersion(message);
                 // 获取响应头部的状态码
                 CFIndex statusCode = CFHTTPMessageGetResponseStatusCode(message);
-                NSHTTPURLResponse *response = [[NSHTTPURLResponse alloc] initWithURL:_curRequest.URL statusCode:statusCode HTTPVersion:(__bridge NSString *) httpVersion headerFields:headDict];
+                NSHTTPURLResponse *response = [[NSHTTPURLResponse alloc] initWithURL:_curRequest.URL statusCode:statusCode
+                                                                         HTTPVersion:(__bridge NSString *) httpVersion headerFields:headDict];
                 
                 [self.client URLProtocol:self didReceiveResponse:response cacheStoragePolicy:NSURLCacheStorageNotAllowed];
                 
@@ -307,9 +309,21 @@ static NSString *const kAnchorAlreadyAdded = @"AnchorAlreadyAdded";
                         buf = buffer;
                         length = amount;
                     }
-                    NSData *data = [[NSData alloc] initWithBytes:buf length:length];
-                    
-                    [self.client URLProtocol:self didLoadData:data];
+                    if ((NSInteger)length >= 0) {
+                        NSData *data = [[NSData alloc] initWithBytes:buf length:length];
+                        [self.client URLProtocol:self didLoadData:data];
+                    } else {
+                        NSError *error = inputstream.streamError;
+                        if (!error) {
+                            error = [[NSError alloc] initWithDomain:@"inputstream length is invalid"
+                                                                code:-2
+                                                            userInfo:nil];
+                        }
+                        [aStream removeFromRunLoop:_curRunLoop forMode:NSRunLoopCommonModes];
+                        [aStream setDelegate:nil];
+                        [aStream close];
+                        [self.client URLProtocol:self didFailWithError:error];
+                    }
                 }
             } else {
                 // 证书已验证过，返回数据
@@ -318,9 +332,21 @@ static NSString *const kAnchorAlreadyAdded = @"AnchorAlreadyAdded";
                     buf = buffer;
                     length = amount;
                 }
-                NSData *data = [[NSData alloc] initWithBytes:buf length:length];
-                
-                [self.client URLProtocol:self didLoadData:data];
+                if ((NSInteger)length >= 0) {
+                    NSData *data = [[NSData alloc] initWithBytes:buf length:length];
+                    [self.client URLProtocol:self didLoadData:data];
+                } else {
+                    NSError *error = inputstream.streamError;
+                    if (!error) {
+                        error = [[NSError alloc] initWithDomain:@"inputstream length is invalid"
+                                                                    code:-2
+                                                                userInfo:nil];
+                    }
+                    [aStream removeFromRunLoop:_curRunLoop forMode:NSRunLoopCommonModes];
+                    [aStream setDelegate:nil];
+                    [aStream close];
+                    [self.client URLProtocol:self didFailWithError:error];
+                }
             }
         }
     } else if (eventCode == NSStreamEventErrorOccurred) {

@@ -24,7 +24,7 @@
 
 @implementation MSDKDnsNetworkManager
 
-static MSDKDnsNetworkManager *manager = nil;
+static MSDKDnsNetworkManager *gManager = nil;
 
 - (void)dealloc
 {
@@ -43,27 +43,27 @@ static MSDKDnsNetworkManager *manager = nil;
 {
     @synchronized(self)
     {
-        if (!manager)
+        if (!gManager)
         {
-            manager = [[MSDKDnsNetworkManager alloc] init];
+            gManager = [[MSDKDnsNetworkManager alloc] init];
         }
     }
     
-    return manager;
+    return gManager;
 }
 
 - (instancetype)init
 {
     @synchronized(self)
     {
-        if (manager)
+        if (gManager)
         {
-            return manager;
+            return gManager;
         }
         
         if (self = [super init])
         {
-            manager = self;
+            gManager = self;
             [NSNotificationCenter.defaultCenter addObserverForName:kMSDKDnsReachabilityChangedNotification
                                                             object:nil
                                                              queue:nil
@@ -144,7 +144,7 @@ static MSDKDnsNetworkManager *manager = nil;
     }
 }
 
-static SCNetworkConnectionFlags ana_connectionFlags;
+static SCNetworkConnectionFlags gConnectionFlags;
 -(BOOL) is_networkAvaliable{
 #ifdef ANA_UNIT_TEST
     return YES;
@@ -158,14 +158,14 @@ static SCNetworkConnectionFlags ana_connectionFlags;
     //
     //	SCNetworkReachabilityRef defaultRouteReachablilty = SCNetworkReachabilityCreateWithAddress(kCFAllocatorDefault, (struct sockaddr *)&ipAddress);
     SCNetworkReachabilityRef defaultRouteReachablilty = SCNetworkReachabilityCreateWithName(kCFAllocatorDefault, "www.qq.com");
-    BOOL didRetrieveFlags = SCNetworkReachabilityGetFlags(defaultRouteReachablilty, &ana_connectionFlags);
+    BOOL didRetrieveFlags = SCNetworkReachabilityGetFlags(defaultRouteReachablilty, &gConnectionFlags);
     
     CFRelease(defaultRouteReachablilty);
     if(!didRetrieveFlags) {
         printf("Error. Could not recover flags\n");
     }
-    BOOL isReachable = ((ana_connectionFlags & kSCNetworkFlagsReachable) != 0);
-    BOOL needConnection = ((ana_connectionFlags & kSCNetworkFlagsConnectionRequired) != 0);
+    BOOL isReachable = ((gConnectionFlags & kSCNetworkFlagsReachable) != 0);
+    BOOL needConnection = ((gConnectionFlags & kSCNetworkFlagsConnectionRequired) != 0);
     return (isReachable && !needConnection) ? YES : NO;
 #endif
 }
@@ -207,15 +207,7 @@ static SCNetworkConnectionFlags ana_connectionFlags;
             } else if ([networkModel isEqualToString:CTRadioAccessTechnologyGPRS] ||
                        [networkModel isEqualToString:CTRadioAccessTechnologyEdge]) {
                 networkType = @"2G";
-            } else if ([networkModel isEqualToString:CTRadioAccessTechnologyWCDMA] ||
-                       [networkModel isEqualToString:CTRadioAccessTechnologyEdge] ||
-                       [networkModel isEqualToString:CTRadioAccessTechnologyHSDPA] ||
-                       [networkModel isEqualToString:CTRadioAccessTechnologyHSUPA] ||
-                       [networkModel isEqualToString:CTRadioAccessTechnologyCDMA1x] ||
-                       [networkModel isEqualToString:CTRadioAccessTechnologyCDMAEVDORev0] ||
-                       [networkModel isEqualToString:CTRadioAccessTechnologyCDMAEVDORevA] ||
-                       [networkModel isEqualToString:CTRadioAccessTechnologyCDMAEVDORevB] ||
-                       [networkModel isEqualToString:CTRadioAccessTechnologyeHRPD]){
+            } else if ([self is3gNetWork:networkModel]){
                 networkType = @"3G";
             }
         }
@@ -230,6 +222,18 @@ static SCNetworkConnectionFlags ana_connectionFlags;
     }
     return networkType;
 #endif
+}
+
+- (BOOL)is3gNetWork:(NSString *)networkModel {
+    return [networkModel isEqualToString:CTRadioAccessTechnologyWCDMA] ||
+    [networkModel isEqualToString:CTRadioAccessTechnologyEdge] ||
+    [networkModel isEqualToString:CTRadioAccessTechnologyHSDPA] ||
+    [networkModel isEqualToString:CTRadioAccessTechnologyHSUPA] ||
+    [networkModel isEqualToString:CTRadioAccessTechnologyCDMA1x] ||
+    [networkModel isEqualToString:CTRadioAccessTechnologyCDMAEVDORev0] ||
+    [networkModel isEqualToString:CTRadioAccessTechnologyCDMAEVDORevA] ||
+    [networkModel isEqualToString:CTRadioAccessTechnologyCDMAEVDORevB] ||
+    [networkModel isEqualToString:CTRadioAccessTechnologyeHRPD];
 }
 
 -(BOOL) activeWLAN {
@@ -251,7 +255,7 @@ static SCNetworkConnectionFlags ana_connectionFlags;
         }
     }
     if (![self is_networkAvaliable]) return NO;
-    return ((ana_connectionFlags & kSCNetworkReachabilityFlagsIsWWAN) != 0) ? YES : NO;
+    return ((gConnectionFlags & kSCNetworkReachabilityFlagsIsWWAN) != 0) ? YES : NO;
 #endif
 }
 
@@ -259,10 +263,10 @@ static SCNetworkConnectionFlags ana_connectionFlags;
     if (![self is_networkAvaliable]) {
         return NO;
     }
-    if ((ana_connectionFlags & kSCNetworkReachabilityFlagsIsWWAN) == 0) {
+    if ((gConnectionFlags & kSCNetworkReachabilityFlagsIsWWAN) == 0) {
         return NO;
     }
-    if((ana_connectionFlags & kSCNetworkReachabilityFlagsTransientConnection) == kSCNetworkReachabilityFlagsTransientConnection)  {
+    if((gConnectionFlags & kSCNetworkReachabilityFlagsTransientConnection) == kSCNetworkReachabilityFlagsTransientConnection)  {
         return YES;
     }
     return NO;

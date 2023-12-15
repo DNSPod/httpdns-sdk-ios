@@ -35,14 +35,14 @@
 
 @implementation AttaReport
 
-static AttaReport * _sharedInstance = nil;
+static AttaReport * gSharedInstance = nil;
 
 + (instancetype) sharedInstance {
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
-        _sharedInstance = [[AttaReport alloc] init];
+        gSharedInstance = [[AttaReport alloc] init];
     });
-    return _sharedInstance;
+    return gSharedInstance;
 }
 
 - (instancetype) init {

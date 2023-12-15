@@ -14,8 +14,8 @@
 
 - (void)msdkDnsSetMDnsIp:(NSString *) mdnsIp;
 - (void)msdkDnsSetMOpenId:(NSString *) mdnsOpenId;
-- (void)msdkDnsSetMAppId:(NSString *) mdnsAppId MTimeOut:(int)mdnsTimeOut MEncryptType:(HttpDnsEncryptType)mdnsEncryptType;
-- (void)msdkDnsSetMDnsId:(int) mdnsId MDnsKey:(NSString *)mdnsKey MToken:(NSString* )mdnsToken;
+- (void)msdkDnsSetMAppId:(NSString *) mdnsAppId timeOut:(int)mdnsTimeOut encryptType:(HttpDnsEncryptType)mdnsEncryptType;
+- (void)msdkDnsSetMDnsId:(int) mdnsId dnsKey:(NSString *)mdnsKey token:(NSString* )mdnsToken;
 - (void)msdkDnsSetRouteIp:(NSString *)routeIp;
 - (void)msdkDnsSetHttpOnly:(BOOL)httpOnly;
 // 设置切换ip之前重试次数
@@ -29,7 +29,7 @@
 - (void)msdkDnsSetPreResolvedDomains: (NSArray *)domains;
 - (void)msdkDnsSetAddressType: (HttpDnsAddressType)addressType;
 - (void)msdkDnsSetKeepAliveDomains: (NSArray *)domains;
-- (void)msdkDnsSetIPRankData: (NSDictionary *)IPRankData;
+- (void)msdkDnsSetIPRankData: (NSDictionary *)ipRankData;
 - (void)msdkDnsSetEnableKeepDomainsAlive: (BOOL)enableKeepDomainsAlive;
 - (void)msdkDnsSetExpiredIPEnabled: (BOOL)enable;
 - (void)msdkDnsSetPersistCacheIPEnabled: (BOOL)enable;

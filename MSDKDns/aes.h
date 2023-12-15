@@ -6,8 +6,8 @@
  * Details:    Defines the API for the corresponding AES implementation.
  *********************************************************************/
 
-#ifndef SELF_DNS_AES_AES_H
-#define SELF_DNS_AES_AES_H
+#ifndef HTTPDNS_SDK_IOS_MSDKDNS_AES_H_
+#define HTTPDNS_SDK_IOS_MSDKDNS_AES_H_
 
 /*************************** HEADER FILES ***************************/
 
@@ -152,4 +152,4 @@ int AesCryptWithKey(const unsigned char *src, unsigned int srclen,
 
 }  // namespace self_dns
 
-#endif  // SELF_DNS_AES_AES_H
+#endif  // HTTPDNS_SDK_IOS_MSDKDNS_AES_H_
