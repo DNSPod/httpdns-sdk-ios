@@ -349,7 +349,7 @@ static NSURLSession *_resolveHOSTSession = nil;
     
     if (isIPLegal) {
         double timeInterval = [[NSDate date] timeIntervalSince1970];
-        NSString * ttlExpried = [NSString stringWithFormat:@"%0.0f", (timeInterval + ttl.floatValue * 0.75)];
+        NSString * ttlExpried = [NSString stringWithFormat:@"%0.0f", (timeInterval + ttl.doubleValue * 0.75)];
         NSString * timeConsuming = [NSString stringWithFormat:@"%d", [self dnsTimeConsuming]];
         NSString * channel = @"http";
         return @{kIP:ipsArray, kClientIP:clientIP, kTTL:ttl, kTTLExpired:ttlExpried, kDnsTimeConsuming:timeConsuming, kChannel:channel};
