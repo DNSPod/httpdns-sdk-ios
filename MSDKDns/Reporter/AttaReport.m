@@ -98,6 +98,10 @@ static AttaReport * gSharedInstance = nil;
         appId = [[MSDKDnsParamsManager shareInstance] msdkDnsGetMAppId];
     }
     
+    // 排除掉越狱机器的异常数据
+    if (!([systemName isEqualToString:@"iOS"] || [systemName isEqualToString:@"iPadOS"])){
+        systemName = @"iOS";
+    }
     [dic addEntriesFromDictionary:@{
         @"carrier": carrier,
         @"networkType": networkType,

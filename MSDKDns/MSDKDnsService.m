@@ -589,19 +589,17 @@
 }
 
 - (void)excuteCallNotify {
-    if (self.httpDnsResolver_A && self.httpDnsResolver_4A) {
-        if (self.httpDnsResolver_A.isFinished && self.httpDnsResolver_4A.isFinished) {
-            [self callNotify];
-        }
-    } else if (self.httpDnsResolver_A && !self.httpDnsResolver_4A) {
+    BOOL httpOnly = [[MSDKDnsParamsManager shareInstance] msdkDnsGetHttpOnly];
+    BOOL expiredIPEnabled = [[MSDKDnsParamsManager shareInstance] msdkDnsGetExpiredIPEnabled];
+    if (self.httpDnsResolver_A && (httpOnly || expiredIPEnabled || [self.httpDnsResolver_A.errorCode isEqualToString:MSDKDns_Success] || self.localDnsResolver.isFinished)) {
         if (self.httpDnsResolver_A.isFinished) {
             [self callNotify];
         }
-    } else if (!self.httpDnsResolver_A && self.httpDnsResolver_4A) {
+    } else if (self.httpDnsResolver_4A && (httpOnly || expiredIPEnabled || [self.httpDnsResolver_4A.errorCode isEqualToString:MSDKDns_Success] || self.localDnsResolver.isFinished)) {
         if (self.httpDnsResolver_4A.isFinished) {
             [self callNotify];
         }
-    } else if (self.httpDnsResolver_BOTH) {
+    } else if (self.httpDnsResolver_BOTH && (httpOnly || expiredIPEnabled || [self.httpDnsResolver_BOTH.errorCode isEqualToString:MSDKDns_Success] || self.localDnsResolver.isFinished)) {
         if (self.httpDnsResolver_BOTH.isFinished) {
             [self callNotify];
         }
@@ -613,22 +611,12 @@
     BOOL httpOnly = [[MSDKDnsParamsManager shareInstance] msdkDnsGetHttpOnly];
     BOOL expiredIPEnabled = [[MSDKDnsParamsManager shareInstance] msdkDnsGetExpiredIPEnabled];
     if (httpOnly || expiredIPEnabled || self.localDnsResolver.isFinished) {
-        if (self.httpDnsResolver_A && self.httpDnsResolver_4A) {
-            if (self.httpDnsResolver_A.isFinished && self.httpDnsResolver_4A.isFinished) {
-                [self reportDataTransform];
-            }
-        } else if (self.httpDnsResolver_A && !self.httpDnsResolver_4A) {
-            if (self.httpDnsResolver_A.isFinished) {
-                [self reportDataTransform];
-            }
-        } else if (!self.httpDnsResolver_A && self.httpDnsResolver_4A) {
-            if (self.httpDnsResolver_4A.isFinished) {
-                [self reportDataTransform];
-            }
-        } else if (self.httpDnsResolver_BOTH) {
-            if (self.httpDnsResolver_BOTH.isFinished) {
-                [self reportDataTransform];
-            }
+        if (self.httpDnsResolver_A && self.httpDnsResolver_A.isFinished) {
+            [self reportDataTransform];
+        } else if (self.httpDnsResolver_4A && self.httpDnsResolver_4A.isFinished) {
+            [self reportDataTransform];
+        } else if (self.httpDnsResolver_BOTH && self.httpDnsResolver_BOTH.isFinished) {
+            [self reportDataTransform];
         }
     }
 }

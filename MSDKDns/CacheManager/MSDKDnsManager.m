@@ -153,9 +153,10 @@ static MSDKDnsManager * gSharedInstance = nil;
     // 查找缓存，不存在或者ttl超时则放入待查询数组，ttl超时还放入排除结果的数组以便如果禁用返回ttl过期的解析结果则进行排除结果
     for (int i = 0; i < [domains count]; i++) {
         NSString *domain = [domains objectAtIndex:i];
-        if ([[self domainCache:cacheDomainDict check:domain] isEqualToString:MSDKDnsDomainCacheEmpty]) {
+        NSString *status = [self domainCache:cacheDomainDict check:domain];
+        if ([status isEqualToString:MSDKDnsDomainCacheEmpty]) {
             [toCheckDomains addObject:domain];
-        } else if ([[self domainCache:cacheDomainDict check:domain] isEqualToString:MSDKDnsDomainCacheExpired]) {
+        } else if ([status isEqualToString:MSDKDnsDomainCacheExpired]) {
             [toCheckDomains addObject:domain];
             [toEmptyDomains addObject:domain];
         } else {
@@ -885,9 +886,12 @@ static MSDKDnsManager * gSharedInstance = nil;
             cacheDict = domainInfo[kMSDKHttpDnsCache_4A];
         }
         if (cacheDict && [cacheDict isKindOfClass:[NSDictionary class]]) {
-            NSString * ttlExpried = cacheDict[kTTLExpired];
+            NSString *ttlExpried = cacheDict[kTTLExpired];
+            NSString *ttl = cacheDict[kTTL];
+            // 开始时间预留5ms的过渡时间，以防api连续调用当前时间小于开始时间
+            NSString *beginTime = [NSString stringWithFormat:@"%0.0f", (ttlExpried.doubleValue - (ttl.doubleValue * 0.75) - 5)];
             double timeInterval = [[NSDate date] timeIntervalSince1970];
-            if (timeInterval <= ttlExpried.doubleValue) {
+            if (timeInterval <= ttlExpried.doubleValue && timeInterval >= beginTime.doubleValue) {
                 return MSDKDnsDomainCacheHit;
             } else {
                 return MSDKDnsDomainCacheExpired;
