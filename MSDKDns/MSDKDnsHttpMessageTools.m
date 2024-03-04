@@ -31,7 +31,6 @@ static NSString *const kAnchorAlreadyAdded = @"AnchorAlreadyAdded";
  *  @return 返回YES表示要拦截处理，返回NO表示不拦截处理
  */
 + (BOOL)canInitWithRequest:(NSURLRequest *)request {
-    NSLog(@"MSDKDnsHttpMessageTools");
     
     if([[request.URL absoluteString] isEqual:@"about:blank"]) {
         return NO;
@@ -43,7 +42,6 @@ static NSString *const kAnchorAlreadyAdded = @"AnchorAlreadyAdded";
     }
     NSString * url = request.URL.absoluteString;
     NSURL *URL = request.URL;
-//    NSString * domain = [request.allHTTPHeaderFields objectForKey:@"host"];
     NSString * originHost = [request.allHTTPHeaderFields objectForKey:@"host"];
     NSString * domain = request.URL.host;
         
@@ -192,15 +190,6 @@ static NSString *const kAnchorAlreadyAdded = @"AnchorAlreadyAdded";
         CFHTTPMessageSetBody(cfrequest, bodyData);
     }
     
-//    // copy原请求的header信息
-//    for (NSString *header in headFields) {
-//        if (![header isEqualToString:@"originalBody"]) {
-//            // 不包含POST请求时存放在header的body信息
-//            CFStringRef requestHeader = (__bridge CFStringRef) header;
-//            CFStringRef requestHeaderValue = (__bridge CFStringRef) [headFields valueForKey:header];
-//            CFHTTPMessageSetHeaderFieldValue(cfrequest, requestHeader, requestHeaderValue);
-//        }
-//    }
     // copy原请求的header信息
     for (NSString* header in headFields) {
         CFStringRef requestHeader = (__bridge CFStringRef) header;
@@ -238,9 +227,12 @@ static NSString *const kAnchorAlreadyAdded = @"AnchorAlreadyAdded";
     [_inputStream scheduleInRunLoop:_curRunLoop forMode:NSRunLoopCommonModes];
     [_inputStream open];
     
-    CFRelease(bodyData);
-    CFRelease(requestURL);
     CFRelease(cfrequest);
+    CFRelease(requestURL);
+    cfrequest = NULL;
+    CFRelease(bodyData);
+    CFRelease(requestBody);
+    CFRelease(requestMethod);
 }
 
 -(NSData*)dataWithInputStream:(NSInputStream*)stream {
@@ -277,19 +269,15 @@ static NSString *const kAnchorAlreadyAdded = @"AnchorAlreadyAdded";
             UInt8 *buf = NULL;
             NSUInteger length = 0;
             NSInputStream *inputstream = (NSInputStream *) aStream;
-            CFDictionaryRef allheaderFields = CFHTTPMessageCopyAllHeaderFields(message);
-            NSDictionary *headDict = (__bridge NSDictionary *)allheaderFields;
-            CFRelease(allheaderFields);
             NSNumber *alreadyAdded = objc_getAssociatedObject(aStream, (__bridge const void *)(kAnchorAlreadyAdded));
             if (!alreadyAdded || ![alreadyAdded boolValue]) {
                 objc_setAssociatedObject(aStream, (__bridge const void *)(kAnchorAlreadyAdded), [NSNumber numberWithBool:YES], OBJC_ASSOCIATION_COPY);
                 // 通知client已收到response，只通知一次
                 
-//                NSDictionary *headDict = (__bridge NSDictionary *) (CFHTTPMessageCopyAllHeaderFields(message));
+                NSDictionary *headDict = (__bridge NSDictionary *) (CFHTTPMessageCopyAllHeaderFields(message));
                 CFStringRef httpVersion = CFHTTPMessageCopyVersion(message);
                 // 获取响应头部的状态码
                 CFIndex statusCode = CFHTTPMessageGetResponseStatusCode(message);
-                NSLog(@"response header, url is %@, code is %ld, headDict = %@", [_curRequest.URL absoluteString], (long)statusCode, [headDict objectForKey:@"Content-Type"]);
                 NSHTTPURLResponse *response = [[NSHTTPURLResponse alloc] initWithURL:_curRequest.URL statusCode:statusCode
                                                                          HTTPVersion:(__bridge NSString *) httpVersion headerFields:headDict];
                 
@@ -334,18 +322,7 @@ static NSString *const kAnchorAlreadyAdded = @"AnchorAlreadyAdded";
                         }
                         if ((NSInteger)length >= 0) {
                             NSData *data = [[NSData alloc] initWithBytes:buf length:length];
-                            if([[headDict objectForKey:@"Content-Type"] isEqualToString:@"text/css"]){
-                                NSLog(@"处理css文件内容");
-                                // 处理CSS文件内容，修改相对路径
-                                NSString *cssString = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
-                                // 这里需要写一个函数来解析CSS文件内容，并转换所有的相对路径为绝对路径
-                                cssString = [self convertRelativePathsInCSS:cssString];
-                                NSData *newData = [cssString dataUsingEncoding:NSUTF8StringEncoding];
-                                [self.client URLProtocol:self didLoadData:data];
-                            }else{
-                                [self.client URLProtocol:self didLoadData:data];
-                            }
-                            
+                            [self.client URLProtocol:self didLoadData:data];
                         } else {
                             NSError *error = inputstream.streamError;
                             if (!error) {
@@ -369,18 +346,7 @@ static NSString *const kAnchorAlreadyAdded = @"AnchorAlreadyAdded";
                 }
                 if ((NSInteger)length >= 0) {
                     NSData *data = [[NSData alloc] initWithBytes:buf length:length];
-                    if([[headDict objectForKey:@"Content-Type"] isEqualToString:@"text/css"]){
-                        NSLog(@"处理css文件内容");
-                        // 处理CSS文件内容，修改相对路径
-                        NSString *cssString = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
-                        // 这里需要写一个函数来解析CSS文件内容，并转换所有的相对路径为绝对路径
-                        cssString = [self convertRelativePathsInCSS:cssString];
-                        NSData *newData = [cssString dataUsingEncoding:NSUTF8StringEncoding];
-                        [self.client URLProtocol:self didLoadData:data];
-                    }else{
-                        [self.client URLProtocol:self didLoadData:data];
-                    }
-                    
+                    [self.client URLProtocol:self didLoadData:data];
                 } else {
                     NSError *error = inputstream.streamError;
                     if (!error) {
@@ -400,22 +366,12 @@ static NSString *const kAnchorAlreadyAdded = @"AnchorAlreadyAdded";
     } else if (eventCode == NSStreamEventErrorOccurred) {
         [self closeStream:aStream];
         // 通知client发生错误了
-//        [self.client URLProtocol:self didFailWithError:[aStream streamError]];
         [self.client URLProtocol:self didFailWithError:
         [[NSError alloc] initWithDomain:@"NSStreamEventErrorOccurred" code:-1 userInfo:nil]];
     } else if (eventCode == NSStreamEventEndEncountered) {
         [self closeStream:_inputStream];
         [self.client URLProtocolDidFinishLoading:self];
-//        [self handleResponse];
     }
-}
-
-- (NSString *)convertRelativePathsInCSS:(NSString *)cssContent {
-    // 使用适当的正则表达式找到相对路径并替换为绝对路径
-    // 以下代码仅作为示例：
-    NSRegularExpression *regex = [NSRegularExpression regularExpressionWithPattern:@"url\\([']?(?:\\.\\./)*([^')]+)[']?\\)" options:NSRegularExpressionCaseInsensitive error:nil];
-    NSString *modifiedCSS = [regex stringByReplacingMatchesInString:cssContent options:0 range:NSMakeRange(0, cssContent.length) withTemplate:@"url(https://actcdn.eebbk.com/parent_manage/$1)"];
-    return modifiedCSS;
 }
 
 - (void)closeStream:(NSStream*)stream {
