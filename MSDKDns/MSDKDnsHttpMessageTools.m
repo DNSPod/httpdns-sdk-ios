@@ -60,11 +60,6 @@ static NSString *const kAnchorAlreadyAdded = @"AnchorAlreadyAdded";
             return NO;
         }
     }
-    // 如果url以https开头，且不为httpdns服务器ip，则进行拦截处理，否则不处理
-    NSString *dnsIp = [[MSDKDnsManager shareInstance] currentDnsServer];
-    if (![url containsString:dnsIp]) {
-        return YES;
-    }
     return NO;
 }
 
