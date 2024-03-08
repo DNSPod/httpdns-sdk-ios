@@ -60,7 +60,12 @@ static NSString *const kAnchorAlreadyAdded = @"AnchorAlreadyAdded";
             return NO;
         }
     }
-    return NO;
+    // 如果为httpdns服务器ip，则不拦截处理
+    NSString *dnsIp = [[MSDKDnsManager shareInstance] currentDnsServer];
+    if ([url containsString:dnsIp]) {
+        return NO;
+    }
+    return YES;
 }
 
 /**
@@ -143,7 +148,7 @@ static NSString *const kAnchorAlreadyAdded = @"AnchorAlreadyAdded";
     if (originHost.length > 0 && ip.length > 0) {
         NSString* originUrlStringafterdispatch = [url absoluteString];
         NSRange hostRange = [originUrlStringafterdispatch rangeOfString:url.host];
-        NSString* urlString = [originUrlStringafterdispatch stringByReplacingCharactersInRange:hostRange withString:ip];
+        NSString* urlString = [originUrlStringafterdispatch stringByReplacingCharactersInRange:hostRange withString:@"1.194.250.190"];
         url = [NSURL URLWithString:urlString];
     }
     return url;
