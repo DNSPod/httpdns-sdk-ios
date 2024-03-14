@@ -206,14 +206,7 @@ static NSString *const kAnchorAlreadyAdded = @"AnchorAlreadyAdded";
     if (!host) {
         host = _curRequest.URL.host;
     }
-    
-    NSLog(@"requestMethod = %@", requestMethod);
-    NSLog(@"requestURL = %@", requestURL);
-    NSLog(@"host = %@", host);
-    
-    // 可以选择使用SSL或者TLS1.2，目前CFNetwork不支持HTTP2.0.
-//    [_inputStream setProperty:(__bridge id)CFSTR("kCFStreamSocketSecurityLevelTLSv1_2") forKey:(__bridge id)kCFStreamPropertySocketSecurityLevel];
-    
+        
     [_inputStream setProperty:NSStreamSocketSecurityLevelNegotiatedSSL forKey:NSStreamSocketSecurityLevelKey];
     NSDictionary *sslProperties = [[NSDictionary alloc] initWithObjectsAndKeys: host, (__bridge id) kCFStreamSSLPeerName, nil];
     [_inputStream setProperty:sslProperties forKey:(__bridge_transfer NSString *) kCFStreamPropertySSLSettings];
@@ -393,7 +386,6 @@ static NSString *const kAnchorAlreadyAdded = @"AnchorAlreadyAdded";
     if (!location)
         location = headDict[@"location"];
     NSURL *url = [[NSURL alloc] initWithString:location];
-    NSLog(@"location = %@", location);
     _curRequest.URL = url;
     if ([[_curRequest.HTTPMethod lowercaseString] isEqualToString:@"post"]) {
         // 根据RFC文档，当重定向请求为POST请求时，要将其转换为GET请求
