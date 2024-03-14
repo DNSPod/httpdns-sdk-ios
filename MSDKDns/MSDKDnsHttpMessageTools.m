@@ -148,7 +148,7 @@ static NSString *const kAnchorAlreadyAdded = @"AnchorAlreadyAdded";
     if (originHost.length > 0 && ip.length > 0) {
         NSString* originUrlStringafterdispatch = [url absoluteString];
         NSRange hostRange = [originUrlStringafterdispatch rangeOfString:url.host];
-        NSString* urlString = [originUrlStringafterdispatch stringByReplacingCharactersInRange:hostRange withString:@"1.194.250.190"];
+        NSString* urlString = [originUrlStringafterdispatch stringByReplacingCharactersInRange:hostRange withString:ip];
         url = [NSURL URLWithString:urlString];
     }
     return url;
