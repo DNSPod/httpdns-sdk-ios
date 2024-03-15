@@ -7,6 +7,7 @@
 #import "MSDKDnsLog.h"
 #import "MSDKDnsParamsManager.h"
 #import "MSDKDnsManager.h"
+#import <arpa/inet.h>
 #import <objc/runtime.h>
 #import "MSDKDns.h"
 
@@ -60,12 +61,48 @@ static NSString *const kAnchorAlreadyAdded = @"AnchorAlreadyAdded";
             return NO;
         }
     }
-    // 如果为httpdns服务器ip，则不拦截处理
-    NSString *dnsIp = [[MSDKDnsManager shareInstance] currentDnsServer];
-    if ([url containsString:dnsIp]) {
+    // 如果为ip，则不拦截处理
+    if ([self isIPV4:domain]){
+        return NO;
+    }
+    if ([self isIPV6:domain]){
         return NO;
     }
     return YES;
+}
+
++ (BOOL)isIPV4:(NSString *)ipSting {
+    BOOL isIPV4 = YES;
+    
+    if (ipSting) {
+        const char *utf8 = [ipSting UTF8String];
+        int success = 0;
+        struct in_addr dst;
+        success = inet_pton(AF_INET, utf8, &dst);
+        if (success != 1) {
+            isIPV4 = NO;
+        }
+    } else {
+        isIPV4 = NO;
+    }
+    return isIPV4;
+}
+
++ (BOOL)isIPV6:(NSString *)ipSting {
+    BOOL isIPV6 = YES;
+    
+    if (ipSting) {
+        const char *utf8 = [ipSting UTF8String];
+        int success = 0;
+        struct in6_addr dst6;
+        success = inet_pton(AF_INET6, utf8, &dst6);
+        if (success != 1) {
+            isIPV6 = NO;
+        }
+    } else {
+        isIPV6 = NO;
+    }
+    return isIPV6;
 }
 
 /**
