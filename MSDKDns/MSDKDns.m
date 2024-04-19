@@ -22,6 +22,7 @@
 @implementation MSDKDns
 
 static MSDKDns * gSharedInstance = nil;
+static dispatch_once_t onceToken;
 
 #pragma mark - init
 + (instancetype) sharedInstance {
@@ -66,6 +67,35 @@ static MSDKDns * gSharedInstance = nil;
     [[MSDKDnsParamsManager shareInstance] msdkDnsSetEnableReport:config->enableReport];
     [[MSDKDnsManager shareInstance] fetchConfig:config->dnsId encryptType:config->encryptType dnsKey:config->dnsKey token:config->token];
     MSDKDNSLOG(@"MSDKDns init success.");
+    
+#ifdef httpdnsIps_h
+    dispatch_once(&onceToken, ^{
+        NSString * componentId = Bugly_APPID;
+        NSString * version = MSDKDns_Version;
+        if (componentId && version) {
+            NSMutableDictionary * dictionary = [NSMutableDictionary dictionary];
+            // 读取已有信息并记录
+            NSDictionary * dict = [[NSUserDefaults standardUserDefaults] dictionaryForKey:@"BuglySDKInfos"];
+            if (dict) {
+                [dictionary addEntriesFromDictionary:dict];
+            }
+            if (config->enableExperimentalBugly) {
+                // 添加当前组件的唯⼀标识和版本
+                [dictionary setValue:version forKey:componentId];
+                // 写⼊更新的信息
+                [[NSUserDefaults standardUserDefaults] setObject:[NSDictionary dictionaryWithDictionary:dictionary] forKey:@"BuglySDKInfos"];
+            } else {
+                if ([dictionary objectForKey:componentId] != nil) {
+                    // 删除当前组件的唯⼀标识和版本
+                    [dictionary removeObjectForKey:componentId];
+                    // 写⼊更新的信息
+                    [[NSUserDefaults standardUserDefaults] setObject:[NSDictionary dictionaryWithDictionary:dictionary] forKey:@"BuglySDKInfos"];
+                }
+            }
+        }
+    });
+#endif
+    
     return YES;
 }
 
