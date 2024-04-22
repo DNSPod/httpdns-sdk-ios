@@ -12,7 +12,6 @@
 
 + (instancetype)shareInstance;
 
-- (void)msdkDnsSetMDnsIp:(NSString *) mdnsIp;
 - (void)msdkDnsSetMOpenId:(NSString *) mdnsOpenId;
 - (void)msdkDnsSetMAppId:(NSString *) mdnsAppId timeOut:(int)mdnsTimeOut encryptType:(HttpDnsEncryptType)mdnsEncryptType;
 - (void)msdkDnsSetMDnsId:(int) mdnsId dnsKey:(NSString *)mdnsKey token:(NSString* )mdnsToken;

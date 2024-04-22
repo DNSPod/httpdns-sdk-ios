@@ -55,7 +55,6 @@ static dispatch_once_t onceToken;
     [[MSDKDnsParamsManager shareInstance] msdkDnsSetMAppId:config->appId timeOut:config->timeout encryptType:config->encryptType];
     [[MSDKDnsParamsManager shareInstance] msdkDnsSetMDnsId:config->dnsId dnsKey:config->dnsKey token:config->token];
     [[MSDKDnsParamsManager shareInstance] msdkDnsSetAddressType:config->addressType];
-    [[MSDKDnsParamsManager shareInstance] msdkDnsSetMDnsIp:config->dnsIp];
     [[MSDKDnsParamsManager shareInstance] msdkDnsSetRouteIp: config->routeIp];
     [[MSDKDnsParamsManager shareInstance] msdkDnsSetHttpOnly: config->httpOnly];
     if (config->retryTimesBeforeSwitchServer) {
