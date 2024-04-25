@@ -103,7 +103,6 @@ static dispatch_once_t onceToken;
     conf->appId = [config objectForKey:@"appId"];
     conf->debug = [[config objectForKey:@"debug"] boolValue];
     conf->dnsId = [[config objectForKey:@"dnsId"] intValue];
-    conf->dnsIp = [config objectForKey:@"dnsIp"];
     conf->dnsKey = [config objectForKey:@"dnsKey"];
     conf->token = [config objectForKey:@"token"];
     conf->encryptType =(HttpDnsEncryptType)[[config objectForKey:@"encryptType"] intValue];
