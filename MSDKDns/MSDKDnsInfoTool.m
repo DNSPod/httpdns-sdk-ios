@@ -203,18 +203,25 @@ char MSDKDnsHexCharToChar(char high, char low) {
         NSUInteger tempLength = [cipherString length];
         if (tempLength > 0) {
             NSUInteger dataLength = tempLength / 2;
-            char textBytes[dataLength];
-            for (int i  = 0; i < tempLength - 1; i = i + 2)
-            {
+            char *textBytes = (char *)malloc(dataLength);
+            if (!textBytes) {
+                return nil;
+            }
+            
+            for (NSUInteger i = 0; i < tempLength - 1; i += 2) {
                 char high = tempBytes[i];
                 char low = tempBytes[i + 1];
                 char hex = MSDKDnsHexCharToChar(high, low);
                 textBytes[i / 2] = hex;
             }
             
-            size_t dataOutAvilable = (dataLength + kCCBlockSizeDES) & ~(kCCBlockSizeDES - 1);
-            unsigned char dataOut[dataOutAvilable];
-            memset(dataOut, 0x0, dataOutAvilable);
+            size_t dataOutAvailable = (dataLength + kCCBlockSizeDES) & ~(kCCBlockSizeDES - 1);
+            unsigned char *dataOut = (unsigned char *)malloc(dataOutAvailable);
+            if (!dataOut) {
+                free(textBytes);
+                return nil;
+            }
+            memset(dataOut, 0, dataOutAvailable);
             size_t dataOutMoved = 0;
             
             char decryptKey[kCCKeySizeDES] = {0};
@@ -228,16 +235,19 @@ char MSDKDnsHexCharToChar(char high, char low) {
                                                textBytes,
                                                dataLength,
                                                dataOut,
-                                               dataOutAvilable,
+                                               dataOutAvailable,
                                                &dataOutMoved);
             
             NSString *plainText = nil;
             if (ccStatus == kCCSuccess) {
-                NSData *data = [NSData dataWithBytes:dataOut length:(NSUInteger)dataOutMoved];
+                NSData *data = [NSData dataWithBytesNoCopy:dataOut length:(NSUInteger)dataOutMoved freeWhenDone:YES];
                 if (data) {
                     plainText = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
                 }
+            } else {
+                free(dataOut);
             }
+            free(textBytes);
             return plainText;
         }
     }

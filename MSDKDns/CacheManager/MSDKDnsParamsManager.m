@@ -71,31 +71,6 @@ static MSDKDnsParamsManager * gSharedInstance = nil;
 
 #pragma mark - setter
 
-- (void)msdkDnsSetMDnsIp:(NSString *) msdkDnsIp {
-    dispatch_async([MSDKDnsInfoTool msdkdns_queue], ^{
-        self.msdkDnsIp = msdkDnsIp;
-        self.serverArray = [NSArray arrayWithObjects:msdkDnsIp, nil];
-
-        if (self.backupServerIps && [self.backupServerIps count] > 0) {
-            self.serverArray = [self.serverArray arrayByAddingObjectsFromArray:self.backupServerIps];
-        } else {
-#ifdef httpdnsIps_h
-    #if IS_INTL
-            if (self.msdkEncryptType != HttpDnsEncryptTypeHTTPS) {
-                self.serverArray = [self.serverArray arrayByAddingObjectsFromArray:httpServerIps_INTL];
-            }
-    #else
-            if (self.msdkEncryptType == HttpDnsEncryptTypeHTTPS) {
-                self.serverArray = [self.serverArray arrayByAddingObjectsFromArray:httpsServerIps];
-            } else {
-                self.serverArray = [self.serverArray arrayByAddingObjectsFromArray:httpServerIps];
-            }
-    #endif
-#endif
-        }
-    });
-}
-
 - (void)msdkDnsSetMOpenId:(NSString *) mdnsOpenId {
     dispatch_async([MSDKDnsInfoTool msdkdns_queue], ^{
         self.msdkDnsOpenId = mdnsOpenId;
