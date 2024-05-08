@@ -37,7 +37,7 @@ typedef struct DnsConfigStruct {
     NSUInteger retryTimesBeforeSwitchServer; // 可选，切换ip之前重试次数, 默认3次
     NSUInteger minutesBeforeSwitchToMain; // 可选，设置切回主ip间隔时长，默认10分钟
     BOOL enableReport; // 是否开启解析异常上报，默认NO，不上报
-    BOOL enableExperimentalBugly; // 实验性参数，仅提供给内部特定团队使用，请勿启用
+    BOOL enableExperimentalBugly;  // 实验性参数，仅提供给内部特定团队使用，请勿启用
 } DnsConfig;
 
 @interface MSDKDns : NSObject
