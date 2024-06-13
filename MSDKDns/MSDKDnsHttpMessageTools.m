@@ -218,6 +218,7 @@ static NSString *const kAnchorAlreadyAdded = @"AnchorAlreadyAdded";
     CFDataRef bodyData = CFStringCreateExternalRepresentation(kCFAllocatorDefault, requestBody, kCFStringEncodingUTF8, 0);
     if (_curRequest.HTTPBody) {
         bodyData = (__bridge_retained CFDataRef) _curRequest.HTTPBody;
+        CFHTTPMessageSetBody(cfrequest, bodyData);
     }  else if(_curRequest.HTTPBodyStream) {
         NSData *data = [self dataWithInputStream:_curRequest.HTTPBodyStream];
         CFDataRef body = (__bridge_retained CFDataRef) data;
