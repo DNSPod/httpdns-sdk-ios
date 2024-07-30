@@ -288,11 +288,16 @@
                     }
                     //  NSLog(@"4444444延时更新请求等待，预计在%f秒后开始!请求域名为%@",afterTime.floatValue,domain);
                     if (!domainISOpenDelayDispatch[domain] && afterTime.floatValue > 0) {
+                        // NSLog(@"获取缓存延时更新after，初始值为%f秒。", afterTime.floatValue);
+                        afterTime = [NSMutableString stringWithFormat:@"%f", afterTime.floatValue * 0.75];
+                        if (afterTime.floatValue < 60) {
+                            afterTime = [[NSMutableString alloc]initWithString:@"60"];
+                        }
                         // 使用静态字典来记录该域名是否开启了一个延迟解析请求，如果已经开启则忽略，没有则立马开启一个
                         [[MSDKDnsManager shareInstance] msdkDnsAddDomainOpenDelayDispatch:domain];
                         MSDKDNSLOG(@"Start the delayed execution task, it is expected to start requesting the domain name %@ after %f seconds", domain, afterTime.floatValue);
-                        dispatch_after(dispatch_time(DISPATCH_TIME_NOW,afterTime.floatValue* NSEC_PER_SEC), [MSDKDnsInfoTool msdkdns_queue], ^{
-                            //  NSLog(@"延时更新请求开始!请求域名为%@",domain);
+                        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, afterTime.floatValue * NSEC_PER_SEC), [MSDKDnsInfoTool msdkdns_queue], ^{
+                            // NSLog(@"缓存延时更新请求开始!请求域名为%@", domain);
                             BOOL enableKeepDomainsAlive = [[MSDKDnsParamsManager shareInstance] msdkDnsGetEnableKeepDomainsAlive];
                             if (enableKeepDomainsAlive) {
                                 MSDKDNSLOG(@"The cache update request start! request domain:%@",domain);
