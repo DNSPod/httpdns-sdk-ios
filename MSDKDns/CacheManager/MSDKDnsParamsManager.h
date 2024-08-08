@@ -7,9 +7,6 @@
 
 @interface MSDKDnsParamsManager : NSObject
 
-@property (nonatomic, strong, readwrite)NSArray * hijackDomainArray;
-@property (nonatomic, strong, readwrite)NSArray * noHijackDomainArray;
-
 + (instancetype)shareInstance;
 
 - (void)msdkDnsSetMOpenId:(NSString *) mdnsOpenId;
@@ -26,6 +23,8 @@
 - (void)msdkDnsSetEnableReport: (BOOL)enableReport;
 - (void)msdkDnsSetEnableDetectHostServer: (BOOL)enableDetectHostServer;
 - (void)msdkDnsSetPreResolvedDomains: (NSArray *)domains;
+- (void)msdkDnsSetHijackDomainArray: (NSArray *)domains;
+- (void)msdkDnsSetNoHijackDomainArray: (NSArray *)domains;
 - (void)msdkDnsSetAddressType: (HttpDnsAddressType)addressType;
 - (void)msdkDnsSetKeepAliveDomains: (NSArray *)domains;
 - (void)msdkDnsSetIPRankData: (NSDictionary *)ipRankData;
@@ -49,6 +48,8 @@
 - (BOOL)msdkDnsGetEnableReport;
 - (BOOL)msdkDnsGetEnableDetectHostServer;
 - (NSArray *)msdkDnsGetPreResolvedDomains;
+- (NSArray *)msdkDnsGetHijackDomainArray;
+- (NSArray *)msdkDnsGetNoHijackDomainArray;
 - (HttpDnsAddressType)msdkDnsGetAddressType;
 - (NSArray *)msdkDnsGetKeepAliveDomains;
 - (NSDictionary *)msdkDnsGetIPRankData;

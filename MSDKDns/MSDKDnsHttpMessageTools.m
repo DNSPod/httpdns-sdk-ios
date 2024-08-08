@@ -46,8 +46,8 @@ static NSString *const kAnchorAlreadyAdded = @"AnchorAlreadyAdded";
     NSString * originHost = [request.allHTTPHeaderFields objectForKey:@"host"];
     NSString * domain = request.URL.host;
         
-    NSArray * hijackDomainArray = [[[MSDKDnsParamsManager shareInstance] hijackDomainArray] copy];
-    NSArray * noHijackDomainArray = [[[MSDKDnsParamsManager shareInstance] noHijackDomainArray] copy];
+    NSArray * hijackDomainArray = [[[MSDKDnsParamsManager shareInstance] msdkDnsGetHijackDomainArray] copy];
+    NSArray * noHijackDomainArray = [[[MSDKDnsParamsManager shareInstance] msdkDnsGetNoHijackDomainArray] copy];
     
     if (hijackDomainArray && (hijackDomainArray.count > 0)) {
         if ([url hasPrefix:@"https"] && [hijackDomainArray containsObject:domain]) {

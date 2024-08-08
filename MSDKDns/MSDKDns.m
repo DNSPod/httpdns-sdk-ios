@@ -151,13 +151,13 @@ static dispatch_once_t onceToken;
 
 - (void) WGSetHijackDomainArray:(NSArray *)hijackDomainArray {
     if (hijackDomainArray) {
-        [[MSDKDnsParamsManager shareInstance] setHijackDomainArray:[hijackDomainArray copy]];
+        [[MSDKDnsParamsManager shareInstance] msdkDnsSetHijackDomainArray:hijackDomainArray];
     }
 }
 
 - (void) WGSetNoHijackDomainArray:(NSArray *)noHijackDomainArray {
     if (noHijackDomainArray) {
-        [[MSDKDnsParamsManager shareInstance] setNoHijackDomainArray:[noHijackDomainArray copy]];
+        [[MSDKDnsParamsManager shareInstance] msdkDnsSetNoHijackDomainArray:noHijackDomainArray];
     }
 }
 
