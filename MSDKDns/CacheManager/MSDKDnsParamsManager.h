@@ -7,6 +7,9 @@
 
 @interface MSDKDnsParamsManager : NSObject
 
+@property (nonatomic, strong, readwrite)NSArray * hijackDomainArray;
+@property (nonatomic, strong, readwrite)NSArray * noHijackDomainArray;
+
 + (instancetype)shareInstance;
 
 - (void)msdkDnsSetMOpenId:(NSString *) mdnsOpenId;

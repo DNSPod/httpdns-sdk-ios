@@ -31,8 +31,6 @@
 @property (strong, nonatomic, readwrite) NSArray * backupServerIps;
 @property (assign, nonatomic, readwrite) BOOL enableReport;
 @property (strong, nonatomic, readwrite) NSArray* preResolvedDomains;
-@property (strong, nonatomic, readwrite) NSArray * hijackDomainArray;
-@property (strong, nonatomic, readwrite) NSArray * noHijackDomainArray;
 @property (assign, nonatomic, readwrite) HttpDnsAddressType msdkAddressType;
 @property (strong, nonatomic, readwrite) NSArray* keepAliveDomains;
 @property (strong, nonatomic, readwrite) NSDictionary* ipRankData;
