@@ -148,6 +148,18 @@ static MSDKDnsParamsManager * gSharedInstance = nil;
     });
 }
 
+- (void)msdkDnsSetHijackDomainArray: (NSArray *)domains {
+    dispatch_async([MSDKDnsInfoTool msdkdns_queue], ^{
+        self.hijackDomainArray = [domains copy];
+    });
+}
+
+- (void)msdkDnsSetNoHijackDomainArray: (NSArray *)domains {
+    dispatch_async([MSDKDnsInfoTool msdkdns_queue], ^{
+        self.noHijackDomainArray = [domains copy];
+    });
+}
+
 - (void)msdkDnsSetAddressType: (HttpDnsAddressType)addressType {
     dispatch_async([MSDKDnsInfoTool msdkdns_queue], ^{
         self.msdkAddressType = addressType;
@@ -255,6 +267,14 @@ static MSDKDnsParamsManager * gSharedInstance = nil;
 
 - (NSArray *)msdkDnsGetPreResolvedDomains {
     return _preResolvedDomains;
+}
+
+- (NSArray *)msdkDnsGetHijackDomainArray {
+    return _hijackDomainArray;
+}
+
+- (NSArray *)msdkDnsGetNoHijackDomainArray {
+    return _noHijackDomainArray;
 }
 
 - (HttpDnsAddressType)msdkDnsGetAddressType {
