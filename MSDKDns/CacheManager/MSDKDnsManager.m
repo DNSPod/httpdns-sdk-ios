@@ -89,16 +89,23 @@ static MSDKDnsManager * gSharedInstance = nil;
             if ([retrievedSdkInfo isKindOfClass:[NSDictionary class]]) {
                 NSArray *ipList = retrievedSdkInfo[@"ipList"];
                 NSString *ttlExpried = retrievedSdkInfo[@"ttlExpried"];
+                NSString *httpType = retrievedSdkInfo[@"httpType"];
                 // 验证子数据类型
-                if ([ipList isKindOfClass:[NSArray class]] && ipList.count > 0 && [ttlExpried isKindOfClass:[NSString class]] && ttlExpried.length > 0) {
+                if ([ipList isKindOfClass:[NSArray class]] && ipList.count > 0 && [ttlExpried isKindOfClass:[NSString class]] && ttlExpried.length > 0 && [httpType isKindOfClass:[NSString class]] && httpType.length > 0) {
                     // 打印数据
                     NSLog(@"IP List: %@", ipList);
                     NSLog(@"TTL Expired: %@", ttlExpried);
+                    NSLog(@"httpType: %@", httpType);
                     
                     double timeInterval = [[NSDate date] timeIntervalSince1970];
-                    if (timeInterval <= ttlExpried.doubleValue) {
+                    NSString *type = @"http";
+                    HttpDnsEncryptType encryptType = [[MSDKDnsParamsManager shareInstance] msdkDnsGetEncryptType];
+                    if (encryptType == HttpDnsEncryptTypeHTTPS) {
+                        type = @"https";
+                    }
+                    if (timeInterval <= ttlExpried.doubleValue && [httpType isEqualToString:type]) {
                         // 本地存储内容没有过期，就使用存储中的服务ip列表
-                        _dnsServers = [ipList copy];
+                        self.dnsServers = [ipList copy];
                         NSLog(@"使用存储的ipList: %@", ipList);
                     } else {
                         // 如果存储过期，就清除
@@ -110,6 +117,7 @@ static MSDKDnsManager * gSharedInstance = nil;
                         // 删除当前服务ip列表和过期时间
                         [dictionary removeObjectForKey:@"ttlExpried"];
                         [dictionary removeObjectForKey:@"ipList"];
+                        [dictionary removeObjectForKey:@"httpType"];
                         
                         NSLog(@"更新之后的dictionary======%@", [NSDictionary dictionaryWithDictionary:dictionary]);
                         @try {
@@ -1183,6 +1191,11 @@ static MSDKDnsManager * gSharedInstance = nil;
                     NSLog(@"timeInterval====%f", timeInterval);
                     NSString * ttlExpried = [NSString stringWithFormat:@"%0.0f", (timeInterval + fetchTime * 60)];
                     NSLog(@"timeInterval====%f====ttlExpried:%@", timeInterval, ttlExpried);
+                    NSString *httpType = @"http";
+                    HttpDnsEncryptType encryptType = [[MSDKDnsParamsManager shareInstance] msdkDnsGetEncryptType];
+                    if (encryptType == HttpDnsEncryptTypeHTTPS) {
+                        httpType = @"https";
+                    }
                     
                     // 获取NSUserDefaults实例
                     NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
@@ -1199,7 +1212,8 @@ static MSDKDnsManager * gSharedInstance = nil;
                     // 添加当前服务ip列表和过期时间
                     [dictionary setValue:ttlExpried forKey:@"ttlExpried"];
                     [dictionary setValue:filteredArray forKey:@"ipList"];
-                    
+                    [dictionary setValue:httpType forKey:@"httpType"];
+
                     NSLog(@"更新之后的dictionary======%@", [NSDictionary dictionaryWithDictionary:dictionary]);
                     
                     @try {
