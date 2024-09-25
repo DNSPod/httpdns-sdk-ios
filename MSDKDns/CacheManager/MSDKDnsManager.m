@@ -1342,7 +1342,6 @@ static MSDKDnsManager * gSharedInstance = nil;
 
 - (NSString *)currentDnsServer {
     int index = self.serverIndex;
-    MSDKDNSLOG(@"====self.dnsServers:%@ ===当前index:%d===当前ip：%@", self.dnsServers, index, self.dnsServers[index]);
     if (self.dnsServers != nil && [self.dnsServers count] > 0 && index >= 0 && index < [self.dnsServers count]) {
         return self.dnsServers[index];
     }
