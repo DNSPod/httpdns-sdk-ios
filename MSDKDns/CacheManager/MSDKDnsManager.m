@@ -1072,7 +1072,7 @@ static MSDKDnsManager * gSharedInstance = nil;
                 NSString *str = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
                 if(![str isEqualToString:@""]){
                     if (mdnsEncryptType != HttpDnsEncryptTypeHTTPS && mdnsKey && mdnsKey.length > 0) {
-                        if (mdnsEncryptType == 0) {
+                        if (mdnsEncryptType == HttpDnsEncryptTypeDES) {
                             str = [MSDKDnsInfoTool decryptUseDES:str key:mdnsKey];
                         } else {
                             str = [MSDKDnsInfoTool decryptUseAES:str key:mdnsKey];
