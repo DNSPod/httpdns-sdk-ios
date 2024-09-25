@@ -1148,9 +1148,9 @@ static MSDKDnsManager * gSharedInstance = nil;
                 // 把ttl中的字符串转为int，当小于1的时候，或者大于1440，都是用默认值60分钟
                 if (intValue && intValue >= 1 && intValue <= 1440) {
                     fetchTime = intValue;
-                    NSLog(@"等待%d分钟时间后去更新服务ip列表", fetchTime);
+                    MSDKDNSLOG(@"等待%d分钟时间后去更新服务ip列表", fetchTime);
                     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, fetchTime * 60 * NSEC_PER_SEC), [MSDKDnsInfoTool msdkdns_queue], ^{
-                        NSLog(@"%d分钟时间到，开始拉取最新服务ip列表", fetchTime);
+                        MSDKDNSLOG(@"%d分钟时间到，开始拉取最新服务ip列表", fetchTime);
                         self.fetchConfigFailCount = 0;
                         
                         HttpDnsEncryptType encryptType = [[MSDKDnsParamsManager shareInstance] msdkDnsGetEncryptType];
