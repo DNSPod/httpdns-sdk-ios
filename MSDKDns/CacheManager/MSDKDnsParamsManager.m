@@ -27,7 +27,6 @@
 @property (assign, nonatomic, readwrite) BOOL httpOnly;
 @property (strong, nonatomic, readwrite) NSArray* serverArray;
 @property (assign, nonatomic, readwrite) NSUInteger retryTimesBeforeSwitchServer;
-@property (assign, nonatomic, readwrite) NSUInteger minutesBeforeSwitchToMain;
 @property (strong, nonatomic, readwrite) NSArray * backupServerIps;
 @property (assign, nonatomic, readwrite) BOOL enableReport;
 @property (strong, nonatomic, readwrite) NSArray* preResolvedDomains;
@@ -58,7 +57,6 @@ static MSDKDnsParamsManager * gSharedInstance = nil;
         _msdkDnsOpenId = HTTP_DNS_UNKNOWN_STR;
         _msdkDnsAppId = HTTP_DNS_UNKNOWN_STR;
         _retryTimesBeforeSwitchServer = 3;
-        _minutesBeforeSwitchToMain = 10;
         _enableReport = NO;
         _msdkAddressType = HttpDnsAddressTypeAuto;
         _enableKeepDomainsAlive = YES;
@@ -111,13 +109,6 @@ static MSDKDnsParamsManager * gSharedInstance = nil;
 - (void)msdkDnsSetRetryTimesBeforeSwitchServer:(NSUInteger)times {
     dispatch_async([MSDKDnsInfoTool msdkdns_queue], ^{
         self.retryTimesBeforeSwitchServer = times;
-    });
-}
-
-// 设置切回主ip间隔时长
-- (void)msdkDnsSetMinutesBeforeSwitchToMain:(NSUInteger)minutes {
-    dispatch_async([MSDKDnsInfoTool msdkdns_queue], ^{
-        self.minutesBeforeSwitchToMain = minutes;
     });
 }
 
@@ -251,10 +242,6 @@ static MSDKDnsParamsManager * gSharedInstance = nil;
 
 - (NSUInteger)msdkDnsGetRetryTimesBeforeSwitchServer {
     return _retryTimesBeforeSwitchServer;
-}
-
-- (NSUInteger)msdkDnsGetMinutesBeforeSwitchToMain {
-    return _minutesBeforeSwitchToMain;
 }
 
 - (BOOL)msdkDnsGetEnableReport {

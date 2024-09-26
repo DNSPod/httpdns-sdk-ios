@@ -24,7 +24,6 @@
 @property (strong, nonatomic, readwrite) NSMutableDictionary * domainDict;
 @property (nonatomic, assign, readwrite) int serverIndex;
 @property (nonatomic, assign, readwrite) int startServerIndex;
-@property (nonatomic, strong, readwrite) NSDate *firstFailTime; // 记录首次失败的时间
 @property (nonatomic, assign, readwrite) BOOL waitToSwitch; // 防止连续多次切换
 @property (nonatomic, assign, readwrite) BOOL waitToSwitchStartServer; // 防止连续多次切换启动服务ip
 @property (nonatomic, assign, readwrite) int fetchConfigFailCount;
@@ -70,7 +69,6 @@ static MSDKDnsManager * gSharedInstance = nil;
 - (instancetype) init {
     if (self = [super init]) {
         _serverIndex = 0;
-        _firstFailTime = nil;
         _waitToSwitch = NO;
         _serviceArray = [[NSMutableArray alloc] init];
         _sdkStatus = net_undetected;
@@ -1356,22 +1354,8 @@ static MSDKDnsManager * gSharedInstance = nil;
     dispatch_async([MSDKDnsInfoTool msdkdns_queue], ^{
         if (self.serverIndex < [self.dnsServers count] - 1) {
             self.serverIndex += 1;
-            if (!self.firstFailTime) {
-                self.firstFailTime = [NSDate date];
-                // 一定时间后自动切回主ip
-                __weak __typeof__(self) weakSelf = self;
-                dispatch_after(dispatch_time(DISPATCH_TIME_NOW,[[MSDKDnsParamsManager shareInstance] msdkDnsGetMinutesBeforeSwitchToMain] * 60 * NSEC_PER_SEC), [MSDKDnsInfoTool msdkdns_queue], ^{
-                    if (weakSelf.firstFailTime && [[NSDate date] timeIntervalSinceDate:weakSelf.firstFailTime] >= [[MSDKDnsParamsManager shareInstance] msdkDnsGetMinutesBeforeSwitchToMain] * 60) {
-                        MSDKDNSLOG(@"auto reset server index, use main ip now.");
-                        weakSelf.serverIndex = 0;
-                        weakSelf.firstFailTime = nil;
-                    }
-                });
-            }
         } else {
             self.serverIndex = 0;
-            self.firstFailTime = nil;
-            
             // 当服务ip都失败，切回主ip的时候，使用启动ip下发拉取服务ip列表的请求
             HttpDnsEncryptType encryptType = [[MSDKDnsParamsManager shareInstance] msdkDnsGetEncryptType];
             int dnsId = [[MSDKDnsParamsManager shareInstance] msdkDnsGetMDnsId];
