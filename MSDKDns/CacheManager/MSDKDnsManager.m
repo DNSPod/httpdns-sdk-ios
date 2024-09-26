@@ -1044,8 +1044,9 @@ static MSDKDnsManager * gSharedInstance = nil;
 }
 
 - (void)fetchConfig:(int) mdnsId encryptType:(HttpDnsEncryptType)mdnsEncryptType dnsKey:(NSString *)mdnsKey token:(NSString* )mdnsToken {
-    dispatch_barrier_async([MSDKDnsInfoTool msdkdns_resolver_queue], ^{
+    dispatch_async([MSDKDnsInfoTool msdkdns_resolver_queue], ^{
         NSString *urlStr = [self getFetchConfigUrlStr:mdnsId mdnsEncryptType:mdnsEncryptType mdnsToken:mdnsToken];
+        // NSLog(@"开始获取远程配置：%@", urlStr);
         NSURL *url = [NSURL URLWithString:urlStr];
         self.request = [NSMutableURLRequest requestWithURL:url];
         // 创建一个信号量，初始值为0
@@ -1096,7 +1097,7 @@ static MSDKDnsManager * gSharedInstance = nil;
                 }else {
                     MSDKDNSLOG(@"5分钟后重试");
                     [self switchStartServer];
-                    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 60 * NSEC_PER_SEC), [MSDKDnsInfoTool msdkdns_queue], ^{
+                    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 5 * 60 * NSEC_PER_SEC), [MSDKDnsInfoTool msdkdns_queue], ^{
                         MSDKDNSLOG(@"5分钟时间到，开始重试");
                         self.fetchConfigFailCount = 0;
                         [self fetchConfig:mdnsId encryptType:mdnsEncryptType dnsKey:mdnsKey token:mdnsToken];
@@ -1110,10 +1111,8 @@ static MSDKDnsManager * gSharedInstance = nil;
         
         // 等待任务完成或超时（例如：1秒）
         dispatch_time_t timeout = dispatch_time(DISPATCH_TIME_NOW, 2 * NSEC_PER_SEC);
-        if (dispatch_semaphore_wait(semaphore, timeout) != 0) {
-            // 超时处理
-            [dataTask cancel];
-        }
+        
+        dispatch_semaphore_wait(semaphore, timeout);
     });
 }
 
