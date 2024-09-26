@@ -88,6 +88,7 @@ static NSURLSession *_resolveHOSTSession = nil;
 }
 
 - (void)startDataTaskWithHttpDnsUrl:(NSURL *)httpDnsUrl domains:(NSArray *)domains timeOut:(float)timeOut delegate:(id<MSDKDnsResolverDelegate>)delegate {
+    MSDKDNSLOG("HttpDns Request domains: %@", domains);
     MSDKDNSLOG("HttpDns Request URL: %@", httpDnsUrl);
     NSURLRequest *request = [NSURLRequest requestWithURL:httpDnsUrl
                                                cachePolicy:NSURLRequestReloadIgnoringLocalCacheData

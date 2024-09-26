@@ -1112,7 +1112,10 @@ static MSDKDnsManager * gSharedInstance = nil;
         // 等待任务完成或超时（例如：1秒）
         dispatch_time_t timeout = dispatch_time(DISPATCH_TIME_NOW, 2 * NSEC_PER_SEC);
         
-        dispatch_semaphore_wait(semaphore, timeout);
+        if (dispatch_semaphore_wait(semaphore, timeout) != 0) {
+            // 超时处理
+            [dataTask cancel];
+        }
     });
 }
 
