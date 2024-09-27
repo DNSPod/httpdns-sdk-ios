@@ -25,6 +25,7 @@
 @property (nonatomic, assign, readwrite) int serverIndex;
 @property (nonatomic, assign, readwrite) int startServerIndex;
 @property (nonatomic, assign, readwrite) BOOL waitToSwitch; // 防止连续多次切换
+@property (strong, nonatomic) dispatch_source_t retryTimer; //防止生成多个延时任务
 @property (nonatomic, assign, readwrite) BOOL waitToSwitchStartServer; // 防止连续多次切换启动服务ip
 @property (nonatomic, assign, readwrite) int fetchConfigFailCount;
 
@@ -1097,11 +1098,7 @@ static MSDKDnsManager * gSharedInstance = nil;
                 }else {
                     MSDKDNSLOG(@"5分钟后重试");
                     [self switchStartServer];
-                    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 5 * 60 * NSEC_PER_SEC), [MSDKDnsInfoTool msdkdns_queue], ^{
-                        MSDKDNSLOG(@"5分钟时间到，开始重试");
-                        self.fetchConfigFailCount = 0;
-                        [self fetchConfig:mdnsId encryptType:mdnsEncryptType dnsKey:mdnsKey token:mdnsToken];
-                    });
+                    [self scheduleRetryWithDelay:5];
                 }
             }
             // 任务完成，发送信号量
@@ -1149,17 +1146,7 @@ static MSDKDnsManager * gSharedInstance = nil;
                 if (intValue && intValue >= 1 && intValue <= 1440) {
                     fetchTime = intValue;
                     MSDKDNSLOG(@"等待%d分钟时间后去更新服务ip列表", fetchTime);
-                    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, fetchTime * 60 * NSEC_PER_SEC), [MSDKDnsInfoTool msdkdns_queue], ^{
-                        MSDKDNSLOG(@"%d分钟时间到，开始拉取最新服务ip列表", fetchTime);
-                        self.fetchConfigFailCount = 0;
-                        
-                        HttpDnsEncryptType encryptType = [[MSDKDnsParamsManager shareInstance] msdkDnsGetEncryptType];
-                        int dnsId = [[MSDKDnsParamsManager shareInstance] msdkDnsGetMDnsId];
-                        NSString *dnsKey = [[MSDKDnsParamsManager shareInstance] msdkDnsGetMDnsKey];
-                        NSString *token = [[MSDKDnsParamsManager shareInstance] msdkDnsGetMToken];
-                        
-                        [self fetchConfig:dnsId encryptType:encryptType dnsKey:dnsKey token:token];
-                    });
+                    [self scheduleRetryWithDelay:fetchTime];
                     // 同时将获取到的服务ip列表进行本地存储
                     double timeInterval = [[NSDate date] timeIntervalSince1970];
                     NSString * ttlExpried = [NSString stringWithFormat:@"%0.0f", (timeInterval + fetchTime * 60)];
@@ -1197,6 +1184,33 @@ static MSDKDnsManager * gSharedInstance = nil;
             }
         }
     }
+}
+
+- (void)scheduleRetryWithDelay:(NSTimeInterval)delay {
+    // 取消已有的重试任务
+    if (self.retryTimer) {
+        dispatch_source_cancel(self.retryTimer);
+        self.retryTimer = nil;
+    }
+    
+    // 创建新的重试任务
+    self.retryTimer = dispatch_source_create(DISPATCH_SOURCE_TYPE_TIMER, 0, 0, [MSDKDnsInfoTool msdkdns_queue]);
+    dispatch_source_set_timer(self.retryTimer, dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delay * 60 * NSEC_PER_SEC)), DISPATCH_TIME_FOREVER, 0);
+    dispatch_source_set_event_handler(self.retryTimer, ^{
+        MSDKDNSLOG(@"%d分钟时间到，开始拉取最新服务ip列表", delay);
+        if (dispatch_source_testcancel(self.retryTimer)) {
+            // 检查 dispatch_source_t 是否已被取消，并在取消后立即返回，防止进一步执行
+            return;
+        }
+        self.fetchConfigFailCount = 0;
+        HttpDnsEncryptType encryptType = [[MSDKDnsParamsManager shareInstance] msdkDnsGetEncryptType];
+        int dnsId = [[MSDKDnsParamsManager shareInstance] msdkDnsGetMDnsId];
+        NSString *dnsKey = [[MSDKDnsParamsManager shareInstance] msdkDnsGetMDnsKey];
+        NSString *token = [[MSDKDnsParamsManager shareInstance] msdkDnsGetMToken];
+        
+        [self fetchConfig:dnsId encryptType:encryptType dnsKey:dnsKey token:token];
+    });
+    dispatch_resume(self.retryTimer);
 }
 
 - (void)URLSession:(NSURLSession *)session task:(NSURLSessionTask *)task didReceiveChallenge:(NSURLAuthenticationChallenge *)challenge completionHandler:(void (^)(NSURLSessionAuthChallengeDisposition disposition, NSURLCredential * __nullable credential))completionHandler {
