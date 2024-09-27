@@ -115,8 +115,6 @@ static MSDKDnsManager * gSharedInstance = nil;
                         @try {
                             // 写⼊更新的信息
                             [defaults setObject:[NSDictionary dictionaryWithDictionary:dictionary] forKey:@"TencentHTTPDNSSDKInfo"];
-                            // 确保数据被写入
-                            [defaults synchronize];
                         } @catch (NSException *exception) {
                             MSDKDNSLOG(@"Failed to store data: %@", exception.reason);
                         }
@@ -1175,8 +1173,6 @@ static MSDKDnsManager * gSharedInstance = nil;
                     @try {
                         // 写⼊更新的信息
                         [defaults setObject:[NSDictionary dictionaryWithDictionary:dictionary] forKey:@"TencentHTTPDNSSDKInfo"];
-                        // 确保数据被写入
-                        [defaults synchronize];
                     } @catch (NSException *exception) {
                         MSDKDNSLOG(@"Failed to store data: %@", exception.reason);
                     }
@@ -1186,7 +1182,7 @@ static MSDKDnsManager * gSharedInstance = nil;
     }
 }
 
-- (void)scheduleRetryWithDelay:(NSTimeInterval)delay {
+- (void)scheduleRetryWithDelay:(int)delay {
     // 取消已有的重试任务
     if (self.retryTimer) {
         dispatch_source_cancel(self.retryTimer);
