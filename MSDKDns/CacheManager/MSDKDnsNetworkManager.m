@@ -77,8 +77,6 @@ static MSDKDnsNetworkManager *gManager = nil;
                 }
                 //对保活域名发送解析请求
                 [self getHostsByKeepAliveDomains];
-                //重置ip指针
-                [[MSDKDnsManager shareInstance] switchToMainServer];
                 
                 BOOL enableDetectHostServer = [[MSDKDnsParamsManager shareInstance] msdkDnsGetEnableDetectHostServer];
                 if (enableDetectHostServer) {

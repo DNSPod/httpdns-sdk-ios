@@ -19,8 +19,6 @@
 - (void)msdkDnsSetHttpOnly:(BOOL)httpOnly;
 // 设置切换ip之前重试次数
 - (void)msdkDnsSetRetryTimesBeforeSwitchServer:(NSUInteger)times;
-// 设置切回主ip间隔时长
-- (void)msdkDnsSetMinutesBeforeSwitchToMain:(NSUInteger)minutes;
 // 设置备份ip
 - (void)msdkDnsSetBackupServerIps: (NSArray *)ips;
 - (void)msdkDnsSetEnableReport: (BOOL)enableReport;
@@ -47,7 +45,6 @@
 - (BOOL)msdkDnsGetHttpOnly;
 - (NSArray *)msdkDnsGetServerIps;
 - (NSUInteger)msdkDnsGetRetryTimesBeforeSwitchServer;
-- (NSUInteger)msdkDnsGetMinutesBeforeSwitchToMain;
 - (BOOL)msdkDnsGetEnableReport;
 - (BOOL)msdkDnsGetEnableDetectHostServer;
 - (NSArray *)msdkDnsGetPreResolvedDomains;

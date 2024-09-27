@@ -37,7 +37,6 @@ typedef enum {
 
 - (NSString *)currentDnsServer;
 - (void)switchDnsServer;
-- (void)switchToMainServer;
 
 // 添加domain进入延迟记录字典里面
 - (void)msdkDnsAddDomainOpenDelayDispatch: (NSString *)domain;

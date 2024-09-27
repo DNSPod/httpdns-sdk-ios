@@ -456,10 +456,11 @@ char MSDKDnsHexCharToChar(char high, char low) {
     NSString *serviceIp = [[MSDKDnsManager shareInstance] currentDnsServer];
     NSString *routeIp = [[MSDKDnsParamsManager shareInstance] msdkDnsGetRouteIp];
     NSString *protocol = encryptType == HttpDnsEncryptTypeHTTPS ? @"https" : @"http";
-    
+    NSString *sdkVersion = @"2_x.x.x";
     BOOL isHTTPDNSDomain = NO;
     
 #ifdef httpdnsIps_h
+    sdkVersion = [NSString stringWithFormat:@"2_%@", MSDKDns_Version];
 #if IS_INTL
     if ([MSDKDnsServerDomain_INTL isEqualToString:domain]){
         isHTTPDNSDomain = YES;
@@ -475,7 +476,7 @@ char MSDKDnsHexCharToChar(char high, char low) {
     if (!httpServer || httpServer.length == 0) {
         httpServer = serviceIp;
     }
-    NSString *urlStr = [NSString stringWithFormat:@"%@://%@/d?dn=%@&clientip=1&ttl=1&query=1&id=%d", protocol, httpServer, domainEncrypStr, dnsId];
+    NSString *urlStr = [NSString stringWithFormat:@"%@://%@/d?dn=%@&clientip=1&ttl=1&query=1&id=%d&sdk=%@", protocol, httpServer, domainEncrypStr, dnsId, sdkVersion];
     if (ipType == HttpDnsTypeIPv6) {
         urlStr = [urlStr stringByAppendingString:@"&type=aaaa"];
     }else if (ipType == HttpDnsTypeDual) {
