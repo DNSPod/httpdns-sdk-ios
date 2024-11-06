@@ -11,6 +11,7 @@
 #import "MSDKDnsNetworkManager.h"
 #import "msdkdns_local_ip_stack.h"
 #import "AttaReport.h"
+#import <arpa/inet.h>
 #if defined(__has_include)
     #if __has_include("httpdnsIps.h")
         #include "httpdnsIps.h"
@@ -22,12 +23,17 @@
 @property (strong, nonatomic, readwrite) NSMutableArray * serviceArray;
 @property (strong, nonatomic, readwrite) NSMutableDictionary * domainDict;
 @property (nonatomic, assign, readwrite) int serverIndex;
-@property (nonatomic, strong, readwrite) NSDate *firstFailTime; // 记录首次失败的时间
+@property (nonatomic, assign, readwrite) int startServerIndex;
 @property (nonatomic, assign, readwrite) BOOL waitToSwitch; // 防止连续多次切换
+@property (strong, nonatomic) dispatch_source_t retryTimer; //防止生成多个延时任务
+@property (nonatomic, assign, readwrite) BOOL waitToSwitchStartServer; // 防止连续多次切换启动服务ip
+@property (nonatomic, assign, readwrite) int fetchConfigFailCount;
+
 // 延迟记录字典，记录哪些域名已经开启了延迟解析请求
 @property (strong, nonatomic, readwrite) NSMutableDictionary* domainISOpenDelayDispatch;
 @property (nonatomic, assign, readwrite) HttpDnsSdkStatus sdkStatus;
 @property (nonatomic, strong, readwrite) NSArray * dnsServers;
+@property (nonatomic, strong, readwrite) NSArray * dnsStartServers;
 @property (strong, nonatomic) NSMutableURLRequest *request;
 @property (strong, nonatomic, readwrite) NSMutableDictionary * cacheDomainCountDict;
 
@@ -64,12 +70,60 @@ static MSDKDnsManager * gSharedInstance = nil;
 - (instancetype) init {
     if (self = [super init]) {
         _serverIndex = 0;
-        _firstFailTime = nil;
         _waitToSwitch = NO;
         _serviceArray = [[NSMutableArray alloc] init];
         _sdkStatus = net_undetected;
         _dnsServers = [self defaultServers];
+        _dnsStartServers = [self defaultStartServers];
+        _fetchConfigFailCount = 0;
         _cacheDomainCountDict = [[NSMutableDictionary alloc] init];
+        
+        // 获取NSUserDefaults实例
+        NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+        @try {
+            // 读取数据
+            NSDictionary *retrievedSdkInfo = [defaults objectForKey:@"TencentHTTPDNSSDKInfo"];
+            // 验证数据类型
+            if ([retrievedSdkInfo isKindOfClass:[NSDictionary class]]) {
+                NSArray *ipList = retrievedSdkInfo[@"ipList"];
+                NSString *ttlExpried = retrievedSdkInfo[@"ttlExpried"];
+                NSString *httpType = retrievedSdkInfo[@"httpType"];
+                // 验证子数据类型
+                if ([ipList isKindOfClass:[NSArray class]] && ipList.count > 0 && [ttlExpried isKindOfClass:[NSString class]] && ttlExpried.length > 0 && [httpType isKindOfClass:[NSString class]] && httpType.length > 0) {
+                    double timeInterval = [[NSDate date] timeIntervalSince1970];
+                    NSString *type = @"http";
+                    HttpDnsEncryptType encryptType = [[MSDKDnsParamsManager shareInstance] msdkDnsGetEncryptType];
+                    if (encryptType == HttpDnsEncryptTypeHTTPS) {
+                        type = @"https";
+                    }
+                    if (timeInterval <= ttlExpried.doubleValue && [httpType isEqualToString:type]) {
+                        // 本地存储内容没有过期，就使用存储中的服务ip列表
+                        self.dnsServers = [ipList copy];
+                        MSDKDNSLOG(@"使用存储的ipList: %@", ipList);
+                    } else {
+                        // 如果存储过期，就清除
+                        MSDKDNSLOG(@"删除本地存储的ipList: %@", ipList);
+                        NSMutableDictionary * dictionary = [NSMutableDictionary dictionary];
+                        if (retrievedSdkInfo) {
+                            [dictionary addEntriesFromDictionary:retrievedSdkInfo];
+                        }
+                        // 删除当前服务ip列表和过期时间
+                        [dictionary removeObjectForKey:@"ttlExpried"];
+                        [dictionary removeObjectForKey:@"ipList"];
+                        [dictionary removeObjectForKey:@"httpType"];
+                        
+                        @try {
+                            // 写⼊更新的信息
+                            [defaults setObject:[NSDictionary dictionaryWithDictionary:dictionary] forKey:@"TencentHTTPDNSSDKInfo"];
+                        } @catch (NSException *exception) {
+                            MSDKDNSLOG(@"Failed to store data: %@", exception.reason);
+                        }
+                    }
+                }
+            }
+        } @catch (NSException *exception) {
+            MSDKDNSLOG(@"Failed to read data: %@", exception.reason);
+        }
     }
     return self;
 }
@@ -971,28 +1025,12 @@ static MSDKDnsManager * gSharedInstance = nil;
 # pragma mark - servers
 
 - (NSString *)getFetchConfigUrlStr:(int)mdnsId mdnsEncryptType:(HttpDnsEncryptType)mdnsEncryptType mdnsToken:(NSString *)mdnsToken {
-    
-    NSString *ipAddress = @"";
-#ifdef httpdnsIps_h
-#if IS_INTL
-    ipAddress = MSDKDnsFetchConfigHttpUrl_INTL;
-#else
-    ipAddress = MSDKDnsFetchConfigHttpUrl;
-#endif
-#endif
-    
+    NSString *ipAddress = [[MSDKDnsManager shareInstance] currentStartServer];
     NSString *protocol = @"http";
     NSString *alg = @"des";
     if (mdnsEncryptType == HttpDnsEncryptTypeAES) {
         alg = @"aes";
     } else if (mdnsEncryptType == HttpDnsEncryptTypeHTTPS) {
-#ifdef httpdnsIps_h
-#if IS_INTL
-        ipAddress = @"";
-#else
-        ipAddress = MSDKDnsFetchConfigHttpsUrl;
-#endif
-#endif
         protocol = @"https";
     }
     
@@ -1005,49 +1043,170 @@ static MSDKDnsManager * gSharedInstance = nil;
 }
 
 - (void)fetchConfig:(int) mdnsId encryptType:(HttpDnsEncryptType)mdnsEncryptType dnsKey:(NSString *)mdnsKey token:(NSString* )mdnsToken {
-    NSString *urlStr = [self getFetchConfigUrlStr:mdnsId mdnsEncryptType:mdnsEncryptType mdnsToken:mdnsToken];
-//    NSLog(@"urlStr ==== %@", urlStr);
-    NSURL *url = [NSURL URLWithString:urlStr];
-    self.request = [NSMutableURLRequest requestWithURL:url];
-    NSURLSessionDataTask *dataTask = [[NSURLSession sharedSession] dataTaskWithRequest:self.request completionHandler:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
-        if (data && (error == nil)) {
-            // 网络访问成功，解析数据
-            NSString *str = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
-            if(![str isEqualToString:@""]){
-//                NSLog(@"data is %@",str);
-                if (mdnsEncryptType != HttpDnsEncryptTypeHTTPS && mdnsKey && mdnsKey.length > 0) {
-                    if (mdnsEncryptType == 0) {
-                        str = [MSDKDnsInfoTool decryptUseDES:str key:mdnsKey];
+    dispatch_async([MSDKDnsInfoTool msdkdns_resolver_queue], ^{
+        NSString *urlStr = [self getFetchConfigUrlStr:mdnsId mdnsEncryptType:mdnsEncryptType mdnsToken:mdnsToken];
+        // NSLog(@"开始获取远程配置：%@", urlStr);
+        NSURL *url = [NSURL URLWithString:urlStr];
+        self.request = [NSMutableURLRequest requestWithURL:url];
+        // 创建一个信号量，初始值为0
+        dispatch_semaphore_t semaphore = dispatch_semaphore_create(0);
+        NSURLSessionDataTask *dataTask = [[NSURLSession sharedSession] dataTaskWithRequest:self.request completionHandler:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
+            if (data && (error == nil)) {
+                // 网络访问成功，解析数据
+                NSString *str = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
+                if(![str isEqualToString:@""]){
+                    if (mdnsEncryptType != HttpDnsEncryptTypeHTTPS && mdnsKey && mdnsKey.length > 0) {
+                        if (mdnsEncryptType == HttpDnsEncryptTypeDES) {
+                            str = [MSDKDnsInfoTool decryptUseDES:str key:mdnsKey];
+                        } else {
+                            str = [MSDKDnsInfoTool decryptUseAES:str key:mdnsKey];
+                        }
+                    }
+//                  str = @"log:1|domain:0|ip:1.1.1.1;2.2.2.2;|ttl:3.5";
+                    NSDictionary *configDict = [self parseAllConfigString:str];
+                    MSDKDNSLOG(@"Successfully get configuration.config data is %@", configDict);
+                    if (configDict && [configDict objectForKey:@"log"]) {
+                        NSString *logValue = [configDict objectForKey:@"log"];
+                        [[MSDKDnsParamsManager shareInstance] msdkDnsSetEnableReport:[logValue isEqualToString:@"1"]?YES:NO];
+                    }
+                    if (configDict && [configDict objectForKey:@"ip"]) {
+                        NSString *ipStr = [configDict objectForKey:@"ip"];
+                        if (ipStr && ipStr.length > 0){
+                            // 处理远程服务ip列表
+                            [self excuteDynamicIP:ipStr config:configDict];
+                        }
                     } else {
-                        str = [MSDKDnsInfoTool decryptUseAES:str key:mdnsKey];
+                        // 当未配置动态ip服务列表，域名服务开关才生效
+                        if(configDict && [configDict objectForKey:@"domain"]){
+                            NSString *domainValue = [configDict objectForKey:@"domain"];
+                            if ([domainValue isEqualToString:@"1"]) {
+                                [[MSDKDnsParamsManager shareInstance] msdkDnsSetEnableDetectHostServer:YES];
+                                [[MSDKDnsManager shareInstance] detectHttpDnsServers];
+                            }
+                        }
                     }
                 }
-                NSDictionary *configDict = [self parseAllConfigString:str];
-                if(configDict && [configDict objectForKey:@"log"]){
-                    NSString *logValue = [configDict objectForKey:@"log"];
-                    [[MSDKDnsParamsManager shareInstance] msdkDnsSetEnableReport:[logValue isEqualToString:@"1"]?YES:NO];
-                    MSDKDNSLOG(@"Successfully get configuration.config data is %@, %@",str,configDict);
-                }else{
-//                    MSDKDNSLOG(@"Failed to get configuration，error：%@",str);
-                }
-                // NSLog(@"configDict = %@",configDict);
-//                暂时测试，默认开启探测三网域名IP
-                // [[MSDKDnsManager shareInstance] detectHttpDnsServers];
-                if(configDict && [configDict objectForKey:@"domain"]){
-                    NSString *domainValue = [configDict objectForKey:@"domain"];
-                    if ([domainValue isEqualToString:@"1"]) {
-                        [[MSDKDnsParamsManager shareInstance] msdkDnsSetEnableDetectHostServer:YES];
-                        [[MSDKDnsManager shareInstance] detectHttpDnsServers];
-                    }
-                    // MSDKDNSLOG(@"Successfully get configuration.config data is %@, %@",str,configDict);
+            } else {
+                // 网络访问失败
+                MSDKDNSLOG(@"Failed to get configuration，error：%@",error);
+                if (self.fetchConfigFailCount == 0) {
+                    MSDKDNSLOG(@"立即重试");
+                    self.fetchConfigFailCount += 1;
+                    [self fetchConfig:mdnsId encryptType:mdnsEncryptType dnsKey:mdnsKey token:mdnsToken];
+                }else {
+                    MSDKDNSLOG(@"5分钟后重试");
+                    [self switchStartServer];
+                    [self scheduleRetryWithDelay:5];
                 }
             }
-        } else {
-            // 网络访问失败
-            MSDKDNSLOG(@"Failed to get configuration，error：%@",error);
+            // 任务完成，发送信号量
+            dispatch_semaphore_signal(semaphore);
+        }];
+        [dataTask resume];
+        
+        // 等待任务完成或超时（例如：1秒）
+        dispatch_time_t timeout = dispatch_time(DISPATCH_TIME_NOW, 2 * NSEC_PER_SEC);
+        
+        if (dispatch_semaphore_wait(semaphore, timeout) != 0) {
+            // 超时处理
+            [dataTask cancel];
         }
-    }];
-    [dataTask resume];
+    });
+}
+
+- (void)excuteDynamicIP:(NSString *)ipStr config:(NSDictionary *)configDict {
+    NSArray *domainList = [ipStr componentsSeparatedByString:@";"];
+    if (domainList && domainList.count >= 0) {
+        NSMutableArray *filteredArray = [NSMutableArray array];
+        for (NSString *ipSting in domainList) {
+            if (ipSting) {
+                // 判断是否为正确的ipv4地址
+                const char *utf8 = [ipSting UTF8String];
+                int success = 0;
+                struct in_addr dst;
+                success = inet_pton(AF_INET, utf8, &dst);
+                if (success == 1) {
+                    // 当是ipv4地址，即添加到数组中并替换了后续的服务ip列表
+                    [filteredArray addObject:ipSting];
+                }
+            }
+        }
+        MSDKDNSLOG(@"拉取的动态服务ip列表: %@", filteredArray);
+        if (filteredArray && filteredArray.count >= 0) {
+            // 当筛选过后的ip列表长度超过1个，就替换本地默认服务ip列表
+            [self resetDnsServers:filteredArray];
+            
+            if(configDict && [configDict objectForKey:@"ttl"]){
+                NSString *ttl = [configDict objectForKey:@"ttl"];
+                int fetchTime = 60; //分钟
+                int intValue = [ttl intValue];
+                // 把ttl中的字符串转为int，当小于1的时候，或者大于1440，都是用默认值60分钟
+                if (intValue && intValue >= 1 && intValue <= 1440) {
+                    fetchTime = intValue;
+                    MSDKDNSLOG(@"等待%d分钟时间后去更新服务ip列表", fetchTime);
+                    [self scheduleRetryWithDelay:fetchTime];
+                    // 同时将获取到的服务ip列表进行本地存储
+                    double timeInterval = [[NSDate date] timeIntervalSince1970];
+                    NSString * ttlExpried = [NSString stringWithFormat:@"%0.0f", (timeInterval + fetchTime * 60)];
+                    NSString *httpType = @"http";
+                    HttpDnsEncryptType encryptType = [[MSDKDnsParamsManager shareInstance] msdkDnsGetEncryptType];
+                    if (encryptType == HttpDnsEncryptTypeHTTPS) {
+                        httpType = @"https";
+                    }
+                    
+                    // 获取NSUserDefaults实例
+                    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+                    // 读取已有信息并记录
+                    NSDictionary *dict = [defaults dictionaryForKey:@"TencentHTTPDNSSDKInfo"];
+                    
+                    NSMutableDictionary * dictionary = [NSMutableDictionary dictionary];
+                    
+                    if (dict) {
+                        [dictionary addEntriesFromDictionary:dict];
+                    }
+                    
+                    // 添加当前服务ip列表和过期时间
+                    [dictionary setValue:ttlExpried forKey:@"ttlExpried"];
+                    [dictionary setValue:filteredArray forKey:@"ipList"];
+                    [dictionary setValue:httpType forKey:@"httpType"];
+                    
+                    @try {
+                        // 写⼊更新的信息
+                        [defaults setObject:[NSDictionary dictionaryWithDictionary:dictionary] forKey:@"TencentHTTPDNSSDKInfo"];
+                    } @catch (NSException *exception) {
+                        MSDKDNSLOG(@"Failed to store data: %@", exception.reason);
+                    }
+                }
+            }
+        }
+    }
+}
+
+- (void)scheduleRetryWithDelay:(int)delay {
+    // 取消已有的重试任务
+    if (self.retryTimer) {
+        dispatch_source_cancel(self.retryTimer);
+        self.retryTimer = nil;
+    }
+    
+    // 创建新的重试任务
+    self.retryTimer = dispatch_source_create(DISPATCH_SOURCE_TYPE_TIMER, 0, 0, [MSDKDnsInfoTool msdkdns_queue]);
+    dispatch_source_set_timer(self.retryTimer, dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delay * 60 * NSEC_PER_SEC)), DISPATCH_TIME_FOREVER, 0);
+    dispatch_source_set_event_handler(self.retryTimer, ^{
+        MSDKDNSLOG(@"%d分钟时间到，开始拉取最新服务ip列表", delay);
+        if (dispatch_source_testcancel(self.retryTimer)) {
+            // 检查 dispatch_source_t 是否已被取消，并在取消后立即返回，防止进一步执行
+            return;
+        }
+        self.fetchConfigFailCount = 0;
+        HttpDnsEncryptType encryptType = [[MSDKDnsParamsManager shareInstance] msdkDnsGetEncryptType];
+        int dnsId = [[MSDKDnsParamsManager shareInstance] msdkDnsGetMDnsId];
+        NSString *dnsKey = [[MSDKDnsParamsManager shareInstance] msdkDnsGetMDnsKey];
+        NSString *token = [[MSDKDnsParamsManager shareInstance] msdkDnsGetMToken];
+        
+        [self fetchConfig:dnsId encryptType:encryptType dnsKey:dnsKey token:token];
+    });
+    dispatch_resume(self.retryTimer);
 }
 
 - (void)URLSession:(NSURLSession *)session task:(NSURLSessionTask *)task didReceiveChallenge:(NSURLAuthenticationChallenge *)challenge completionHandler:(void (^)(NSURLSessionAuthChallengeDisposition disposition, NSURLCredential * __nullable credential))completionHandler {
@@ -1171,7 +1330,7 @@ static MSDKDnsManager * gSharedInstance = nil;
                     [strongSelf uploadReport:NO domain:domain netStack:netStack];
                     NSDictionary * result = [strongSelf fullResultDictionary:domains fromCache:self.domainDict];
                     NSDictionary *ips = [result objectForKey:domain];
-                    NSLog(@"ips === %@", ips);
+                    MSDKDNSLOG(@"ips === %@", ips);
                     NSArray *ipv4s = [ips objectForKey:@"ipv4"];
                     NSArray *ipv6s = [ips objectForKey:@"ipv6"];
                     if (ipv4s && [ipv4s count] > 0) {
@@ -1207,35 +1366,16 @@ static MSDKDnsManager * gSharedInstance = nil;
     dispatch_async([MSDKDnsInfoTool msdkdns_queue], ^{
         if (self.serverIndex < [self.dnsServers count] - 1) {
             self.serverIndex += 1;
-            if (!self.firstFailTime) {
-                self.firstFailTime = [NSDate date];
-                // 一定时间后自动切回主ip
-                __weak __typeof__(self) weakSelf = self;
-                dispatch_after(dispatch_time(DISPATCH_TIME_NOW,[[MSDKDnsParamsManager shareInstance] msdkDnsGetMinutesBeforeSwitchToMain] * 60 * NSEC_PER_SEC), [MSDKDnsInfoTool msdkdns_queue], ^{
-                    if (weakSelf.firstFailTime && [[NSDate date] timeIntervalSinceDate:weakSelf.firstFailTime] >= [[MSDKDnsParamsManager shareInstance] msdkDnsGetMinutesBeforeSwitchToMain] * 60) {
-                        MSDKDNSLOG(@"auto reset server index, use main ip now.");
-                        weakSelf.serverIndex = 0;
-                        weakSelf.firstFailTime = nil;
-                    }
-                });
-            }
         } else {
             self.serverIndex = 0;
-            self.firstFailTime = nil;
+            // 当服务ip都失败，切回主ip的时候，使用启动ip下发拉取服务ip列表的请求
+            HttpDnsEncryptType encryptType = [[MSDKDnsParamsManager shareInstance] msdkDnsGetEncryptType];
+            int dnsId = [[MSDKDnsParamsManager shareInstance] msdkDnsGetMDnsId];
+            NSString *dnsKey = [[MSDKDnsParamsManager shareInstance] msdkDnsGetMDnsKey];
+            NSString *token = [[MSDKDnsParamsManager shareInstance] msdkDnsGetMToken];
+            
+            [self fetchConfig:dnsId encryptType:encryptType dnsKey:dnsKey token:token];
         }
-        self.waitToSwitch = NO;
-    });
-}
-
-- (void)switchToMainServer {
-    if (self.serverIndex == 0) {
-        return;
-    }
-    MSDKDNSLOG(@"switch back to main server ip.");
-    self.waitToSwitch = YES;
-    dispatch_async([MSDKDnsInfoTool msdkdns_queue], ^{
-        self.serverIndex = 0;
-        self.firstFailTime = nil;
         self.waitToSwitch = NO;
     });
 }
@@ -1246,8 +1386,9 @@ static MSDKDnsManager * gSharedInstance = nil;
         NSMutableArray *array = [[NSMutableArray alloc] init];
         if (servers && [servers count] > 0) {
             [array addObjectsFromArray: servers];
+        } else {
+            [array addObjectsFromArray:[self defaultServers]];
         }
-        [array addObjectsFromArray:[self defaultServers]];
         self.serverIndex = 0;
         self.dnsServers = array;
         self.waitToSwitch = NO;
@@ -1272,6 +1413,50 @@ static MSDKDnsManager * gSharedInstance = nil;
     #endif
 #endif
     return servers;
+}
+
+# pragma mark - start server tag
+- (NSArray *)defaultStartServers {
+    NSMutableArray *servers = [[NSMutableArray alloc] init];
+#ifdef httpdnsIps_h
+    #if IS_INTL
+        if ([[MSDKDnsParamsManager shareInstance] msdkDnsGetEncryptType] != HttpDnsEncryptTypeHTTPS) {
+            [servers addObjectsFromArray: MSDKDnsFetchConfigHttpList_INTL];
+        } else {
+            // 国际站SDK暂不支持HTTPS解析
+        }
+    #else
+        if ([[MSDKDnsParamsManager shareInstance] msdkDnsGetEncryptType] == HttpDnsEncryptTypeHTTPS) {
+            [servers addObjectsFromArray: MSDKDnsFetchConfigHttpsList];
+        } else {
+            [servers addObjectsFromArray: MSDKDnsFetchConfigHttpList];
+        }
+    #endif
+#endif
+    return servers;
+}
+
+- (NSString *)currentStartServer {
+    int index = self.startServerIndex;
+    if (self.dnsStartServers != nil && [self.dnsStartServers count] > 0 && index >= 0 && index < [self.dnsStartServers count]) {
+        return self.dnsStartServers[index];
+    }
+    return  [[self defaultStartServers] firstObject];
+}
+
+- (void)switchStartServer {
+    if (self.waitToSwitchStartServer) {
+        return;
+    }
+    self.waitToSwitchStartServer = YES;
+    dispatch_async([MSDKDnsInfoTool msdkdns_queue], ^{
+        if (self.startServerIndex < [self.dnsStartServers count] - 1) {
+            self.startServerIndex += 1;
+        } else {
+            self.startServerIndex = 0;
+        }
+        self.waitToSwitchStartServer = NO;
+    });
 }
 
 # pragma mark - operate delay tag

@@ -60,9 +60,6 @@ static dispatch_once_t onceToken;
     if (config->retryTimesBeforeSwitchServer) {
         [[MSDKDnsParamsManager shareInstance] msdkDnsSetRetryTimesBeforeSwitchServer: config->retryTimesBeforeSwitchServer];
     }
-    if (config->minutesBeforeSwitchToMain) {
-        [[MSDKDnsParamsManager shareInstance] msdkDnsSetMinutesBeforeSwitchToMain:config->minutesBeforeSwitchToMain];
-    }
     [[MSDKDnsParamsManager shareInstance] msdkDnsSetEnableReport:config->enableReport];
     [[MSDKDnsManager shareInstance] fetchConfig:config->dnsId encryptType:config->encryptType dnsKey:config->dnsKey token:config->token];
     MSDKDNSLOG(@"MSDKDns init success.");
@@ -110,7 +107,6 @@ static dispatch_once_t onceToken;
     conf->timeout = [[config objectForKey:@"timeout"] intValue];
     conf->httpOnly = [[config objectForKey:@"httpOnly"] boolValue];
     conf->retryTimesBeforeSwitchServer = [[config objectForKey:@"retryTimesBeforeSwitchServer"] intValue];
-    conf->minutesBeforeSwitchToMain = [[config objectForKey:@"minutesBeforeSwitchToMain"] intValue];
     conf->enableReport = [[config objectForKey:@"enableReport"] boolValue];
     conf->addressType = (HttpDnsAddressType)[[config objectForKey:@"addressType"] intValue];
     return [self initConfig:conf];
