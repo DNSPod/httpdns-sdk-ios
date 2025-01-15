@@ -77,11 +77,9 @@ static MSDKDnsParamsManager * gSharedInstance = nil;
 
 - (void)msdkDnsSetMAppId:(NSString *) mdnsAppId timeOut:(int)mdnsTimeOut encryptType:(HttpDnsEncryptType)mdnsEncryptType
 {
-    dispatch_async([MSDKDnsInfoTool msdkdns_queue], ^{
-        self.msdkDnsAppId = mdnsAppId;
-        self.msdkDnsTimeOut = mdnsTimeOut;
-        self.msdkEncryptType = mdnsEncryptType;
-    });
+    self.msdkDnsAppId = mdnsAppId;
+    self.msdkDnsTimeOut = mdnsTimeOut;
+    self.msdkEncryptType = mdnsEncryptType;
 }
 
 
