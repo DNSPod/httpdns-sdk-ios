@@ -175,7 +175,7 @@ static BOOL isInitialized = NO;
         NSArray * dnsResult = @[@"0", @"0"];
         MSDKDNSLOG(@"GetHostByName:%@",domain);
         if (isInitialized == NO) {
-            NSLog(@"sdk没有初始化，请先执行initConfig方法初始化");
+            NSLog(@"sdk没有初始化，请先调用initConfig方法进行初始化!");
             @throw [NSException exceptionWithName:@"MSDKDns not initialized"
                                             reason:@"The MSDKDns instance must be initialized before calling WGGetAllHostsByNames."
                                           userInfo:nil];
@@ -216,7 +216,7 @@ static BOOL isInitialized = NO;
         NSDictionary * dnsResult = @{};
         MSDKDNSLOG(@"GetHostByName:%@",domains);
         if (isInitialized == NO) {
-            NSLog(@"sdk没有初始化，请先执行initConfig方法初始化");
+            NSLog(@"sdk没有初始化，请先调用initConfig方法进行初始化!");
             @throw [NSException exceptionWithName:@"MSDKDns not initialized"
                                             reason:@"The MSDKDns instance must be initialized before calling WGGetAllHostsByNames."
                                           userInfo:nil];
@@ -250,7 +250,7 @@ static BOOL isInitialized = NO;
         NSDictionary * dnsResult = @{};
         MSDKDNSLOG(@"GetAllHostByName:%@",domains);
         if (isInitialized == NO) {
-            NSLog(@"sdk没有初始化，请先执行initConfig方法初始化");
+            NSLog(@"sdk没有初始化，请先调用initConfig方法进行初始化!");
             @throw [NSException exceptionWithName:@"MSDKDns not initialized"
                                             reason:@"The MSDKDns instance must be initialized before calling WGGetAllHostsByNames."
                                           userInfo:nil];
@@ -282,7 +282,7 @@ static BOOL isInitialized = NO;
 - (void)WGGetHostByNameAsync:(NSString *)domain returnIps:(void (^)(NSArray *))handler {
     @synchronized(self) {
         if (isInitialized == NO) {
-            NSLog(@"sdk没有初始化，请先执行initConfig方法初始化");
+            NSLog(@"sdk没有初始化，请先调用initConfig方法进行初始化!");
             @throw [NSException exceptionWithName:@"MSDKDns not initialized"
                                             reason:@"The MSDKDns instance must be initialized before calling WGGetAllHostsByNames."
                                           userInfo:nil];
@@ -337,7 +337,7 @@ static BOOL isInitialized = NO;
 - (void)WGGetHostsByNamesAsync:(NSArray *)domains returnIps:(void (^)(NSDictionary *))handler {
     @synchronized(self) {
         if (isInitialized == NO) {
-            NSLog(@"sdk没有初始化，请先执行initConfig方法初始化");
+            NSLog(@"sdk没有初始化，请先调用initConfig方法进行初始化!");
             @throw [NSException exceptionWithName:@"MSDKDns not initialized"
                                             reason:@"The MSDKDns instance must be initialized before calling WGGetAllHostsByNames."
                                           userInfo:nil];
@@ -387,7 +387,7 @@ static BOOL isInitialized = NO;
 - (void)WGGetAllHostsByNamesAsync:(NSArray *)domains returnIps:(void (^)(NSDictionary *))handler {
     @synchronized(self) {
         if (isInitialized == NO) {
-            NSLog(@"sdk没有初始化，请先执行initConfig方法初始化");
+            NSLog(@"sdk没有初始化，请先调用initConfig方法进行初始化!");
             @throw [NSException exceptionWithName:@"MSDKDns not initialized"
                                             reason:@"The MSDKDns instance must be initialized before calling WGGetAllHostsByNames."
                                           userInfo:nil];
