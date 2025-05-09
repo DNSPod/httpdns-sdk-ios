@@ -92,6 +92,7 @@ static MSDKDnsNetworkManager *gManager = nil;
                                                              queue:nil
                                                         usingBlock:^(NSNotification *note)
              {
+                [[MSDKDnsManager shareInstance] enterBackgroundReportCacheData];
                 BOOL expiredIPEnabled = [[MSDKDnsParamsManager shareInstance] msdkDnsGetExpiredIPEnabled];
                 BOOL persistCacheIPEnabled = [[MSDKDnsParamsManager shareInstance] msdkDnsGetPersistCacheIPEnabled];
                 if (!expiredIPEnabled && !persistCacheIPEnabled) {

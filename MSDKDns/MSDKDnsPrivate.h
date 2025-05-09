@@ -73,12 +73,16 @@
 /** 上报事件*/
 #define MSDKDnsEventHttpDnsfail @"HttpDnsfail"
 #define MSDKDnsEventHttpDnsSpend @"HttpDnsSpend"
-#define MSDKDnsEventHttpDnsCached @"HDNSLookupCached"         // 命中缓存
-#define MSDKDnsEventHttpDnsNormal @"HDNSGetHostByName"        // 常规解析请求
-#define MSDKDnsEventHttpDnsPreResolved @"HDNSPreLookup"       // 预解析请求
-#define MSDKDnsEventHttpDnsAutoRefresh @"HDNSLookupAsync"     // 缓存自动刷新
-#define MSDKDnsEventHttpDnsExpiredAsync @"HDNSLookupExpiredAsync"  // 乐观DNS中缓存异步刷新请求
-#define MSDKDnsEventHttpDnsGetHTTPDNSDomainIP @"HDNSGetDomainIP"  // 获取三网域名的IP
+#define MSDKDnsEventHttpDnsCached @"HDNSLookupCached"                        // 命中缓存
+#define MSDKDnsEventHttpDnsNormal @"HDNSGetHostByName"                       // 常规解析请求
+#define MSDKDnsEventHttpDnsNormalRetry @"HDNSGetHostByNameRetry"             // 常规解析请求-重试
+#define MSDKDnsEventHttpDnsPreResolved @"HDNSPreLookup"                      // 预解析请求
+#define MSDKDnsEventHttpDnsPreResolvedRetry @"HDNSPreLookupRetry"            // 预解析请求-重试
+#define MSDKDnsEventHttpDnsAutoRefresh @"HDNSLookupAsync"                    // 缓存自动刷新
+#define MSDKDnsEventHttpDnsAutoRefreshRetry @"HDNSLookupAsyncRetry"          // 缓存自动刷新-重试
+#define MSDKDnsEventHttpDnsExpiredAsync @"HDNSLookupExpiredAsync"            // 乐观DNS中缓存异步刷新请求
+#define MSDKDnsEventHttpDnsExpiredAsyncRetry @"HDNSLookupExpiredAsyncRetry"  // 乐观DNS中缓存异步刷新请求-重试
+#define MSDKDnsEventHttpDnsGetHTTPDNSDomainIP @"HDNSGetDomainIP"             // 获取三网域名的IP
 
 // 命中缓存的状态
 #define MSDKDnsDomainCacheHit @"domainCacheHit"          // 命中缓存

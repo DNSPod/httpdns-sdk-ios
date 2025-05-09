@@ -460,7 +460,7 @@ char MSDKDnsHexCharToChar(char high, char low) {
     BOOL isHTTPDNSDomain = NO;
     
 #ifdef httpdnsIps_h
-    sdkVersion = [NSString stringWithFormat:@"2_%@", MSDKDns_Version];
+    sdkVersion = [NSString stringWithFormat:@"2_%@;%@", MSDKDns_Version, [MSDKDnsInfoTool generateSessionID]];
 #if IS_INTL
     if ([MSDKDnsServerDomain_INTL isEqualToString:domain]){
         isHTTPDNSDomain = YES;
@@ -476,6 +476,10 @@ char MSDKDnsHexCharToChar(char high, char low) {
     if (!httpServer || httpServer.length == 0) {
         httpServer = serviceIp;
     }
+//    httpServer = @"119.29.29.23";
+//    httpServer = @"43.142.218.188";// http
+    // httpServer = @"43.140.38.229";// https
+    
     NSString *urlStr = [NSString stringWithFormat:@"%@://%@/d?dn=%@&clientip=1&ttl=1&query=1&id=%d&sdk=%@", protocol, httpServer, domainEncrypStr, dnsId, sdkVersion];
     if (ipType == HttpDnsTypeIPv6) {
         urlStr = [urlStr stringByAppendingString:@"&type=aaaa"];
@@ -494,6 +498,7 @@ char MSDKDnsHexCharToChar(char high, char low) {
     if (routeIp && routeIp.length > 0 && !isHTTPDNSDomain) {
         urlStr = [urlStr stringByAppendingFormat:@"&ip=%@", routeIp];
     }
+//    urlStr = @"http://43.142.218.188/d?dn=qq.com;1744702568&id=8014";
     return urlStr;
 }
 
@@ -512,7 +517,9 @@ char MSDKDnsHexCharToChar(char high, char low) {
 }
 
 /**
- 生成sessionId,sessionId为12位，采用base62编码
+ 生成sessionId
+ App打开生命周期只生成一次，不做持久化
+ sessionId为12位，采用base62编码
  @return 返回sessionId
  */
 + (NSString *)generateSessionID {

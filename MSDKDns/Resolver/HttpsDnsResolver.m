@@ -51,7 +51,12 @@ static NSURLSession *_resolveHOSTSession = nil;
     }
     [self initializePropertiesWithEncryptType:encryptType domains:domains dnsKey:dnsKey netStack:netStack];
     
-    NSURL *httpDnsUrl = [MSDKDnsInfoTool httpsUrlWithDomain:domainStr dnsId:dnsId dnsKey:self.dnsKey ipType:self.ipType encryptType:_encryptType];
+    // 获取当前时间戳（秒级）
+    NSTimeInterval currentTimestamp = [[NSDate date] timeIntervalSince1970];
+    NSString *expiredTimestamp = [NSString stringWithFormat:@"%lld", (long long)currentTimestamp + 10 * 60];
+    self.expiredTime = expiredTimestamp;
+    NSString *domainAndTime = [NSString stringWithFormat:@"%@;%@", domainStr, expiredTimestamp];
+    NSURL *httpDnsUrl = [MSDKDnsInfoTool httpsUrlWithDomain:domainAndTime dnsId:dnsId dnsKey:self.dnsKey ipType:self.ipType encryptType:_encryptType];
     
     if (httpDnsUrl) {
         [self startDataTaskWithHttpDnsUrl:httpDnsUrl domains:domains timeOut:timeOut delegate:delegate];
@@ -80,6 +85,7 @@ static NSURLSession *_resolveHOSTSession = nil;
     self.encryptType = encryptType;
     MSDKDNSLOG(@"HttpDns startWithDomain: %@!", domains);
     self.ipType = HttpDnsTypeIPv4;
+    self.serviceIp = [[MSDKDnsManager shareInstance] currentDnsServer];
     if (netStack == msdkdns::MSDKDNS_ELocalIPStack_IPv6) {
         self.ipType = HttpDnsTypeIPv6;
     } else if (netStack == msdkdns::MSDKDNS_ELocalIPStack_Dual) {
@@ -107,6 +113,7 @@ static NSURLSession *_resolveHOSTSession = nil;
     self.domainInfo = nil;
     self.isFinished = YES;
     self.errorCode = MSDKDns_Timeout;
+    self.statusCode = [error code];
     self.isSucceed = NO;
     self.errorInfo = error.userInfo[@"NSLocalizedDescription"];
     if (delegate && [delegate respondsToSelector:@selector(resolver:getDomainError:retry:)]) {

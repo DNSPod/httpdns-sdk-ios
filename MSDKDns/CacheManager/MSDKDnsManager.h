@@ -54,4 +54,6 @@ typedef enum {
  */
 - (void)detectHttpDnsServers;
 - (int)getAddressType;
+
+- (void)enterBackgroundReportCacheData;
 @end
