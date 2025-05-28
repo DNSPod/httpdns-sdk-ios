@@ -32,6 +32,7 @@
 - (void)msdkDnsSetEnableKeepDomainsAlive: (BOOL)enableKeepDomainsAlive;
 - (void)msdkDnsSetExpiredIPEnabled: (BOOL)enable;
 - (void)msdkDnsSetPersistCacheIPEnabled: (BOOL)enable;
+- (void)msdkDnsSetOffsetWithBaseTime:(NSInteger)time;
 
 - (NSString *) msdkDnsGetMDnsIp;
 - (NSString *) msdkDnsGetMOpenId;
@@ -56,5 +57,6 @@
 - (BOOL)msdkDnsGetEnableKeepDomainsAlive;
 - (BOOL)msdkDnsGetExpiredIPEnabled;
 - (BOOL)msdkDnsGetPersistCacheIPEnabled;
+- (NSInteger)msdkDnsGetOffsetWithBaseTime;
 
 @end

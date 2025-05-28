@@ -478,7 +478,7 @@ char MSDKDnsHexCharToChar(char high, char low) {
     }
 //    httpServer = @"119.29.29.23";
 //    httpServer = @"43.142.218.188";// http
-    // httpServer = @"43.140.38.229";// https
+//     httpServer = @"43.140.38.229";// https
     
     NSString *urlStr = [NSString stringWithFormat:@"%@://%@/d?dn=%@&clientip=1&ttl=1&query=1&id=%d&sdk=%@", protocol, httpServer, domainEncrypStr, dnsId, sdkVersion];
     if (ipType == HttpDnsTypeIPv6) {
@@ -592,6 +592,12 @@ char MSDKDnsHexCharToChar(char high, char low) {
 // 判断数据是否存在并且不为空
 + (BOOL)isExist: (NSString *)value {
     return value != nil && ![value isEqualToString:@""];
+}
+
++ (NSTimeInterval)getCurrentTimeByBaseTime {
+    NSTimeInterval currentTimestamp = [[NSDate date] timeIntervalSince1970];
+    NSInteger offset = [[MSDKDnsParamsManager shareInstance] msdkDnsGetOffsetWithBaseTime];
+    return currentTimestamp + offset;
 }
 
 @end

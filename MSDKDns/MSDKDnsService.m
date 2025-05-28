@@ -590,7 +590,7 @@
             [self callBack:resolver Info:info];
         });
         // 重试解析失败情况上报
-        [self dnsTimeoutAttaUpload:MSDKDnsEventHttpDnsNormalRetry];
+        [self dnsTimeoutAttaUpload:self.origin];
         [[MSDKDnsManager shareInstance] switchDnsServer];
     }
 }

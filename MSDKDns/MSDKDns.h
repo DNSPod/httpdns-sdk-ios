@@ -205,5 +205,7 @@ typedef struct DnsConfigStruct {
 */
 - (int) WGGetNetworkStack;
 
+- (void)WGSetAuthTimeBaseByCurrentTime:(NSTimeInterval)currentTime;
+
 @end
 #endif

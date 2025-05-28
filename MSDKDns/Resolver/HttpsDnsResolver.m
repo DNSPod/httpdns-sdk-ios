@@ -52,7 +52,7 @@ static NSURLSession *_resolveHOSTSession = nil;
     [self initializePropertiesWithEncryptType:encryptType domains:domains dnsKey:dnsKey netStack:netStack];
     
     // 获取当前时间戳（秒级）
-    NSTimeInterval currentTimestamp = [[NSDate date] timeIntervalSince1970];
+    NSTimeInterval currentTimestamp = [MSDKDnsInfoTool getCurrentTimeByBaseTime];
     NSString *expiredTimestamp = [NSString stringWithFormat:@"%lld", (long long)currentTimestamp + 10 * 60];
     self.expiredTime = expiredTimestamp;
     NSString *domainAndTime = [NSString stringWithFormat:@"%@;%@", domainStr, expiredTimestamp];
