@@ -170,7 +170,7 @@ static NSString *const kAnchorAlreadyAdded = @"AnchorAlreadyAdded";
 - (NSURL*)getIpAndReplace:(NSString*)urlString {
     NSURL* url = [NSURL URLWithString:urlString];
     NSString* originHost = url.host;
-    
+
     NSTimeInterval start = [[NSDate date] timeIntervalSince1970];
     NSArray* result = [[MSDKDns sharedInstance] WGGetHostByName:url.host];
     NSString* ip = nil;
@@ -214,20 +214,26 @@ static NSString *const kAnchorAlreadyAdded = @"AnchorAlreadyAdded";
     // 根据请求的url、方法、版本创建CFHTTPMessageRef对象
     CFHTTPMessageRef cfrequest = CFHTTPMessageCreateRequest(kCFAllocatorDefault, requestMethod, requestURL, kCFHTTPVersion1_1);
     // 添加http post请求所附带的数据
-    CFStringRef requestBody = CFSTR("");
-    CFDataRef bodyData = CFStringCreateExternalRepresentation(kCFAllocatorDefault, requestBody, kCFStringEncodingUTF8, 0);
+    CFDataRef bodyData = NULL;
     if (_curRequest.HTTPBody) {
         bodyData = (__bridge_retained CFDataRef) _curRequest.HTTPBody;
         CFHTTPMessageSetBody(cfrequest, bodyData);
     }  else if(_curRequest.HTTPBodyStream) {
         NSData *data = [self dataWithInputStream:_curRequest.HTTPBodyStream];
-        CFDataRef body = (__bridge_retained CFDataRef) data;
-        CFHTTPMessageSetBody(cfrequest, body);
-        CFRelease(body);
+        // 确保不返回nil
+        bodyData = (__bridge_retained CFDataRef)(data ?: [NSData data]);
     } else {
-        CFHTTPMessageSetBody(cfrequest, bodyData);
+        CFStringRef emptyString = CFSTR("");
+        bodyData = CFStringCreateExternalRepresentation(kCFAllocatorDefault,emptyString,kCFStringEncodingUTF8,0);
+        CFRelease(emptyString);
     }
     
+    // 统一设置请求体并释放资源
+    if (bodyData) {
+        CFHTTPMessageSetBody(cfrequest, bodyData);
+        CFRelease(bodyData);
+    }
+
     // copy原请求的header信息
     for (NSString* header in headFields) {
         CFStringRef requestHeader = (__bridge CFStringRef) header;
@@ -240,14 +246,12 @@ static NSString *const kAnchorAlreadyAdded = @"AnchorAlreadyAdded";
     self.inputStream = (__bridge_transfer NSInputStream *) readStream;
     
     // 设置SNI host信息，关键步骤
-    NSString *host = [_curRequest.allHTTPHeaderFields objectForKey:@"host"];
-    if (!host) {
-        host = _curRequest.URL.host;
+    NSString *host = headFields[@"host"] ?: _curRequest.URL.host;
+    if (host) {
+        [_inputStream setProperty:NSStreamSocketSecurityLevelNegotiatedSSL forKey:NSStreamSocketSecurityLevelKey];
+        NSDictionary *sslProperties = @{(__bridge id)kCFStreamSSLPeerName: host};
+        [_inputStream setProperty:sslProperties forKey:(__bridge NSString *) kCFStreamPropertySSLSettings];
     }
-        
-    [_inputStream setProperty:NSStreamSocketSecurityLevelNegotiatedSSL forKey:NSStreamSocketSecurityLevelKey];
-    NSDictionary *sslProperties = [[NSDictionary alloc] initWithObjectsAndKeys: host, (__bridge id) kCFStreamSSLPeerName, nil];
-    [_inputStream setProperty:sslProperties forKey:(__bridge_transfer NSString *) kCFStreamPropertySSLSettings];
     [_inputStream setDelegate:self];
     
     if (!_curRunLoop) {
@@ -257,29 +261,26 @@ static NSString *const kAnchorAlreadyAdded = @"AnchorAlreadyAdded";
     // 将请求放入当前runloop的事件队列
     [_inputStream scheduleInRunLoop:_curRunLoop forMode:NSRunLoopCommonModes];
     [_inputStream open];
-    
+    // 释放资源（安全处理NULL值）
     CFRelease(cfrequest);
     CFRelease(requestURL);
-    cfrequest = NULL;
-    CFRelease(bodyData);
-    CFRelease(requestBody);
     CFRelease(requestMethod);
 }
 
 -(NSData*)dataWithInputStream:(NSInputStream*)stream {
   NSMutableData *data = [NSMutableData data];
   [stream open];
-  NSInteger result;
   uint8_t buffer[1024];
-
-  while ((result = [stream read:buffer maxLength:1024]) != 0) {
-    if (result > 0) {
-      // buffer contains result bytes of data to be handled
-      [data appendBytes:buffer length:result];
-    } else if (result < 0) {
-      // The stream had an error. You can get an NSError object using [iStream streamError]
-      data = nil;
-      break;
+  while ([stream hasBytesAvailable]) {
+    NSInteger bytesRead = [stream read:buffer maxLength:sizeof(buffer)];
+    if (bytesRead > 0) {
+        [data appendBytes:buffer length:bytesRead];
+    } else if (bytesRead < 0) {
+        // 读取错误时返回空数据而非nil
+        NSLog(@"Stream read error: %@", [stream streamError]);
+        break;
+    } else {
+        break; // 0表示结束
     }
   }
   [stream close];
@@ -332,6 +333,9 @@ static NSString *const kAnchorAlreadyAdded = @"AnchorAlreadyAdded";
                 if (SecTrustEvaluate(trust, &res) != errSecSuccess) {
                     [self closeStream:aStream];
                     [self.client URLProtocol:self didFailWithError:[[NSError alloc] initWithDomain:@"can not evaluate the server trust" code:-1 userInfo:nil]];
+                    // 修复：释放核心资源
+                    CFRelease((CFReadStreamRef)inputstream);
+                    CFRelease(message);
                     return;
                 }
                 if (res != kSecTrustResultProceed && res != kSecTrustResultUnspecified) {
