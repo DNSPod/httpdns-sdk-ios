@@ -56,6 +56,8 @@ static NSURLSession *_resolveHOSTSession = nil;
     NSString *expiredTimestamp = [NSString stringWithFormat:@"%lld", (long long)currentTimestamp + 10 * 60];
     self.expiredTime = expiredTimestamp;
     NSString *domainAndTime = [NSString stringWithFormat:@"%@;%@", domainStr, expiredTimestamp];
+    
+    // NSLog(@"domainAndTime ===== %@ === domain ==== %@", domainAndTime, domainStr);
     NSURL *httpDnsUrl = [MSDKDnsInfoTool httpsUrlWithDomain:domainAndTime dnsId:dnsId dnsKey:self.dnsKey ipType:self.ipType encryptType:_encryptType];
     
     if (httpDnsUrl) {
@@ -130,9 +132,8 @@ static NSURLSession *_resolveHOSTSession = nil;
     if (data && data.length > 0) {
         NSString * decryptStr = nil;
         NSString * responseStr = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
-        MSDKDNSLOG(@"The httpdns responseStr:%@", responseStr);
         decryptStr = [self getDecryptStrWithResponseStr:responseStr];
-        
+        MSDKDNSLOG(@"The httpdns responseStr:%@", decryptStr);
         self.domainInfo = [self parseResultString:decryptStr];
         
         if (self.domainInfo && [self.domainInfo count] > 0) {

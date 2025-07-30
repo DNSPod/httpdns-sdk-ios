@@ -531,10 +531,10 @@
         if (self.startTime && [timeConsuming isEqualToString:@""]){
             // 优先使用缓存中的耗时，如果没有则使用实时计算的耗时，因为上报的时间点不一定是api方法结束的时间点。会等待LocalDNS返回才会去上报
             NSDate *currentTime = [NSDate date];
-            NSLog(@"====timeConsuming= %@=====", timeConsuming);
+            // NSLog(@"====timeConsuming= %@=====", timeConsuming);
             NSTimeInterval timeInterval = [currentTime timeIntervalSinceDate:self.startTime] * 1000;
             timeConsuming = [NSString stringWithFormat: @"%d", (int)timeInterval];
-            NSLog(@"====timeConsuming= %@=====", timeConsuming);
+            // NSLog(@"====timeConsuming= %@=====", timeConsuming);
         }
         
         [[AttaReport sharedInstance] reportEvent:@{
@@ -562,7 +562,7 @@
 - (void) retryHttpDns:(MSDKDnsResolver *)resolver {
     self.httpdnsFailCount += 1;
     self.isRetryRequest = @YES;
-    NSLog(@"======%@======", self.origin);
+    // NSLog(@"======%@======", self.origin);
     [self changeRetryEventName:self.origin];
     if (self.httpdnsFailCount < [[MSDKDnsParamsManager shareInstance] msdkDnsGetRetryTimesBeforeSwitchServer]) {
         if (resolver == self.httpDnsResolver_A) {
@@ -723,10 +723,10 @@
     if (self.startTime && [timeConsuming isEqualToString:@""]){
         // 优先使用缓存中的耗时，如果没有则使用实时计算的耗时，因为上报的时间点不一定是api方法结束的时间点。会等待LocalDNS返回才会去上报
         NSDate *currentTime = [NSDate date];
-        NSLog(@"====timeConsuming= %@=====", timeConsuming);
+        // NSLog(@"====timeConsuming= %@=====", timeConsuming);
         NSTimeInterval timeInterval = [currentTime timeIntervalSinceDate:self.startTime] * 1000;
         timeConsuming = [NSString stringWithFormat: @"%d", (int)timeInterval];
-        NSLog(@"====timeConsuming= %@=====", timeConsuming);
+        // NSLog(@"====timeConsuming= %@=====", timeConsuming);
     }
   
     if (self.httpDnsResolver_A) {

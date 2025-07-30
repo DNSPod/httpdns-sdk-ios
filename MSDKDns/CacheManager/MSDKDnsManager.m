@@ -78,6 +78,8 @@ static MSDKDnsManager * gSharedInstance = nil;
         _fetchConfigFailCount = 0;
         _cacheDomainCountDict = [[NSMutableDictionary alloc] init];
         
+        MSDKDNSLOG("开始读取现有存储的ipList");
+        
         // 获取NSUserDefaults实例
         NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
         @try {
@@ -1378,7 +1380,7 @@ static MSDKDnsManager * gSharedInstance = nil;
     dispatch_async([MSDKDnsInfoTool msdkdns_queue], ^{
         if (self.serverIndex < [self.dnsServers count] - 1) {
             self.serverIndex += 1;
-        } else {
+                    } else {
             self.serverIndex = 0;
             // 当服务ip都失败，切回主ip的时候，使用启动ip下发拉取服务ip列表的请求
             HttpDnsEncryptType encryptType = [[MSDKDnsParamsManager shareInstance] msdkDnsGetEncryptType];
