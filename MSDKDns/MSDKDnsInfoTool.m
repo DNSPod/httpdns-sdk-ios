@@ -476,9 +476,6 @@ char MSDKDnsHexCharToChar(char high, char low) {
     if (!httpServer || httpServer.length == 0) {
         httpServer = serviceIp;
     }
-//    httpServer = @"119.29.29.23";
-//    httpServer = @"43.142.218.188";// http
-//     httpServer = @"43.140.38.229";// https
     
     NSString *urlStr = [NSString stringWithFormat:@"%@://%@/d?dn=%@&clientip=1&ttl=1&query=1&id=%d&sdk=%@", protocol, httpServer, domainEncrypStr, dnsId, sdkVersion];
     if (ipType == HttpDnsTypeIPv6) {
@@ -498,7 +495,6 @@ char MSDKDnsHexCharToChar(char high, char low) {
     if (routeIp && routeIp.length > 0 && !isHTTPDNSDomain) {
         urlStr = [urlStr stringByAppendingFormat:@"&ip=%@", routeIp];
     }
-//    urlStr = @"http://43.142.218.188/d?dn=qq.com;1744702568&id=8014";
     return urlStr;
 }
 
