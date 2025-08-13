@@ -5,7 +5,7 @@
 #ifndef __MSDKDns_H__
 #define __MSDKDns_H__
 
-#define MSDKDns_Version @"1.11.1"
+#define MSDKDns_Version @"1.12.0"
 
 #import <Foundation/Foundation.h>
 
@@ -204,6 +204,8 @@ typedef struct DnsConfigStruct {
  @return 0: UNKNOWN, 1: IPV4_ONLY, 2: IPV6_ONLY, 3: DUAL_STACK;
 */
 - (int) WGGetNetworkStack;
+
+- (void)WGSetAuthTimeBaseByCurrentTime:(NSTimeInterval)currentTime;
 
 @end
 #endif

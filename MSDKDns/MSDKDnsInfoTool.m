@@ -460,7 +460,7 @@ char MSDKDnsHexCharToChar(char high, char low) {
     BOOL isHTTPDNSDomain = NO;
     
 #ifdef httpdnsIps_h
-    sdkVersion = [NSString stringWithFormat:@"2_%@", MSDKDns_Version];
+    sdkVersion = [NSString stringWithFormat:@"2_%@;%@", MSDKDns_Version, [MSDKDnsInfoTool generateSessionID]];
 #if IS_INTL
     if ([MSDKDnsServerDomain_INTL isEqualToString:domain]){
         isHTTPDNSDomain = YES;
@@ -476,6 +476,7 @@ char MSDKDnsHexCharToChar(char high, char low) {
     if (!httpServer || httpServer.length == 0) {
         httpServer = serviceIp;
     }
+    
     NSString *urlStr = [NSString stringWithFormat:@"%@://%@/d?dn=%@&clientip=1&ttl=1&query=1&id=%d&sdk=%@", protocol, httpServer, domainEncrypStr, dnsId, sdkVersion];
     if (ipType == HttpDnsTypeIPv6) {
         urlStr = [urlStr stringByAppendingString:@"&type=aaaa"];
@@ -512,7 +513,9 @@ char MSDKDnsHexCharToChar(char high, char low) {
 }
 
 /**
- 生成sessionId,sessionId为12位，采用base62编码
+ 生成sessionId
+ App打开生命周期只生成一次，不做持久化
+ sessionId为12位，采用base62编码
  @return 返回sessionId
  */
 + (NSString *)generateSessionID {
@@ -585,6 +588,12 @@ char MSDKDnsHexCharToChar(char high, char low) {
 // 判断数据是否存在并且不为空
 + (BOOL)isExist: (NSString *)value {
     return value != nil && ![value isEqualToString:@""];
+}
+
++ (NSTimeInterval)getCurrentTimeByBaseTime {
+    NSTimeInterval currentTimestamp = [[NSDate date] timeIntervalSince1970];
+    NSInteger offset = [[MSDKDnsParamsManager shareInstance] msdkDnsGetOffsetWithBaseTime];
+    return currentTimestamp + offset;
 }
 
 @end

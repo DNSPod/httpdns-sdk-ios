@@ -168,6 +168,12 @@ static BOOL isInitialized = NO;
     [[MSDKDnsManager shareInstance] loadIPsFromPersistCacheAsync];
 }
 
+- (void)WGSetAuthTimeBaseByCurrentTime:(NSTimeInterval)baseTime {
+    NSTimeInterval currentTime = [[NSDate date] timeIntervalSince1970];
+    NSInteger offset = baseTime-currentTime;
+    [[MSDKDnsParamsManager shareInstance] msdkDnsSetOffsetWithBaseTime:offset];
+}
+
 #pragma mark - get host by name
 
 - (NSArray *) WGGetHostByName:(NSString *)domain {

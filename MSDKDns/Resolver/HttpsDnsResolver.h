@@ -11,6 +11,8 @@
 
 @property (nonatomic, assign) NSInteger statusCode;
 @property (strong, nonatomic) NSString * errorCode;
+@property (strong, nonatomic) NSString * serviceIp;
+@property (strong, nonatomic) NSString * expiredTime;
 
 - (void)startWithDomains:(NSArray *)domains timeOut:(float)timeOut dnsId:(int)dnsId dnsKey:(NSString *)dnsKey netStack:(msdkdns::MSDKDNS_TLocalIPStack)netStack encryptType:(NSInteger)encryptType;
 

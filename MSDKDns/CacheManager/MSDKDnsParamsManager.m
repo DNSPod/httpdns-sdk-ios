@@ -37,6 +37,7 @@
 @property (assign, nonatomic, readwrite) BOOL expiredIPEnabled;
 @property (assign, nonatomic, readwrite) BOOL persistCacheIPEnabled;
 @property (assign, nonatomic, readwrite) BOOL enableDetectHostServer;
+@property (assign, nonatomic, readwrite) NSInteger timeOffsetInSeconds;
 
 @end
 
@@ -59,6 +60,7 @@ static MSDKDnsParamsManager * gSharedInstance = nil;
         _retryTimesBeforeSwitchServer = 3;
         _enableReport = NO;
         _msdkAddressType = HttpDnsAddressTypeAuto;
+        _timeOffsetInSeconds = 0;
         _enableKeepDomainsAlive = YES;
         _expiredIPEnabled = NO;
         _persistCacheIPEnabled = NO;
@@ -185,6 +187,12 @@ static MSDKDnsParamsManager * gSharedInstance = nil;
     });
 }
 
+- (void)msdkDnsSetOffsetWithBaseTime:(NSInteger)time {
+    dispatch_async([MSDKDnsInfoTool msdkdns_queue], ^{
+        self.timeOffsetInSeconds = time;
+    });
+}
+
 #pragma mark - getter
 
 - (BOOL)msdkDnsGetHttpOnly {
@@ -284,6 +292,10 @@ static MSDKDnsParamsManager * gSharedInstance = nil;
 
 - (BOOL)msdkDnsGetPersistCacheIPEnabled {
     return _persistCacheIPEnabled;
+}
+
+- (NSInteger)msdkDnsGetOffsetWithBaseTime {
+    return _timeOffsetInSeconds;
 }
  
 @end

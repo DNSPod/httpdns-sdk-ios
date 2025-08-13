@@ -78,6 +78,8 @@ static MSDKDnsManager * gSharedInstance = nil;
         _fetchConfigFailCount = 0;
         _cacheDomainCountDict = [[NSMutableDictionary alloc] init];
         
+        MSDKDNSLOG("开始读取现有存储的ipList");
+        
         // 获取NSUserDefaults实例
         NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
         @try {
@@ -149,8 +151,8 @@ static MSDKDnsManager * gSharedInstance = nil;
     if([toCheckDomains count] == 0) {
         // NSLog(@"有缓存");
         NSDictionary * result = verbose ?
-            [self fullResultDictionary:domains fromCache:cacheDomainDict] :
-            [self resultDictionary:domains fromCache:cacheDomainDict];
+        [self fullResultDictionary:domains fromCache:cacheDomainDict] :
+        [self resultDictionary:domains fromCache:cacheDomainDict];
         return result;
     }
     dispatch_semaphore_t sema = dispatch_semaphore_create(0);
@@ -183,12 +185,12 @@ static MSDKDnsManager * gSharedInstance = nil;
         }
     });
     NSDictionary * result = verbose?
-        [self fullResultDictionary:domains fromCache:cacheDomainDict] :
-        [self resultDictionary:domains fromCache:cacheDomainDict];
+    [self fullResultDictionary:domains fromCache:cacheDomainDict] :
+    [self resultDictionary:domains fromCache:cacheDomainDict];
     return result;
 }
 
-// 
+//
 - (NSDictionary *)getHostsByNamesEnableExpired:(NSArray *)domains verbose:(BOOL)verbose {
     // 获取当前ipv4/ipv6/双栈网络环境
     msdkdns::MSDKDNS_TLocalIPStack netStack = [self detectAddressType];
@@ -245,8 +247,8 @@ static MSDKDnsManager * gSharedInstance = nil;
         });
     }
     NSDictionary * result = verbose?
-        [self fullResultDictionaryEnableExpired:domains fromCache:cacheDomainDict toEmpty:toEmptyDomains] :
-        [self resultDictionaryEnableExpired:domains fromCache:cacheDomainDict toEmpty:toEmptyDomains];
+    [self fullResultDictionaryEnableExpired:domains fromCache:cacheDomainDict toEmpty:toEmptyDomains] :
+    [self resultDictionaryEnableExpired:domains fromCache:cacheDomainDict toEmpty:toEmptyDomains];
     
     [self excuteOptimismReport:domains result:result verbose:verbose];
     
@@ -309,7 +311,7 @@ static MSDKDnsManager * gSharedInstance = nil;
 
 - (void)getHostsByNames:(NSArray *)domains
                 verbose:(BOOL)verbose
-                from:(NSString *)origin
+                   from:(NSString *)origin
               returnIps:(void (^)(NSDictionary * ipsDict))handler {
     // 获取当前ipv4/ipv6/双栈网络环境
     msdkdns::MSDKDNS_TLocalIPStack netStack = [self detectAddressType];
@@ -326,8 +328,8 @@ static MSDKDnsManager * gSharedInstance = nil;
     // 全部有缓存时，直接返回
     if([toCheckDomains count] == 0) {
         NSDictionary * result = verbose ?
-            [self fullResultDictionary:domains fromCache:cacheDomainDict] :
-            [self resultDictionary:domains fromCache:cacheDomainDict];
+        [self fullResultDictionary:domains fromCache:cacheDomainDict] :
+        [self resultDictionary:domains fromCache:cacheDomainDict];
         if (handler) {
             handler(result);
         }
@@ -352,8 +354,8 @@ static MSDKDnsManager * gSharedInstance = nil;
                 }];
                 [strongSelf dnsHasDone:dnsService];
                 NSDictionary * result = verbose ?
-                    [strongSelf fullResultDictionary:domains fromCache:self.domainDict] :
-                    [strongSelf resultDictionary:domains fromCache:self.domainDict];
+                [strongSelf fullResultDictionary:domains fromCache:self.domainDict] :
+                [strongSelf resultDictionary:domains fromCache:self.domainDict];
                 if (handler) {
                     handler(result);
                 }
@@ -406,7 +408,7 @@ static MSDKDnsManager * gSharedInstance = nil;
 - (void)preResolveDomains {
     __block NSArray * domains = nil;
     dispatch_sync([MSDKDnsInfoTool msdkdns_queue], ^{
-       domains = [[MSDKDnsParamsManager shareInstance] msdkDnsGetPreResolvedDomains];
+        domains = [[MSDKDnsParamsManager shareInstance] msdkDnsGetPreResolvedDomains];
     });
     if (domains && [domains count] > 0) {
         MSDKDNSLOG(@"preResolve domains: %@", [domains componentsJoinedByString:@","] );
@@ -647,6 +649,12 @@ static MSDKDnsManager * gSharedInstance = nil;
     });
 }
 
+- (void)enterBackgroundReportCacheData {
+    dispatch_async([MSDKDnsInfoTool msdkdns_queue], ^{
+        [self cacheDomainReportAtta];
+    });
+}
+
 - (void)clearAllCache {
     dispatch_async([MSDKDnsInfoTool msdkdns_queue], ^{
         MSDKDNSLOG(@"MSDKDns cleared all caches!");
@@ -684,32 +692,38 @@ static MSDKDnsManager * gSharedInstance = nil;
             } else {
                 [self.cacheDomainCountDict setValue:[NSNumber numberWithInt:1] forKey:domain];
             }
-        
+            
             if ([[AttaReport sharedInstance] shoulReportDnsSpend]) {
-                NSArray *dictKey = [self.cacheDomainCountDict allKeys];
-                NSInteger length = [dictKey count];
-                for (int i = 0; i < length; i++) {
-                    id domainKey = [dictKey objectAtIndex:i];
-                    NSNumber *cacheCount = [self.cacheDomainCountDict objectForKey:domainKey];
-                    [[AttaReport sharedInstance] reportEvent:@{
-                        MSDKDns_ErrorCode: MSDKDns_Success,
-                        @"eventName": MSDKDnsEventHttpDnsCached,
-                        @"dnsIp": [[MSDKDnsManager shareInstance] currentDnsServer],
-                        @"req_dn": domainKey,
-                        @"req_type": @"a",
-                        @"req_timeout": @0,
-                        @"req_ttl": @0,
-                        @"req_query": @0,
-                        @"req_ip": @"",
-                        @"spend": @0,
-                        @"statusCode": @0,
-                        @"count": cacheCount,
-                        @"isCache": @1,
-                    }];
-                }
-                [self.cacheDomainCountDict removeAllObjects];
-             }
+                [self cacheDomainReportAtta];
+            }
         }
+    }
+}
+
+- (void)cacheDomainReportAtta {
+    if (self.cacheDomainCountDict) {
+        NSArray *dictKey = [self.cacheDomainCountDict allKeys];
+        NSInteger length = [dictKey count];
+        for (int i = 0; i < length; i++) {
+            id domainKey = [dictKey objectAtIndex:i];
+            NSNumber *cacheCount = [self.cacheDomainCountDict objectForKey:domainKey];
+            [[AttaReport sharedInstance] reportEvent:@{
+                MSDKDns_ErrorCode: MSDKDns_Success,
+                @"eventName": MSDKDnsEventHttpDnsCached,
+                @"dnsIp": [[MSDKDnsManager shareInstance] currentDnsServer],
+                @"req_dn": domainKey,
+                @"req_type": @"a",
+                @"req_timeout": @0,
+                @"req_ttl": @0,
+                @"req_query": @0,
+                @"req_ip": @"",
+                @"spend": @0,
+                @"statusCode": @0,
+                @"count": cacheCount,
+                @"isCache": @1,
+            }];
+        }
+        [self.cacheDomainCountDict removeAllObjects];
     }
 }
 
@@ -1134,13 +1148,13 @@ static MSDKDnsManager * gSharedInstance = nil;
         MSDKDNSLOG(@"拉取的动态服务ip列表: %@", filteredArray);
         if (filteredArray && filteredArray.count >= 0) {
             // 当筛选过后的ip列表长度超过1个，就替换本地默认服务ip列表
-            [self resetDnsServers:filteredArray];
+           [self resetDnsServers:filteredArray];
             
             if(configDict && [configDict objectForKey:@"ttl"]){
                 NSString *ttl = [configDict objectForKey:@"ttl"];
                 int fetchTime = 60; //分钟
                 int intValue = [ttl intValue];
-                // 把ttl中的字符串转为int，当小于1的时候，或者大于1440，都是用默认值60分钟
+                // 把ttl中的字符串转为int，当大于等于1并且小于等于1440的时候，才进行本地持久化ip存储，否则就使用一次就失效
                 if (intValue && intValue >= 1 && intValue <= 1440) {
                     fetchTime = intValue;
                     MSDKDNSLOG(@"等待%d分钟时间后去更新服务ip列表", fetchTime);
@@ -1366,7 +1380,7 @@ static MSDKDnsManager * gSharedInstance = nil;
     dispatch_async([MSDKDnsInfoTool msdkdns_queue], ^{
         if (self.serverIndex < [self.dnsServers count] - 1) {
             self.serverIndex += 1;
-        } else {
+                    } else {
             self.serverIndex = 0;
             // 当服务ip都失败，切回主ip的时候，使用启动ip下发拉取服务ip列表的请求
             HttpDnsEncryptType encryptType = [[MSDKDnsParamsManager shareInstance] msdkDnsGetEncryptType];
